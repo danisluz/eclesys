@@ -1,0 +1,15 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: eclesys-postgres
+    environment:
+      POSTGRES_DB: eclesys
+      POSTGRES_USER: eclesys
+      POSTGRES_PASSWORD: eclesys
+    ports:
+      - "5432:5432"
+    volumes:
+      - eclesys_pgdata:/var/lib/postgresql/data
+
+volumes:
+  eclesys_pgdata:
