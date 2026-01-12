@@ -3,7 +3,11 @@ package com.eclesys.api.domain.tenant;
 import jakarta.persistence.*;
 import java.time.Instant;
 import java.util.UUID;
+import lombok.Getter;
+import lombok.Setter;
 
+@Getter
+@Setter
 @Entity
 @Table(name = "tenants")
 public class TenantEntity {
@@ -29,46 +33,6 @@ public class TenantEntity {
 
   @Column(name = "updated_at", nullable = false)
   private Instant updatedAt;
-
-  // ===== GETTERS =====
-
-  public UUID getId() {
-    return id;
-  }
-
-  public String getTenantCode() {
-    return tenantCode;
-  }
-
-  public String getName() {
-    return name;
-  }
-
-  public String getLogoUrl() {
-    return logoUrl;
-  }
-
-  public boolean isActive() {
-    return isActive;
-  }
-
-  // ===== SETTERS =====
-
-  public void setName(String name) {
-    this.name = name;
-  }
-
-  public void setTenantCode(String tenantCode) {
-    this.tenantCode = tenantCode;
-  }
-
-  public void setLogoUrl(String logoUrl) {
-    this.logoUrl = logoUrl;
-  }
-
-  public void setActive(boolean active) {
-    this.isActive = active;
-  }
 
   @PrePersist
   public void prePersist() {
