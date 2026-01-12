@@ -1,23 +1,34 @@
-server:
-  port: 8080
-
 spring:
+  application:
+    name: eclesys-api
+
   datasource:
     url: jdbc:postgresql://localhost:5432/eclesys
     username: eclesys
     password: eclesys
     driver-class-name: org.postgresql.Driver
+
   jpa:
-    hibernate:
-      ddl-auto: validate
+    ddl-auto: validate
     properties:
       hibernate:
         format_sql: true
+
   flyway:
     enabled: true
+
+eclesys:
+  jwt:
+    secret: "CHANGE_ME_TO_A_LONG_RANDOM_SECRET_AT_LEAST_64_CHARS_1234567890_CHANGE_ME"
+    expiration-minutes: 120
 
 management:
   endpoints:
     web:
       exposure:
         include: health,info
+
+logging:
+  level:
+    org.springframework.security: TRACE
+    org.springframework.security.web.FilterChainProxy: TRACE

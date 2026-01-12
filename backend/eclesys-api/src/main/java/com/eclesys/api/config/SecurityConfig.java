@@ -1,45 +1,58 @@
 package com.eclesys.api.config;
 
-import static org.springframework.security.config.Customizer.withDefaults;
-
-import java.util.List;
+import com.eclesys.api.features.auth.JwtTokenService;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.http.HttpMethod;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
-@EnableWebSecurity
 public class SecurityConfig {
 
+  // ✅ AQUI tu cria o bean do filtro
   @Bean
-  SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-    http
-        .csrf(csrf -> csrf.disable())
-        .cors(withDefaults())
-        .authorizeHttpRequests(auth -> auth
-            .requestMatchers("/api/health", "/api/ping", "/api/version").permitAll()
-            .anyRequest().authenticated()
-        )
-        .httpBasic(withDefaults());
-
-    return http.build();
+  public JwtAuthFilter jwtAuthFilter(JwtTokenService jwtTokenService) {
+    return new JwtAuthFilter(jwtTokenService);
   }
 
+  // ✅ E AQUI tu usa ele
   @Bean
-  CorsConfigurationSource corsConfigurationSource() {
-    CorsConfiguration corsConfiguration = new CorsConfiguration();
-    corsConfiguration.setAllowedOrigins(List.of("http://localhost:4200"));
-    corsConfiguration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
-    corsConfiguration.setAllowedHeaders(List.of("*"));
-    corsConfiguration.setAllowCredentials(true);
+  public SecurityFilterChain securityFilterChain(
+      HttpSecurity http,
+      JwtAuthFilter jwtAuthFilter
+  ) throws Exception {
 
-    UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-    source.registerCorsConfiguration("/**", corsConfiguration);
-    return source;
+    return http
+        .csrf(csrf -> csrf.disable())
+        .cors(Customizer.withDefaults())
+        .sessionManagement(sm ->
+            sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+        )
+        .anonymous(anon -> anon.disable())
+        .exceptionHandling(ex -> ex
+            .authenticationEntryPoint((request, response, authException) ->
+                response.sendError(HttpServletResponse.SC_UNAUTHORIZED)
+            )
+            .accessDeniedHandler((request, response, accessDeniedException) ->
+                response.sendError(HttpServletResponse.SC_FORBIDDEN)
+            )
+        )
+        .authorizeHttpRequests(auth -> auth
+            .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+
+            .requestMatchers(HttpMethod.GET, "/api/health", "/api/ping", "/api/version").permitAll()
+            .requestMatchers(HttpMethod.POST, "/api/public/onboarding").permitAll()
+            .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
+
+            .requestMatchers("/actuator/health", "/actuator/info").permitAll()
+            .anyRequest().authenticated()
+        )
+        .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
+        .build();
   }
 }
