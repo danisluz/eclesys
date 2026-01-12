@@ -1,5 +1,6 @@
 package com.eclesys.api.shared.api;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -7,10 +8,43 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+  @ExceptionHandler(IllegalArgumentException.class)
+  public ResponseEntity<ApiResponse<Object>> handleIllegalArgument(IllegalArgumentException exception) {
+    // regra de negócio -> mensagem real
+    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+        .body(ApiResponse.error(safeMessage(exception.getMessage())));
+  }
+
+  @ExceptionHandler(IllegalStateException.class)
+  public ResponseEntity<ApiResponse<Object>> handleIllegalState(IllegalStateException exception) {
+    // regra de negócio -> mensagem real
+    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+        .body(ApiResponse.error(safeMessage(exception.getMessage())));
+  }
+
   @ExceptionHandler(RuntimeException.class)
   public ResponseEntity<ApiResponse<Object>> handleRuntime(RuntimeException exception) {
+    // mantém compatibilidade: se for "código conhecido", traduz
     String message = mapMessage(exception.getMessage());
-    return ResponseEntity.badRequest().body(ApiResponse.error(message));
+
+    // se não for um código conhecido, NÃO mascara como "Erro inesperado":
+    // devolve a mensagem real (pra debug e pra regra de negócio que usa RuntimeException)
+    if (!"Erro inesperado".equals(message)) {
+      return ResponseEntity.badRequest().body(ApiResponse.error(message));
+    }
+
+    String original = exception.getMessage();
+    if (original != null && !original.isBlank()) {
+      return ResponseEntity.badRequest().body(ApiResponse.error(original));
+    }
+
+    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+        .body(ApiResponse.error("Erro inesperado"));
+  }
+
+  private String safeMessage(String message) {
+    if (message == null || message.isBlank()) return "Erro inesperado";
+    return message;
   }
 
   private String mapMessage(String code) {

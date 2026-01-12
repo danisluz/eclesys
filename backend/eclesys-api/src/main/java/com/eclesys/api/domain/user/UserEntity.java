@@ -1,8 +1,18 @@
 package com.eclesys.api.domain.user;
 
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.Id;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.Table;
 import java.util.UUID;
+import lombok.Getter;
+import lombok.Setter;
 
+@Getter
+@Setter
 @Entity
 @Table(name = "users")
 public class UserEntity {
@@ -30,57 +40,9 @@ public class UserEntity {
   @Column(name = "is_active", nullable = false)
   private boolean isActive;
 
-  // ===== GETTERS =====
-  public UUID getId() {
-    return id;
-  }
-
-  public UUID getTenantId() {
-    return tenantId;
-  }
-
-  public String getEmail() {
-    return email;
-  }
-
-  public String getPasswordHash() {
-    return passwordHash;
-  }
-
-  public UserRole getRole() {
-    return role;
-  }
-
-  public boolean isActive() {
-    return isActive;
-  }
-
-  // ===== SETTERS (usados no onboarding) =====
-  public void setId(UUID id) {
-    this.id = id;
-  }
-
-  public void setTenantId(UUID tenantId) {
-    this.tenantId = tenantId;
-  }
-
-  public void setName(String name) {
-    this.name = name;
-  }
-
-  public void setEmail(String email) {
-    this.email = email;
-  }
-
-  public void setPasswordHash(String passwordHash) {
-    this.passwordHash = passwordHash;
-  }
-
-  public void setRole(UserRole role) {
-    this.role = role;
-  }
-
-  public void setActive(boolean active) {
-    isActive = active;
+  @PrePersist
+  public void prePersist() {
+    if (id == null) id = UUID.randomUUID();
+    if (!isActive) isActive = true;
   }
 }
