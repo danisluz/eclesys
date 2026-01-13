@@ -14,4 +14,8 @@ export class ApiClientService {
   get<T>(path: string) {
     return this.httpClient.get<T>(this.buildUrl(path));
   }
+
+  post<T>(path: string, body: unknown) {
+    return this.httpClient.post<T>(this.buildUrl(path), body);
+  }
 }

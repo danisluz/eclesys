@@ -1,0 +1,16 @@
+import { HttpInterceptorFn } from '@angular/common/http';
+import { inject } from '@angular/core';
+import { AuthStore } from './auth.store';
+
+export const authInterceptor: HttpInterceptorFn = (request, next) => {
+  let authStore = inject(AuthStore);
+  let token = authStore.token();
+
+  if (!token) return next(request);
+
+  let cloned = request.clone({
+    setHeaders: { Authorization: `Bearer ${token}` },
+  });
+
+  return next(cloned);
+};

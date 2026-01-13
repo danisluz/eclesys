@@ -1,20 +1,32 @@
 import { Routes } from '@angular/router';
+import { PublicShellComponent } from './core/layout/public-shell.component';
+import { LandingComponent } from './features/public/landing.component';
+import { authGuard } from './core/auth/auth.guard';
+import { AppShellComponent } from './core/layout/app-shell.component';
+import { DashboardComponent } from './features/app/dashboard.component';
+import { LoginComponent } from './features/public/login.component';
+import { PricingComponent } from './features/public/pricing.component';
+import { SignupComponent } from './features/public/signup.component';
 
 export const routes: Routes = [
   {
     path: '',
-    redirectTo: 'system-status',
-    pathMatch: 'full'
+    component: PublicShellComponent,
+    children: [
+      { path: '', component: LandingComponent },
+      { path: 'pricing', component: PricingComponent },
+      { path: 'signup', component: SignupComponent },
+      { path: 'login', component: LoginComponent },
+    ],
   },
   {
-    path: 'system-status',
-    loadComponent: () =>
-      import('./system-status/system-status.component').then(
-        (component) => component.SystemStatusComponent
-      )
+    path: 'app',
+    component: AppShellComponent,
+    canActivate: [authGuard],
+    children: [
+      { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
+      { path: 'dashboard', component: DashboardComponent },
+    ],
   },
-  {
-    path: '**',
-    redirectTo: 'system-status'
-  }
+  { path: '**', redirectTo: '' },
 ];
