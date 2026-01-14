@@ -28,10 +28,10 @@
   display: flex;
   align-items: center;
 
-  background: #355d74;
-  color: rgba(255, 255, 255, 0.92);
+  background: var(--eclesys-primary);
+  color: var(--eclesys-text);
 
-  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.08);
+  box-shadow: var(--eclesys-bg);
 }
 
 .topbar__left {
@@ -80,18 +80,25 @@
   font-weight: 700;
 }
 
-/* Estilo somente para habilitados (Material controla o disabled) */
-.topbar__nav-btn:not(:disabled) {
-  color: rgba(255, 255, 255, 0.92);
+/* ✅ HABILITADO (Material controla via classe, não via :disabled) */
+:host ::ng-deep .topbar__nav-btn:not(.mat-mdc-button-disabled) {
+  color: var(--eclesys-text);
 }
 
-.topbar__nav-btn:not(:disabled):hover {
-  background-color: rgba(255, 255, 255, 0.14);
+/* ✅ HOVER (HEX + transparência via color-mix) */
+:host ::ng-deep .topbar__nav-btn:not(.mat-mdc-button-disabled):hover {
+  background-color: color-mix(in srgb, var(--eclesys-text) 16%, transparent);
 }
 
-/* Ícones do botão seguem a cor quando habilitado */
-:host ::ng-deep .topbar__nav-btn:not(:disabled) .mat-icon {
-  color: rgba(255, 255, 255, 0.92);
+/* ✅ DISABLED */
+:host ::ng-deep .topbar__nav-btn.mat-mdc-button-disabled {
+  color: color-mix(in srgb, var(--eclesys-text) 45%, transparent);
+  opacity: 1; /* evita o Material “lavar” demais */
+}
+
+/* ✅ Ícones seguem a cor do botão */
+:host ::ng-deep .topbar__nav-btn .mat-icon {
+  color: currentColor;
   opacity: 0.9;
   margin-left: 6px;
 }
@@ -118,17 +125,25 @@
   align-items: center;
 }
 
-/* Estilo somente para habilitados (Material controla o disabled) */
-.topbar__user-btn:not(:disabled) {
-  color: rgba(255, 255, 255, 0.92);
+/* ✅ HABILITADO */
+:host ::ng-deep .topbar__user-btn:not(.mat-mdc-button-disabled) {
+  color: color-mix(in srgb, var(--eclesys-text) 16%, transparent);
 }
 
-.topbar__user-btn:not(:disabled):hover {
+/* ✅ HOVER */
+:host ::ng-deep .topbar__user-btn:not(.mat-mdc-button-disabled):hover {
   background-color: rgba(255, 255, 255, 0.14);
+  color: color-mix(in srgb, var(--eclesys-primary) 16%, transparent);
 }
 
-:host ::ng-deep .topbar__user-btn:not(:disabled) .mat-icon {
-  color: rgba(255, 255, 255, 0.92);
+/* ✅ DISABLED */
+:host ::ng-deep .topbar__user-btn.mat-mdc-button-disabled {
+  color: color-mix(in srgb, var(--eclesys-text) 16%, transparent);
+  opacity: 1;
+}
+
+:host ::ng-deep .topbar__user-btn .mat-icon {
+  color: currentColor;
   opacity: 0.9;
 }
 
@@ -143,6 +158,8 @@
 .topbar__user-name {
   font-weight: 800;
   font-size: 13px;
+  color: var(--eclesys-text);
+  margin-bottom: 5px;
 }
 
 .topbar__user-tenant {
@@ -150,6 +167,7 @@
   opacity: 0.85;
   letter-spacing: 0.3px;
   text-transform: uppercase;
+  color: color-mix(in srgb, var(--eclesys-text) 70%, transparent)
 }
 
 /* MENU DROPDOWN (opcional; pode remover se quiser 100% default Material) */
@@ -176,8 +194,8 @@
 ====================== */
 .footer {
   padding: 14px 18px;
-  background: #f8fafc;
-  border-top: 1px solid rgba(15, 23, 42, 0.06);
+  background: var(--eclesys-bg);
+  border-top: 1px solid var(--eclesys-border);
   margin-top: 24px;
 }
 
@@ -187,7 +205,7 @@
   gap: 10px;
 
   font-size: 12px;
-  color: rgba(15, 23, 42, 0.55);
+  color: var(--eclesys-primary);;
 }
 
 .dot {
