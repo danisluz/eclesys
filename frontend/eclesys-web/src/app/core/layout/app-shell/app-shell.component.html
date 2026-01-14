@@ -1,98 +1,101 @@
-<mat-sidenav-container class="shell">
-  <mat-sidenav class="shell__sidenav" mode="side" opened>
-    <div class="brand">
-      <img
-        class="brand__logo"
-        src="assets/brand/eclesys-logo.svg"
-        alt="ECLESYS"
-      />
+<div class="shell">
+  <!-- TOPBAR -->
+  <mat-toolbar class="topbar">
+    <div class="topbar__left">
+      <!-- BRAND -->
+      <div class="topbar__brand">
+  <img
+    class="topbar__brand-logo"
+    src="assets/brand/eclesys-logo-white.svg"
+    alt="ECLESYS"
+  />
 
-      <div class="brand__text">
-        <div class="brand__subtitle">Administração</div>
-      </div>
+  <div class="topbar__brand-text">
+    <div class="topbar__brand-subtitle">administração</div>
+  </div>
+</div>
+
+
+      <!-- NAV -->
+      <nav class="topbar__nav">
+        <button mat-button class="topbar__nav-btn" [matMenuTriggerFor]="menuDashboard">
+          Dashboard
+          <mat-icon>expand_more</mat-icon>
+        </button>
+        <mat-menu #menuDashboard="matMenu">
+          <button mat-menu-item routerLink="/app/dashboard">
+            Dashboard
+          </button>
+        </mat-menu>
+
+        <button mat-button class="topbar__nav-btn" disabled>
+          Membros
+          <mat-icon>expand_more</mat-icon>
+        </button>
+
+        <button mat-button class="topbar__nav-btn" disabled>
+          Famílias
+          <mat-icon>expand_more</mat-icon>
+        </button>
+
+        <button mat-button class="topbar__nav-btn" disabled>
+          Eventos
+          <mat-icon>expand_more</mat-icon>
+        </button>
+      </nav>
     </div>
 
-    <mat-nav-list class="nav">
-      <a mat-list-item routerLink="/app/dashboard" routerLinkActive="is-active">
-        <mat-icon matListItemIcon>dashboard</mat-icon>
-        <span matListItemTitle>Dashboard</span>
-      </a>
+    <span class="topbar__spacer"></span>
 
-      <a mat-list-item class="is-disabled" tabindex="-1" aria-disabled="true">
-        <mat-icon matListItemIcon>groups</mat-icon>
-        <span matListItemTitle>Membros</span>
-      </a>
-
-      <a mat-list-item class="is-disabled" tabindex="-1" aria-disabled="true">
-        <mat-icon matListItemIcon>family_restroom</mat-icon>
-        <span matListItemTitle>Famílias</span>
-      </a>
-
-      <a mat-list-item class="is-disabled" tabindex="-1" aria-disabled="true">
-        <mat-icon matListItemIcon>event</mat-icon>
-        <span matListItemTitle>Eventos</span>
-      </a>
-    </mat-nav-list>
-
-    <div class="sidenav-footer">
-      <div class="sidenav-footer__meta">
-        <span>v0.1</span>
-        <span class="dot">•</span>
-        <span>Admin</span>
-      </div>
-
+    <!-- USER -->
+    <div class="topbar__right">
       <button
-        mat-stroked-button
-        class="sidenav-footer__logout"
-        (click)="authStore.logout()"
+        mat-button
+        class="topbar__user-btn"
+        [matMenuTriggerFor]="userMenu"
       >
-        <mat-icon>logout</mat-icon>
-        Sair
-      </button>
-    </div>
-  </mat-sidenav>
-
-  <mat-sidenav-content class="shell__content">
-    <mat-toolbar class="topbar">
-      <div class="topbar__left">
-        <div class="topbar__page">
-          <div class="topbar__page-title church-name">Nome da Igreja</div>
-          <!-- <div class="topbar__page-subtitle">Administração</div> -->
-        </div>
-      </div>
-
-      <span class="topbar__spacer"></span>
-
-      <div class="topbar__user">
-        <div class="avatar" aria-hidden="true">{{ userInitials() }}</div>
-
         <div class="topbar__user-text">
-          <div class="topbar__user-name">{{ authStore.userName() || 'Usuário' }}</div>
-          <div class="topbar__user-role">{{ authStore.userRole() || '' }}</div>
+          <div class="topbar__user-name">
+            {{ authStore.userName() || 'Usuário' }}
+          </div>
+          <div class="topbar__user-tenant">
+            {{ authStore.tenantName() || 'Selecionar igreja' }}
+          </div>
         </div>
 
-        <button mat-icon-button aria-label="Notificações" disabled>
-          <mat-icon>notifications</mat-icon>
+        <mat-icon>expand_more</mat-icon>
+      </button>
+
+      <mat-menu #userMenu="matMenu">
+        <button mat-menu-item disabled>
+          <mat-icon>person</mat-icon>
+          Meu Perfil
         </button>
 
-        <button mat-icon-button aria-label="Configurações" disabled>
+        <button mat-menu-item disabled>
           <mat-icon>settings</mat-icon>
+          Configurações
         </button>
-      </div>
-    </mat-toolbar>
 
-    <main class="content">
-      <div class="content__container">
-        <router-outlet></router-outlet>
-      </div>
-    </main>
+        <button mat-menu-item (click)="authStore.logout()">
+          <mat-icon>logout</mat-icon>
+          Sair
+        </button>
+      </mat-menu>
+    </div>
+  </mat-toolbar>
 
-    <footer class="footer">
-      <div class="footer__inner">
-        <span>© {{ currentYear }} ECLESYS</span>
-        <span class="dot">•</span>
-        <span>Administração</span>
-      </div>
-    </footer>
-  </mat-sidenav-content>
-</mat-sidenav-container>
+  <!-- CONTENT -->
+  <main class="content">
+    <router-outlet></router-outlet>
+  </main>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <div class="footer__inner">
+      <span>© {{ currentYear }} ECLESYS</span>
+      <span class="dot">•</span>
+      <span>Administração</span>
+    </div>
+  </footer>
+</div>

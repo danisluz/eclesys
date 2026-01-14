@@ -18,6 +18,14 @@ export class AuthStore {
   userName = computed(() => this.userSignal()?.name ?? null);
   userRole = computed(() => this.userSignal()?.role ?? null);
 
+  private tenantNameSignal = signal<string | null>(null);
+
+  tenantName = computed(() => this.tenantNameSignal());
+
+  setTenantName(tenantName: string | null) {
+    this.tenantNameSignal.set(tenantName);
+  }
+
   token() {
     return this.tokenSignal();
   }

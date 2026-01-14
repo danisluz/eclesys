@@ -2,263 +2,194 @@
   display: block;
 }
 
+/* ======================
+   S H E L L
+====================== */
 .shell {
   min-height: 100vh;
-  height: auto;
-}
-
-.shell__sidenav {
-  width: 240px;
-  height: 100%;;
-  min-width: 240px;
-  max-width: 240px;
-  box-sizing: border-box;
-  background: #ffffff;
-  border-right: 1px solid rgba(15, 23, 42, 0.10);
-  color: rgba(15, 23, 42, 0.92);
-  overflow-x: hidden !important;
-}
-
-:host ::ng-deep .mat-drawer-inner-container {
   display: flex;
   flex-direction: column;
-  height: 100%;
-  overflow: hidden !important;
 }
 
-.brand {
-  flex: 0 0 auto;
-  padding: 18px 16px 14px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.brand__logo {
-  width: 120px;
-  height: 32px;
-  object-fit: contain;
-}
-
-.brand__text {
-  display: flex;
-  flex-direction: column;
-  line-height: 1.1;
-}
-
-.brand__name {
-  font-weight: 900;
-  letter-spacing: 0.2px;
-  color: rgba(15, 23, 42, 0.92);
-}
-
-.brand__subtitle {
-  font-size: 12px;
-  margin-top: 2px;
-  color: rgba(15, 23, 42, 0.60);
-}
-
-.nav {
-  flex: 1 1 auto;
-  min-height: 0;
-  overflow: visible;
-  padding: 8px 10px 10px;
-}
-
-:host ::ng-deep .mat-mdc-list-item,
-:host ::ng-deep a.mdc-list-item {
-  width: 100%;
-  max-width: 100%;
-  box-sizing: border-box;
-}
-
-:host ::ng-deep .mdc-list-item__content {
-  min-width: 0;
-}
-
-:host ::ng-deep .mdc-list-item__primary-text {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  font-size: 13px;
-  font-weight: 600;
-  color: rgba(15, 23, 42, 0.88);
-}
-
-:host ::ng-deep .mat-mdc-list-item mat-icon {
-  font-size: 20px;
-  width: 20px;
-  height: 20px;
-  color: rgba(15, 23, 42, 0.55);
-}
-
-.nav a {
-  border-radius: 12px;
-  margin: 4px 0;
-}
-
-.nav a.is-active {
-  border-radius: 12px;
-  background: rgba(15, 42, 68, 0.06);
-  box-shadow: inset 0 0 0 1px rgba(15, 42, 68, 0.08);
-}
-
-.nav a.is-active .mdc-list-item__primary-text {
-  color: rgba(15, 42, 68, 0.95);
-}
-
-.nav a.is-active mat-icon {
-  color: rgba(15, 42, 68, 0.90);
-}
-
-.is-disabled {
-  opacity: 0.45;
-  pointer-events: none;
-}
-
-.sidenav-footer {
-  flex: 0 0 auto;
-  margin-top: auto;
-  padding: 14px 16px 18px;
-  border-top: 1px solid rgba(15, 23, 42, 0.10);
-  background: #fff;
-  display: grid;
-  gap: 12px;
-}
-
-.sidenav-footer__meta {
-  font-size: 12px;
-  color: rgba(15, 23, 42, 0.55);
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.dot {
-  opacity: 0.6;
-}
-
-.sidenav-footer__logout {
-  width: 100%;
-  max-width: 100%;
-  box-sizing: border-box;
-  border-radius: 999px;
-  justify-content: flex-start;
-}
-
-.shell__content {
-  min-height: 100vh;
-  height: auto;
-  display: flex;
-  flex-direction: column;
-  overflow: visible;
-}
-
+/* ======================
+   T O P B A R  (FIXO)
+====================== */
 .topbar {
-  position: sticky;
+  position: fixed;
   top: 0;
-  z-index: 10;
-  height: 72px;
+  left: 0;
+  right: 0;
+
+  z-index: 1000;
+
+  height: 64px;
   padding: 0 18px;
-  background: #ffffff;
-  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+
+  display: flex;
+  align-items: center;
+
+  background: #355d74;
+  color: rgba(255, 255, 255, 0.92);
+
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.08);
 }
 
 .topbar__left {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 20px;
+  min-width: 0;
 }
 
-.topbar__page {
+/* BRAND */
+.topbar__brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.topbar__brand-logo {
+  height: 20px;
+  width: auto;
+  object-fit: contain;
+  display: block;
+}
+
+.topbar__brand-text {
   display: flex;
   flex-direction: column;
-  line-height: 1.1;
-  margin-right: 6px;
+  line-height: 1.05;
 }
 
-:host ::ng-deep mat-toolbar.topbar .church-name {
-  color: var(--eclesys-primary) !important;
-  font-weight: 900;
-}
-
-.topbar__page-title {
-  font-weight: 600;
-  letter-spacing: 0.2px;
-}
-
-.topbar__page-subtitle {
+.topbar__brand-subtitle {
   font-size: 12px;
-  color: rgba(15, 23, 42, 0.55);
-  margin-top: 2px;
+  opacity: 0.85;
 }
 
-.topbar__search {
-  width: min(560px, 52vw);
+/* NAV */
+.topbar__nav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.topbar__nav-btn {
+  height: 40px;
+  padding: 0 14px;
+  border-radius: 999px;
+  font-weight: 700;
+}
+
+/* Estilo somente para habilitados (Material controla o disabled) */
+.topbar__nav-btn:not(:disabled) {
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.topbar__nav-btn:not(:disabled):hover {
+  background-color: rgba(255, 255, 255, 0.14);
+}
+
+/* Ícones do botão seguem a cor quando habilitado */
+:host ::ng-deep .topbar__nav-btn:not(:disabled) .mat-icon {
+  color: rgba(255, 255, 255, 0.92);
+  opacity: 0.9;
+  margin-left: 6px;
 }
 
 .topbar__spacer {
   flex: 1;
 }
 
-.topbar__user {
+/* RIGHT SIDE */
+.topbar__right {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
 }
 
-.avatar {
-  width: 34px;
-  height: 34px;
+/* USER */
+.topbar__user-btn {
+  height: 44px;
+  padding: 6px 10px 6px 12px;
+
   border-radius: 999px;
-  background: rgba(15, 23, 42, 0.08);
-  color: rgba(15, 23, 42, 0.75);
-  display: grid;
-  place-items: center;
-  font-weight: 900;
+
+  display: flex;
+  align-items: center;
+}
+
+/* Estilo somente para habilitados (Material controla o disabled) */
+.topbar__user-btn:not(:disabled) {
+  color: rgba(255, 255, 255, 0.92);
+}
+
+.topbar__user-btn:not(:disabled):hover {
+  background-color: rgba(255, 255, 255, 0.14);
+}
+
+:host ::ng-deep .topbar__user-btn:not(:disabled) .mat-icon {
+  color: rgba(255, 255, 255, 0.92);
+  opacity: 0.9;
 }
 
 .topbar__user-text {
   display: flex;
   flex-direction: column;
-  line-height: 1.1;
+  text-align: right;
+  line-height: 1.05;
   margin-right: 6px;
 }
 
 .topbar__user-name {
   font-weight: 800;
   font-size: 13px;
-  color: rgba(15, 23, 42, 0.88);
 }
 
-.topbar__user-role {
-  font-size: 12px;
-  color: rgba(15, 23, 42, 0.55);
-  margin-top: 2px;
+.topbar__user-tenant {
+  font-size: 11px;
+  opacity: 0.85;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
 }
 
+/* MENU DROPDOWN (opcional; pode remover se quiser 100% default Material) */
+:host ::ng-deep .mat-mdc-menu-panel {
+  border-radius: 12px !important;
+}
+
+:host ::ng-deep .mat-mdc-menu-content {
+  padding: 6px !important;
+}
+
+/* ======================
+   C O N T E N T
+====================== */
+/* Compensa o header fixo (64px) */
 .content {
-  flex: 1 0 auto;
-  overflow: visible;
-  padding: 22px 18px 0;
+  flex: 1;
+  padding: 24px 18px 0;
+  padding-top: calc(64px + 24px);
 }
 
-.content__container {
-  max-width: none;
-  margin: 0;
-}
-
+/* ======================
+   F O O T E R
+====================== */
 .footer {
-  margin-top: 30px;
   padding: 14px 18px;
-  border-top: 1px solid rgba(15, 23, 42, 0.04);
-  background: #ffffff;
+  background: #f8fafc;
+  border-top: 1px solid rgba(15, 23, 42, 0.06);
+  margin-top: 24px;
 }
 
 .footer__inner {
   display: flex;
   align-items: center;
   gap: 10px;
-  color: rgba(15, 23, 42, 0.55);
+
   font-size: 12px;
+  color: rgba(15, 23, 42, 0.55);
+}
+
+.dot {
+  opacity: 0.6;
 }

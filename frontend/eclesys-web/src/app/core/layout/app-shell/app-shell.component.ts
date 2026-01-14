@@ -9,6 +9,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { MatMenuModule } from '@angular/material/menu'; // ✅ ADD
 import { AuthStore } from '../../auth/auth.store';
 
 @Component({
@@ -25,6 +26,7 @@ import { AuthStore } from '../../auth/auth.store';
     MatDividerModule,
     MatFormFieldModule,
     MatInputModule,
+    MatMenuModule, // ✅ ADD
   ],
   templateUrl: './app-shell.component.html',
   styleUrl: './app-shell.component.scss',

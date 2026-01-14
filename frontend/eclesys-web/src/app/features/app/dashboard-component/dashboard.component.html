@@ -39,9 +39,10 @@
 
         <div class="kpi__bottom">
           <div class="kpi__hint">Em breve: cadastro, filtros e relatórios.</div>
-          <button mat-button disabled>
+          <button mat-button disabled class="kpi__action">
             Abrir <mat-icon>chevron_right</mat-icon>
           </button>
+
         </div>
       </div>
     </mat-card>
@@ -64,9 +65,10 @@
 
         <div class="kpi__bottom">
           <div class="kpi__hint">Em breve: agenda, presença e histórico.</div>
-          <button mat-button disabled>
-            Abrir <mat-icon>chevron_right</mat-icon>
-          </button>
+          <button mat-button disabled class="kpi__action">
+  Abrir <mat-icon>chevron_right</mat-icon>
+</button>
+
         </div>
       </div>
     </mat-card>
@@ -89,9 +91,10 @@
 
         <div class="kpi__bottom">
           <div class="kpi__hint">Backend pronto. Falta UI de gestão.</div>
-          <button mat-button disabled>
-            Abrir <mat-icon>chevron_right</mat-icon>
-          </button>
+          <button mat-button disabled class="kpi__action">
+  Abrir <mat-icon>chevron_right</mat-icon>
+</button>
+
         </div>
       </div>
     </mat-card>
@@ -112,7 +115,9 @@
 
     <div class="panel__list">
       <div class="panel__item">
-        <mat-icon>check_circle</mat-icon>
+         <div class="panel__item-icon">
+    <mat-icon>check_circle</mat-icon>
+  </div>
         <div>
           <div class="panel__item-title">Autenticação + JWT</div>
           <div class="panel__item-subtitle">Login, roles, tenant no token</div>
