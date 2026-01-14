@@ -1,0 +1,264 @@
+:host {
+  display: block;
+}
+
+.shell {
+  min-height: 100vh;
+  height: auto;
+}
+
+.shell__sidenav {
+  width: 240px;
+  height: 100%;;
+  min-width: 240px;
+  max-width: 240px;
+  box-sizing: border-box;
+  background: #ffffff;
+  border-right: 1px solid rgba(15, 23, 42, 0.10);
+  color: rgba(15, 23, 42, 0.92);
+  overflow-x: hidden !important;
+}
+
+:host ::ng-deep .mat-drawer-inner-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden !important;
+}
+
+.brand {
+  flex: 0 0 auto;
+  padding: 18px 16px 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.brand__logo {
+  width: 120px;
+  height: 32px;
+  object-fit: contain;
+}
+
+.brand__text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.1;
+}
+
+.brand__name {
+  font-weight: 900;
+  letter-spacing: 0.2px;
+  color: rgba(15, 23, 42, 0.92);
+}
+
+.brand__subtitle {
+  font-size: 12px;
+  margin-top: 2px;
+  color: rgba(15, 23, 42, 0.60);
+}
+
+.nav {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: visible;
+  padding: 8px 10px 10px;
+}
+
+:host ::ng-deep .mat-mdc-list-item,
+:host ::ng-deep a.mdc-list-item {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+:host ::ng-deep .mdc-list-item__content {
+  min-width: 0;
+}
+
+:host ::ng-deep .mdc-list-item__primary-text {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(15, 23, 42, 0.88);
+}
+
+:host ::ng-deep .mat-mdc-list-item mat-icon {
+  font-size: 20px;
+  width: 20px;
+  height: 20px;
+  color: rgba(15, 23, 42, 0.55);
+}
+
+.nav a {
+  border-radius: 12px;
+  margin: 4px 0;
+}
+
+.nav a.is-active {
+  border-radius: 12px;
+  background: rgba(15, 42, 68, 0.06);
+  box-shadow: inset 0 0 0 1px rgba(15, 42, 68, 0.08);
+}
+
+.nav a.is-active .mdc-list-item__primary-text {
+  color: rgba(15, 42, 68, 0.95);
+}
+
+.nav a.is-active mat-icon {
+  color: rgba(15, 42, 68, 0.90);
+}
+
+.is-disabled {
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+.sidenav-footer {
+  flex: 0 0 auto;
+  margin-top: auto;
+  padding: 14px 16px 18px;
+  border-top: 1px solid rgba(15, 23, 42, 0.10);
+  background: #fff;
+  display: grid;
+  gap: 12px;
+}
+
+.sidenav-footer__meta {
+  font-size: 12px;
+  color: rgba(15, 23, 42, 0.55);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dot {
+  opacity: 0.6;
+}
+
+.sidenav-footer__logout {
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  border-radius: 999px;
+  justify-content: flex-start;
+}
+
+.shell__content {
+  min-height: 100vh;
+  height: auto;
+  display: flex;
+  flex-direction: column;
+  overflow: visible;
+}
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  height: 72px;
+  padding: 0 18px;
+  background: #ffffff;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+}
+
+.topbar__left {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.topbar__page {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.1;
+  margin-right: 6px;
+}
+
+:host ::ng-deep mat-toolbar.topbar .church-name {
+  color: var(--eclesys-primary) !important;
+  font-weight: 900;
+}
+
+.topbar__page-title {
+  font-weight: 600;
+  letter-spacing: 0.2px;
+}
+
+.topbar__page-subtitle {
+  font-size: 12px;
+  color: rgba(15, 23, 42, 0.55);
+  margin-top: 2px;
+}
+
+.topbar__search {
+  width: min(560px, 52vw);
+}
+
+.topbar__spacer {
+  flex: 1;
+}
+
+.topbar__user {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.08);
+  color: rgba(15, 23, 42, 0.75);
+  display: grid;
+  place-items: center;
+  font-weight: 900;
+}
+
+.topbar__user-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.1;
+  margin-right: 6px;
+}
+
+.topbar__user-name {
+  font-weight: 800;
+  font-size: 13px;
+  color: rgba(15, 23, 42, 0.88);
+}
+
+.topbar__user-role {
+  font-size: 12px;
+  color: rgba(15, 23, 42, 0.55);
+  margin-top: 2px;
+}
+
+.content {
+  flex: 1 0 auto;
+  overflow: visible;
+  padding: 22px 18px 0;
+}
+
+.content__container {
+  max-width: none;
+  margin: 0;
+}
+
+.footer {
+  margin-top: 30px;
+  padding: 14px 18px;
+  border-top: 1px solid rgba(15, 23, 42, 0.04);
+  background: #ffffff;
+}
+
+.footer__inner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: rgba(15, 23, 42, 0.55);
+  font-size: 12px;
+}

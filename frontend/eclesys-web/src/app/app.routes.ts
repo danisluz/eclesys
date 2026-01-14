@@ -2,11 +2,11 @@ import { Routes } from '@angular/router';
 import { PublicShellComponent } from './core/layout/public-shell/public-shell.component';
 import { LandingComponent } from './features/public/landing-component/landing.component';
 import { authGuard } from './core/auth/auth.guard';
-import { AppShellComponent } from './core/layout/app-shell.component';
-import { DashboardComponent } from './features/app/dashboard.component';
+import { DashboardComponent } from './features/app/dashboard-component/dashboard.component';
 import { PricingComponent } from './features/public/pricing-component/pricing.component';
 import { SignupComponent } from './features/public/signup-component/signup.component';
 import { LoginComponent } from './features/public/login-component/login.component';
+import { AppShellComponent } from './core/layout/app-shell/app-shell.component';
 
 export const routes: Routes = [
   {
@@ -22,7 +22,7 @@ export const routes: Routes = [
   {
     path: 'app',
     component: AppShellComponent,
-    canActivate: [authGuard],
+    // canActivate: [authGuard],
     children: [
       { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
       { path: 'dashboard', component: DashboardComponent },

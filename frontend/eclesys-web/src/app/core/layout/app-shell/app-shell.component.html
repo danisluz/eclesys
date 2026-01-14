@@ -1,0 +1,98 @@
+<mat-sidenav-container class="shell">
+  <mat-sidenav class="shell__sidenav" mode="side" opened>
+    <div class="brand">
+      <img
+        class="brand__logo"
+        src="assets/brand/eclesys-logo.svg"
+        alt="ECLESYS"
+      />
+
+      <div class="brand__text">
+        <div class="brand__subtitle">Administração</div>
+      </div>
+    </div>
+
+    <mat-nav-list class="nav">
+      <a mat-list-item routerLink="/app/dashboard" routerLinkActive="is-active">
+        <mat-icon matListItemIcon>dashboard</mat-icon>
+        <span matListItemTitle>Dashboard</span>
+      </a>
+
+      <a mat-list-item class="is-disabled" tabindex="-1" aria-disabled="true">
+        <mat-icon matListItemIcon>groups</mat-icon>
+        <span matListItemTitle>Membros</span>
+      </a>
+
+      <a mat-list-item class="is-disabled" tabindex="-1" aria-disabled="true">
+        <mat-icon matListItemIcon>family_restroom</mat-icon>
+        <span matListItemTitle>Famílias</span>
+      </a>
+
+      <a mat-list-item class="is-disabled" tabindex="-1" aria-disabled="true">
+        <mat-icon matListItemIcon>event</mat-icon>
+        <span matListItemTitle>Eventos</span>
+      </a>
+    </mat-nav-list>
+
+    <div class="sidenav-footer">
+      <div class="sidenav-footer__meta">
+        <span>v0.1</span>
+        <span class="dot">•</span>
+        <span>Admin</span>
+      </div>
+
+      <button
+        mat-stroked-button
+        class="sidenav-footer__logout"
+        (click)="authStore.logout()"
+      >
+        <mat-icon>logout</mat-icon>
+        Sair
+      </button>
+    </div>
+  </mat-sidenav>
+
+  <mat-sidenav-content class="shell__content">
+    <mat-toolbar class="topbar">
+      <div class="topbar__left">
+        <div class="topbar__page">
+          <div class="topbar__page-title church-name">Nome da Igreja</div>
+          <!-- <div class="topbar__page-subtitle">Administração</div> -->
+        </div>
+      </div>
+
+      <span class="topbar__spacer"></span>
+
+      <div class="topbar__user">
+        <div class="avatar" aria-hidden="true">{{ userInitials() }}</div>
+
+        <div class="topbar__user-text">
+          <div class="topbar__user-name">{{ authStore.userName() || 'Usuário' }}</div>
+          <div class="topbar__user-role">{{ authStore.userRole() || '' }}</div>
+        </div>
+
+        <button mat-icon-button aria-label="Notificações" disabled>
+          <mat-icon>notifications</mat-icon>
+        </button>
+
+        <button mat-icon-button aria-label="Configurações" disabled>
+          <mat-icon>settings</mat-icon>
+        </button>
+      </div>
+    </mat-toolbar>
+
+    <main class="content">
+      <div class="content__container">
+        <router-outlet></router-outlet>
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer__inner">
+        <span>© {{ currentYear }} ECLESYS</span>
+        <span class="dot">•</span>
+        <span>Administração</span>
+      </div>
+    </footer>
+  </mat-sidenav-content>
+</mat-sidenav-container>

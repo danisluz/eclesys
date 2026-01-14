@@ -1,40 +1,34 @@
-
 @use '@angular/material' as mat;
 
-html {
-  height: 100%;
+@include mat.theme((
+  color: (
+    primary: mat.$azure-palette,
+    tertiary: mat.$rose-palette,
+  ),
+  typography: (
+    brand-family: Inter,
+    plain-family: Inter,
+  ),
+  density: 0,
+));
 
-  @include mat.theme((
-    color: (
-      primary: mat.$azure-palette,
-      tertiary: mat.$rose-palette,
-    ),
-    typography: (
-      brand-family: Inter,
-      plain-family: Inter,
-    ),
-    density: 0,
-  ));
-}
-
-body {
-  color-scheme: light;
-  background-color: var(--mat-sys-surface);
-  color: var(--mat-sys-on-surface);
-  font: var(--mat-sys-body-medium);
-
-  margin: 0;
-  height: 100%;
-}
-
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-:root{
-  --eclesys-primary: #0F2A44;
-  --eclesys-primary-2: #143B63;
+:root {
+  --eclesys-primary: #274AB0;
+  --eclesys-primary-2: #7199FF;
   --eclesys-bg: #F8FAFC;
   --eclesys-border: #E2E8F0;
 }
 
+html, body {
+  height: auto;
+  margin: 0;
+  overflow-y: auto;
+  font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+  color: #0f172a;
+}
+
+body { 
+  margin: 0; 
+  background: #f3f5f9;
+}
+.public-shell { background: #fff; }

@@ -1,0 +1,152 @@
+.dashboard {
+  display: grid;
+  gap: 18px;
+}
+
+.dashboard__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.dashboard__title {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: 0.2px;
+}
+
+.dashboard__subtitle {
+  margin: 0;
+  color: rgba(15, 23, 42, 0.65);
+}
+
+.dashboard__actions {
+  display: flex;
+  gap: 10px;
+}
+
+.dashboard__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+@media (max-width: 1100px) {
+  .dashboard__grid { grid-template-columns: 1fr; }
+  .dashboard__actions { flex-wrap: wrap; justify-content: flex-end; }
+}
+
+.kpi {
+  display: grid;
+  grid-template-columns: 56px 1fr;
+  gap: 14px;
+  padding: 14px;
+  border-radius: 18px;
+  background: #ffffff;
+}
+
+.kpi__icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  background: rgba(15, 42, 68, 0.08);
+  display: grid;
+  place-items: center;
+}
+
+.kpi__icon mat-icon {
+  color: #0f2a44;
+}
+
+.kpi__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.kpi__title {
+  font-weight: 800;
+  font-size: 16px;
+}
+
+.kpi__subtitle {
+  color: rgba(15, 23, 42, 0.65);
+  font-size: 12px;
+  margin-top: 2px;
+}
+
+.kpi__value {
+  font-size: 22px;
+  font-weight: 800;
+  color: rgba(15, 23, 42, 0.45);
+}
+
+.kpi__bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-top: 12px;
+}
+
+.kpi__hint {
+  color: rgba(15, 23, 42, 0.65);
+  font-size: 13px;
+}
+
+.panel {
+  border-radius: 18px;
+  background: #ffffff;
+  padding: 16px;
+}
+
+.panel__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 12px;
+}
+
+.panel__title {
+  font-weight: 900;
+  font-size: 16px;
+}
+
+.panel__subtitle {
+  color: rgba(15, 23, 42, 0.65);
+  font-size: 12px;
+  margin-top: 2px;
+}
+
+.panel__list {
+  display: grid;
+  gap: 12px;
+}
+
+.panel__item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 14px;
+  background: rgba(15, 23, 42, 0.03);
+}
+
+.panel__item mat-icon {
+  color: rgba(15, 42, 68, 0.75);
+}
+
+.panel__item-title {
+  font-weight: 800;
+}
+
+.panel__item-subtitle {
+  color: rgba(15, 23, 42, 0.65);
+  font-size: 12px;
+  margin-top: 2px;
+}
