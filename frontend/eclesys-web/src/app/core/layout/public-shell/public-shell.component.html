@@ -1,0 +1,62 @@
+<div class="min-h-screen flex flex-col">
+
+  <header class="sticky top-0 z-10 border-b border-slate-200 bg-white/80 backdrop-blur">
+    <div class="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
+      <a routerLink="/" class="flex items-center gap-3">
+        <img [src]="'assets/brand/eclesys-logo.svg'" alt="ECLESYS" class="h-6" />
+
+      </a>
+
+      <nav class="hidden items-center gap-6 text-sm text-slate-600 md:flex">
+        <a routerLink="/" class="hover:text-slate-900">Produto</a>
+        <a routerLink="/pricing" class="hover:text-slate-900">Planos</a>
+        <a routerLink="/signup" class="hover:text-slate-900">Assinar</a>
+      </nav>
+
+      <!-- Mobile actions -->
+      <div class="flex items-center gap-3 md:hidden">
+        <a
+          routerLink="/login"
+          class="hidden rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-900 hover:bg-slate-50 md:inline-flex"
+        >
+          Entrar
+        </a>
+
+        <button
+          type="button"
+          (click)="toggleMobileMenu()"
+          class="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-300 bg-white text-slate-900 hover:bg-slate-50"
+          aria-label="Abrir menu"
+          [attr.aria-expanded]="isMobileMenuOpen"
+        >
+          <span class="text-lg leading-none">☰</span>
+        </button>
+      </div>
+
+      <a routerLink="/login"
+        class="rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-900 hover:bg-slate-50">
+        Entrar
+      </a>
+    </div>
+  </header>
+
+  <div *ngIf="isMobileMenuOpen" class="md:hidden border-b border-slate-200 bg-white">
+    <div class="mx-auto max-w-6xl px-6 py-4">
+      <div class="flex flex-col gap-2 text-sm text-slate-700">
+        <a routerLink="/" (click)="closeMobileMenu()" class="rounded-xl px-3 py-2 hover:bg-slate-50">Produto</a>
+        <a routerLink="/pricing" (click)="closeMobileMenu()" class="rounded-xl px-3 py-2 hover:bg-slate-50">Planos</a>
+        <a routerLink="/signup" (click)="closeMobileMenu()" class="rounded-xl px-3 py-2 hover:bg-slate-50">Assinar</a>
+      </div>
+    </div>
+  </div>
+
+  <main class="flex-1 mx-auto w-full max-w-6xl px-6 py-10">
+    <router-outlet />
+  </main>
+
+  <footer class="border-t border-slate-200">
+    <div class="mx-auto max-w-6xl px-6 py-6 text-sm text-slate-500">
+      © {{ year }} ECLESYS CO. Todos os direitos reservados.
+    </div>
+  </footer>
+</div>

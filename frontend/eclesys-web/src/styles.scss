@@ -1,1 +1,11 @@
-/* You can add global styles to this file, and also import other style files */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root{
+  --eclesys-primary: #0F2A44;
+  --eclesys-primary-2: #143B63;
+  --eclesys-bg: #F8FAFC;
+  --eclesys-border: #E2E8F0;
+}
+
