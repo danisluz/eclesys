@@ -1,5 +1,4 @@
-import { Component, inject } from '@angular/core';
-import { AuthStore } from '../../../core/auth/auth.store';
+import { Component, effect, inject } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
 import { MatButtonModule } from '@angular/material/button';
@@ -11,6 +10,4 @@ import { MatDivider } from '@angular/material/divider';
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss',
 })
-export class DashboardComponent {
-  authStore = inject(AuthStore);
-}
+export class DashboardComponent {}

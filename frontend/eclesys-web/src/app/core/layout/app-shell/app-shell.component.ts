@@ -9,7 +9,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { MatMenuModule } from '@angular/material/menu'; // ✅ ADD
+import { MatMenuModule } from '@angular/material/menu';
 import { AuthStore } from '../../auth/auth.store';
 
 @Component({
@@ -26,7 +26,7 @@ import { AuthStore } from '../../auth/auth.store';
     MatDividerModule,
     MatFormFieldModule,
     MatInputModule,
-    MatMenuModule, // ✅ ADD
+    MatMenuModule,
   ],
   templateUrl: './app-shell.component.html',
   styleUrl: './app-shell.component.scss',
@@ -37,8 +37,8 @@ export class AppShellComponent {
   currentYear = new Date().getFullYear();
 
   userInitials = computed(() => {
-    let name = this.authStore.userName() || 'Usuário';
-    let parts = name.trim().split(/\s+/).slice(0, 2);
-    return parts.map(p => p[0]?.toUpperCase()).join('');
+    const name = this.authStore.me()?.name ?? 'Usuário';
+    const parts = name.trim().split(/\s+/).slice(0, 2);
+    return parts.map(part => part[0]?.toUpperCase()).join('');
   });
 }

@@ -22,7 +22,7 @@ export const routes: Routes = [
   {
     path: 'app',
     component: AppShellComponent,
-    // canActivate: [authGuard],
+    canActivate: [authGuard],
     children: [
       { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
       { path: 'dashboard', component: DashboardComponent },

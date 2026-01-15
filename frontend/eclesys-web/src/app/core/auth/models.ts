@@ -7,6 +7,7 @@ export type AuthUser = {
   role: UserRole;
   tenantId?: string;
   tenantCode?: string;
+  tenantName?: string;
 };
 
 export type LoginRequest = {

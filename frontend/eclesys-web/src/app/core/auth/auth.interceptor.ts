@@ -3,14 +3,16 @@ import { inject } from '@angular/core';
 import { AuthStore } from './auth.store';
 
 export const authInterceptor: HttpInterceptorFn = (request, next) => {
-  let authStore = inject(AuthStore);
-  let token = authStore.token();
+  const authStore = inject(AuthStore);
+  const token = authStore.token();
+
+  console.log('[authInterceptor]', request.method, request.url, token ? 'HAS_TOKEN' : 'NO_TOKEN');
 
   if (!token) return next(request);
 
-  let cloned = request.clone({
-    setHeaders: { Authorization: `Bearer ${token}` },
-  });
-
-  return next(cloned);
+  return next(
+    request.clone({
+      setHeaders: { Authorization: `Bearer ${token}` },
+    })
+  );
 };

@@ -8,5 +8,6 @@ public record MeResponse(
     String email,
     String role,
     UUID tenantId,
-    String tenantCode
+    String tenantCode,
+    String tenantName
 ) {}

@@ -3,31 +3,49 @@ import { Router } from '@angular/router';
 import { AuthService } from './auth.service';
 import { TokenStorage } from './token.storage';
 import { AuthUser, LoginRequest } from './models';
+import { MeService } from './me.service';
 
 @Injectable({ providedIn: 'root' })
 export class AuthStore {
   private router = inject(Router);
   private authService = inject(AuthService);
+  private meService = inject(MeService);
   private tokenStorage = inject(TokenStorage);
 
   private tokenSignal = signal<string | null>(this.tokenStorage.getToken());
-  private userSignal = signal<AuthUser | null>(this.tokenStorage.getUser<AuthUser>());
+  private meSignal = signal<AuthUser | null>(this.tokenStorage.getUser<AuthUser>());
+  private isMeLoadingSignal = signal(false);
 
   isAuthenticated = computed(() => !!this.tokenSignal());
+  isMeLoading = computed(() => this.isMeLoadingSignal());
 
-  userName = computed(() => this.userSignal()?.name ?? null);
-  userRole = computed(() => this.userSignal()?.role ?? null);
+  me = computed(() => this.meSignal());
 
-  private tenantNameSignal = signal<string | null>(null);
-
-  tenantName = computed(() => this.tenantNameSignal());
-
-  setTenantName(tenantName: string | null) {
-    this.tenantNameSignal.set(tenantName);
-  }
+  userName = computed(() => this.meSignal()?.name ?? null);
+  userRole = computed(() => this.meSignal()?.role ?? null);
+  tenantName = computed(() => this.meSignal()?.tenantName ?? null);
+  tenantCode = computed(() => this.meSignal()?.tenantCode ?? null);
 
   token() {
     return this.tokenSignal();
+  }
+
+  loadMe() {
+    if (!this.tokenSignal() || this.isMeLoadingSignal() || this.meSignal()) return;
+
+    this.isMeLoadingSignal.set(true);
+
+    this.meService.getMe().subscribe({
+      next: (response: any) => {
+        this.meSignal.set(response.data);
+        this.tokenStorage.setUser(response.data);
+        this.isMeLoadingSignal.set(false);
+      },
+      error: () => {
+        this.isMeLoadingSignal.set(false);
+        this.logout();
+      },
+    });
   }
 
   login(request: LoginRequest) {
@@ -37,6 +55,10 @@ export class AuthStore {
 
         this.tokenStorage.setToken(token);
         this.tokenSignal.set(token);
+
+        this.meSignal.set(null);
+        this.tokenStorage.setUser(null);
+        this.loadMe();
 
         this.router.navigateByUrl('/app');
       },
@@ -49,7 +71,7 @@ export class AuthStore {
   logout() {
     this.tokenStorage.clearAll();
     this.tokenSignal.set(null);
-    this.userSignal.set(null);
+    this.meSignal.set(null);
     this.router.navigateByUrl('/login');
   }
 }
