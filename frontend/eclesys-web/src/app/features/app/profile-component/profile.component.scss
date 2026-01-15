@@ -1,0 +1,92 @@
+.profile-card {
+  overflow: hidden;
+}
+
+.profile-header {
+  display: grid;
+  grid-template-columns: 56px 1fr;
+  gap: 16px;
+  align-items: center;
+  padding: 16px;
+}
+
+.avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  display: grid;
+  place-items: center;
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.avatar__icon {
+  opacity: 0.7;
+}
+
+.profile-header__name {
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.profile-header__email {
+  font-size: 0.9rem;
+  opacity: 0.7;
+  margin-top: 2px;
+}
+
+.badges {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+
+.badge {
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.06);
+  font-size: 0.8rem;
+}
+
+.badge--muted {
+  opacity: 0.75;
+}
+
+.profile-content {
+  padding: 16px;
+}
+
+.info-list {
+  display: grid;
+  gap: 12px;
+}
+
+.info-item {
+  display: grid;
+  grid-template-columns: 28px 1fr;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.03);
+}
+
+.info-item__icon {
+  opacity: 0.7;
+}
+
+.label {
+  font-size: 12px;
+  opacity: 0.7;
+}
+
+.value {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.loading__row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  opacity: 0.8;
+}

@@ -1,0 +1,76 @@
+@if (authStore.me(); as me) {
+  <section class="page">
+    <header class="page-header">
+      <div class="page-header__titles">
+        <h1 class="page-title">Meu perfil</h1>
+        <p class="page-subtitle">{{ me.tenantName }}</p>
+      </div>
+
+      <div class="page-header__actions">
+        <button mat-stroked-button disabled>
+          <mat-icon>edit</mat-icon>
+          Editar
+        </button>
+      </div>
+    </header>
+
+    <mat-card appearance="outlined" class="card profile-card">
+      <div class="profile-header">
+        <div class="avatar">
+          <mat-icon class="avatar__icon">person</mat-icon>
+        </div>
+
+        <div class="profile-header__info">
+          <div class="profile-header__name">{{ me.name }}</div>
+          <div class="profile-header__email">{{ me.email }}</div>
+
+          <div class="badges">
+            <span class="badge">{{ me.tenantName }}</span>
+            <span class="badge badge--muted">{{ me.role }}</span>
+          </div>
+        </div>
+      </div>
+
+      <mat-divider></mat-divider>
+
+      <mat-card-content class="profile-content">
+        <div class="info-list">
+          <div class="info-item">
+            <mat-icon class="info-item__icon">admin_panel_settings</mat-icon>
+            <div>
+              <div class="label">Perfil</div>
+              <div class="value">{{ me.role }}</div>
+            </div>
+          </div>
+
+          <div class="info-item">
+            <mat-icon class="info-item__icon">church</mat-icon>
+            <div>
+              <div class="label">Igreja</div>
+              <div class="value">{{ me.tenantName }}</div>
+            </div>
+          </div>
+
+          <div class="info-item">
+            <mat-icon class="info-item__icon">tag</mat-icon>
+            <div>
+              <div class="label">Tenant Code</div>
+              <div class="value">{{ me.tenantCode }}</div>
+            </div>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </section>
+} @else {
+  <section class="page">
+    <mat-card appearance="outlined" class="card">
+      <mat-card-content class="loading">
+        <div class="loading__row">
+          <mat-progress-spinner diameter="22" mode="indeterminate" />
+          <span>Carregando perfil…</span>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </section>
+}

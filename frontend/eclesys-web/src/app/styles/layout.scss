@@ -1,0 +1,83 @@
+/* ======================================================
+   ECLESYS – Layout System (App autenticado)
+   ====================================================== */
+
+/* ---------- Page container ---------- */
+.page {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 24px;
+
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* ---------- Page header ---------- */
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.page-header__titles {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.page-title {
+  margin: 0;
+  font-size: 1.6rem;
+  font-weight: 500;
+}
+
+.page-subtitle {
+  margin: 0;
+  font-size: 0.95rem;
+  opacity: 0.7;
+}
+
+.page-header__actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+/* ---------- Card defaults ---------- */
+.card {
+  border-radius: 16px;
+}
+
+/* ---------- Stacks ---------- */
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.stack-sm {
+  gap: 8px;
+}
+
+.stack-lg {
+  gap: 24px;
+}
+
+/* ---------- Grid helpers ---------- */
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+@media (max-width: 720px) {
+  .grid-2 {
+    grid-template-columns: 1fr;
+  }
+
+  .page {
+    padding: 16px;
+  }
+}

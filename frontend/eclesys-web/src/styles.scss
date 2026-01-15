@@ -1,4 +1,5 @@
 @use '@angular/material' as mat;
+@use '../src/app/styles/layout.scss';
 
 @include mat.theme((
   color: (

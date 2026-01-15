@@ -4,16 +4,12 @@
     <div class="topbar__left">
       <!-- BRAND -->
       <div class="topbar__brand">
-  <img
-    class="topbar__brand-logo"
-    src="assets/brand/eclesys-logo-white.svg"
-    alt="ECLESYS"
-  />
+        <img class="topbar__brand-logo" src="assets/brand/eclesys-logo-white.svg" alt="ECLESYS" />
 
-  <div class="topbar__brand-text">
-    <div class="topbar__brand-subtitle">administração</div>
-  </div>
-</div>
+        <div class="topbar__brand-text">
+          <div class="topbar__brand-subtitle">administração</div>
+        </div>
+      </div>
 
 
       <!-- NAV -->
@@ -49,34 +45,33 @@
 
     <!-- USER -->
     <div class="topbar__right">
-      <button
-        mat-button
-        class="topbar__user-btn"
-        [matMenuTriggerFor]="userMenu"
-      >
+      <button mat-button class="topbar__user-btn" [matMenuTriggerFor]="userMenu">
         <div class="topbar__user-text">
+          @if (authStore.me(); as me) {
           <div class="topbar__user-name">
-            {{ authStore.userName() || 'Usuário' }}
+            {{ me.name }}
           </div>
           <div class="topbar__user-tenant">
-            {{ authStore.tenantName() || 'Selecionar igreja' }}
+            {{ me.tenantName }}
           </div>
+          } @else {
+          <div class="topbar__user-name">Carregando…</div>
+          <div class="topbar__user-tenant">—</div>
+          }
         </div>
 
         <mat-icon>expand_more</mat-icon>
       </button>
 
       <mat-menu #userMenu="matMenu">
-        <button mat-menu-item disabled>
+        <button mat-menu-item [routerLink]="'/app/profile'">
           <mat-icon>person</mat-icon>
           Meu Perfil
         </button>
-
         <button mat-menu-item disabled>
           <mat-icon>settings</mat-icon>
           Configurações
         </button>
-
         <button mat-menu-item (click)="authStore.logout()">
           <mat-icon>logout</mat-icon>
           Sair
