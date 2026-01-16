@@ -3,13 +3,28 @@ services:
     image: postgres:16
     container_name: eclesys-postgres
     environment:
-      POSTGRES_DB: eclesys
-      POSTGRES_USER: eclesys
-      POSTGRES_PASSWORD: eclesys
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     ports:
       - "5432:5432"
     volumes:
       - eclesys_pgdata:/var/lib/postgresql/data
+
+  api:
+    build:
+      context: ../../backend/eclesys-api
+      dockerfile: Dockerfile
+    container_name: eclesys-api
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+      TURNSTILE_SECRET: ${TURNSTILE_SECRET}
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
 
 volumes:
   eclesys_pgdata:
