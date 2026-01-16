@@ -3,9 +3,10 @@
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
-    "dev": "ng serve -o",
-    "start": "ng serve -o",
-    "start:hmr": "ng serve --hmr --proxy-config proxy.conf.json",
+    "dev": "ng serve -o --proxy-config proxy.local.json",
+    "start": "ng serve -o --proxy-config proxy.local.json",
+    "start:hmr": "ng serve --hmr -o --proxy-config proxy.local.json",
+    "dev:docker": "ng serve --host 0.0.0.0 --port 4200 --proxy-config proxy.docker.json",
     "build": "ng build",
     "build:dev": "ng build --configuration development",
     "build:prod": "ng build --configuration production",
