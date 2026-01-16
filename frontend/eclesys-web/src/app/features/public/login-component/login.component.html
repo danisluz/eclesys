@@ -28,7 +28,7 @@
         <p class="text-sm font-medium text-slate-900">Acesso</p>
       </div>
 
-      <form class="mt-5 space-y-4" (ngSubmit)="login()">
+      <form class="mt-5 space-y-4" (ngSubmit)="submit(form)" #form="ngForm" novalidate>
         <div>
           <label class="text-sm font-medium text-slate-700">Tenant code</label>
           <input
@@ -63,6 +63,14 @@
             class="mt-2 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-slate-400 focus:outline-none focus:ring-4 focus:ring-slate-100"
           />
         </div>
+
+        <div #turnstileContainer class="turnstile"></div>
+
+        @if (wasSubmitted() && !turnstileToken()) {
+          <div class="field-error">
+            Confirme a verificação anti-bot para continuar.
+          </div>
+        }
 
         <button
           type="submit"

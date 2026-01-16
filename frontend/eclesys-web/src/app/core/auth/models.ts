@@ -14,6 +14,7 @@ export type LoginRequest = {
   tenantCode: string;
   email: string;
   password: string;
+  antiBotToken: string | null;
 };
 
 export type ApiSuccessResponse<T> = {

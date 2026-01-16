@@ -14,6 +14,7 @@ export class AuthService {
     const body = {
       email: request.email,
       password: request.password,
+      antiBotToken: request.antiBotToken,
     };
 
     return this.httpClient.post<LoginResponse>(
