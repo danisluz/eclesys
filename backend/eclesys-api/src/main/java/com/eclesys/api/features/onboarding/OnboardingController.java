@@ -11,14 +11,25 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/public/onboarding")
 public class OnboardingController {
 
-  private OnboardingService onboardingService;
+  private final OnboardingService onboardingService;
+  private final TurnstileValidationService turnstileValidationService;
 
-  public OnboardingController(OnboardingService onboardingService) {
+  public OnboardingController(
+      OnboardingService onboardingService,
+      TurnstileValidationService turnstileValidationService
+  ) {
     this.onboardingService = onboardingService;
+    this.turnstileValidationService = turnstileValidationService;
   }
 
   @PostMapping
-  public ResponseEntity<ApiResponse<OnboardingResponse>> create(@Valid @RequestBody OnboardingRequest request) {
+  public ResponseEntity<ApiResponse<OnboardingResponse>> create(
+      @Valid @RequestBody OnboardingRequest request
+  ) {
+    if (!turnstileValidationService.isValid(request.antiBotToken)) {
+      return ResponseEntity.badRequest().body(ApiResponse.error("Validação anti-bot falhou"));
+    }
+
     OnboardingResponse response = onboardingService.createTenantWithAdmin(request);
     return ResponseEntity.ok(ApiResponse.success(response));
   }

@@ -32,3 +32,8 @@ logging:
   level:
     org.springframework.security: TRACE
     org.springframework.security.web.FilterChainProxy: TRACE
+
+security:
+  turnstile:
+    secret: ${TURNSTILE_SECRET:}
+

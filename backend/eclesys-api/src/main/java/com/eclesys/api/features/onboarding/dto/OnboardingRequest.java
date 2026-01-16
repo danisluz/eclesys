@@ -28,4 +28,7 @@ public class OnboardingRequest {
   @NotBlank
   @Size(min = 6, max = 80)
   public String adminPassword;
+
+  @NotBlank(message = "Validação anti-bot é obrigatória")
+  public String antiBotToken;
 }
