@@ -1,4 +1,4 @@
-package com.eclesys.api.features.onboarding;
+package com.eclesys.api.shared.api.security;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -3,6 +3,7 @@ package com.eclesys.api.features.onboarding;
 import com.eclesys.api.features.onboarding.dto.OnboardingRequest;
 import com.eclesys.api.features.onboarding.dto.OnboardingResponse;
 import com.eclesys.api.shared.api.ApiResponse;
+import com.eclesys.api.shared.api.security.TurnstileValidationService;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

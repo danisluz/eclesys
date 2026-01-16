@@ -1,6 +1,7 @@
 package com.eclesys.api.config;
 
 import com.eclesys.api.features.auth.JwtTokenService;
+import com.eclesys.api.features.auth.RateLimitLoginFilter;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -14,26 +15,26 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @Configuration
 public class SecurityConfig {
 
-  // ✅ AQUI tu cria o bean do filtro
   @Bean
   public JwtAuthFilter jwtAuthFilter(JwtTokenService jwtTokenService) {
     return new JwtAuthFilter(jwtTokenService);
   }
 
-  // ✅ E AQUI tu usa ele
   @Bean
   public SecurityFilterChain securityFilterChain(
       HttpSecurity http,
-      JwtAuthFilter jwtAuthFilter
+      JwtAuthFilter jwtAuthFilter,
+      RateLimitLoginFilter rateLimitLoginFilter
   ) throws Exception {
 
     return http
         .csrf(csrf -> csrf.disable())
         .cors(Customizer.withDefaults())
-        .sessionManagement(sm ->
-            sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-        )
-        .anonymous(anon -> anon.disable())
+        .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+
+        // ✅ NÃO desabilita anonymous aqui
+        // .anonymous(anon -> anon.disable())
+
         .exceptionHandling(ex -> ex
             .authenticationEntryPoint((request, response, authException) ->
                 response.sendError(HttpServletResponse.SC_UNAUTHORIZED)
@@ -42,17 +43,22 @@ public class SecurityConfig {
                 response.sendError(HttpServletResponse.SC_FORBIDDEN)
             )
         )
+
         .authorizeHttpRequests(auth -> auth
             .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+            .requestMatchers("/error").permitAll()
 
-            .requestMatchers(HttpMethod.GET, "/api/health", "/api/ping", "/api/version").permitAll()
             .requestMatchers(HttpMethod.POST, "/api/public/onboarding").permitAll()
             .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
 
             .requestMatchers("/actuator/health", "/actuator/info").permitAll()
             .anyRequest().authenticated()
         )
+
+        .addFilterBefore(rateLimitLoginFilter, UsernamePasswordAuthenticationFilter.class)
+
         .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
+
         .build();
   }
 }

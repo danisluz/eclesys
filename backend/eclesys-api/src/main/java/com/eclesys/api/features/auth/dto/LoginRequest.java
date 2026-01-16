@@ -1,5 +1,7 @@
 package com.eclesys.api.features.auth.dto;
 
+import jakarta.validation.constraints.NotBlank;
+
 public class LoginRequest {
 
   private String email;
@@ -12,4 +14,7 @@ public class LoginRequest {
   public String getPassword() {
     return password;
   }
+
+  @NotBlank
+  public String antiBotToken;
 }
