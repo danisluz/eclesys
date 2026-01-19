@@ -1,0 +1,20 @@
+import { Injectable, inject } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
+import { Observable } from 'rxjs';
+import { ApiResponse } from './models';
+
+@Injectable({ providedIn: 'root' })
+export class UsersService {
+  private httpClient = inject(HttpClient);
+
+  updateUser(userId: string, payload: { name: string }): Observable<ApiResponse<any>> {
+    return this.httpClient.patch<ApiResponse<any>>(`/api/users/${userId}`, payload);
+  }
+
+  changePassword(
+    userId: string,
+    payload: { currentPassword: string; newPassword: string }
+  ): Observable<ApiResponse<void>> {
+    return this.httpClient.patch<ApiResponse<void>>(`/api/users/${userId}/password`, payload);
+  }
+}

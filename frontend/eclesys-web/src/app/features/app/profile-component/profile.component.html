@@ -61,6 +61,113 @@
         </div>
       </mat-card-content>
     </mat-card>
+
+    <mat-card appearance="outlined" class="card form-card">
+      <mat-card-header class="mb-4">
+        <mat-card-title>Segurança</mat-card-title>
+        <mat-card-subtitle>Trocar senha</mat-card-subtitle>
+      </mat-card-header>
+
+      <mat-card-content class="form-card__content">
+        @if (passwordErrorMessageSignal(); as errorMessage) {
+          <div class="form-error">
+            <mat-icon>error</mat-icon>
+            <div>{{ errorMessage }}</div>
+          </div>
+        }
+
+        <div class="form-body">
+          <div class="form-grid">
+            <!-- Linha inteira -->
+            <mat-form-field appearance="outline" class="form-field form-field--full">
+              <mat-label>Senha atual</mat-label>
+              <input
+                matInput
+                [type]="isCurrentPasswordVisible() ? 'text' : 'password'"
+                [ngModel]="currentPassword()"
+                (ngModelChange)="currentPassword.set($event)"
+                autocomplete="current-password"
+              />
+              <button
+                type="button"
+                mat-icon-button
+                matSuffix
+                (click)="toggleCurrentPasswordVisibility()"
+                [attr.aria-label]="isCurrentPasswordVisible() ? 'Ocultar senha' : 'Mostrar senha'"
+              >
+                <mat-icon>{{ isCurrentPasswordVisible() ? 'visibility_off' : 'visibility' }}</mat-icon>
+              </button>
+            </mat-form-field>
+
+            <!-- Metade esquerda -->
+            <mat-form-field appearance="outline" class="form-field">
+              <mat-label>Nova senha</mat-label>
+              <input
+                matInput
+                [type]="isNewPasswordVisible() ? 'text' : 'password'"
+                [ngModel]="newPassword()"
+                (ngModelChange)="newPassword.set($event)"
+                autocomplete="new-password"
+              />
+              <button
+                type="button"
+                mat-icon-button
+                matSuffix
+                (click)="toggleNewPasswordVisibility()"
+                [attr.aria-label]="isNewPasswordVisible() ? 'Ocultar senha' : 'Mostrar senha'"
+              >
+                <mat-icon>{{ isNewPasswordVisible() ? 'visibility_off' : 'visibility' }}</mat-icon>
+              </button>
+              <mat-hint>Mínimo 8 caracteres</mat-hint>
+
+              @if (newPassword().length > 0 && newPassword().length < 8) {
+                <mat-error>Use pelo menos 8 caracteres</mat-error>
+              }
+            </mat-form-field>
+
+            <!-- Metade direita -->
+            <mat-form-field appearance="outline" class="form-field">
+              <mat-label>Confirmar nova senha</mat-label>
+              <input
+                matInput
+                [type]="isConfirmPasswordVisible() ? 'text' : 'password'"
+                [ngModel]="confirmNewPassword()"
+                (ngModelChange)="confirmNewPassword.set($event)"
+                autocomplete="new-password"
+              />
+              <button
+                type="button"
+                mat-icon-button
+                matSuffix
+                (click)="toggleConfirmPasswordVisibility()"
+                [attr.aria-label]="isConfirmPasswordVisible() ? 'Ocultar senha' : 'Mostrar senha'"
+              >
+                <mat-icon>{{ isConfirmPasswordVisible() ? 'visibility_off' : 'visibility' }}</mat-icon>
+              </button>
+
+              @if (
+                newPassword().length > 0 &&
+                confirmNewPassword().length > 0 &&
+                newPassword() !== confirmNewPassword()
+              ) {
+                <mat-error>As senhas não conferem</mat-error>
+              }
+            </mat-form-field>
+          </div>
+        </div>
+      </mat-card-content>
+
+      <mat-card-actions class="form-actions m-3">
+        <button mat-flat-button (click)="changePassword()" [disabled]="!canChangePassword()">
+          @if (isChangingPasswordSignal()) {
+            <mat-progress-spinner diameter="18" mode="indeterminate" />
+          } @else {
+            <mat-icon>lock_reset</mat-icon>
+          }
+          Trocar senha
+        </button>
+      </mat-card-actions>
+    </mat-card>
   </section>
 } @else {
   <section class="page">

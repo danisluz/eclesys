@@ -76,8 +76,19 @@ public class JwtAuthFilter extends OncePerRequestFilter {
       response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
       response.setContentType(MediaType.APPLICATION_JSON_VALUE);
       response.getWriter().write("""
-        {"status":"error","message":"Token inválido ou expirado."}
-      """);
+    {"status":"error","message":"Token inválido ou expirado."}
+  """);
+      return;
     }
+  }
+
+  @Override
+  protected boolean shouldNotFilter(HttpServletRequest request) {
+    String path = request.getRequestURI();
+
+    return path.startsWith("/api/auth/")
+        || path.equals("/api/health")
+        || path.equals("/api/ping")
+        || path.equals("/api/version");
   }
 }

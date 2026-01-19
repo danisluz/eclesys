@@ -1,7 +1,7 @@
 export type UserRole = 'ADMIN' | 'SECRETARIA' | 'LIDER';
 
 export type AuthUser = {
-  id: string;
+  userId: string;
   name: string;
   email: string;
   role: UserRole;
@@ -28,4 +28,10 @@ export type LoginData = {
 };
 
 export type LoginResponse = ApiSuccessResponse<LoginData>;
+
+export type ApiResponse<T> = {
+  status: 'success' | 'error';
+  data: T;
+  message?: string | null;
+};
 

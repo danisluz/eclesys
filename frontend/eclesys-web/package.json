@@ -4,7 +4,7 @@
   "scripts": {
     "ng": "ng",
     "dev": "ng serve -o --proxy-config proxy.local.json",
-    "start": "ng serve -o --proxy-config proxy.local.json",
+    "start": "ng serve -o --proxy-config proxy.config.json",
     "start:hmr": "ng serve --hmr -o --proxy-config proxy.local.json",
     "dev:docker": "ng serve --host 0.0.0.0 --port 4200 --proxy-config proxy.docker.json",
     "build": "ng build",
