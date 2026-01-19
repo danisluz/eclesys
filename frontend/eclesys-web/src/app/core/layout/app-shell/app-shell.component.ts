@@ -11,6 +11,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatMenuModule } from '@angular/material/menu';
 import { AuthStore } from '../../auth/auth.store';
+import { UserAvatarComponent } from '../../../shared/ui/user-avatar/user-avatar.component';
 
 @Component({
   standalone: true,
@@ -27,6 +28,7 @@ import { AuthStore } from '../../auth/auth.store';
     MatFormFieldModule,
     MatInputModule,
     MatMenuModule,
+    UserAvatarComponent
   ],
   templateUrl: './app-shell.component.html',
   styleUrl: './app-shell.component.scss',
@@ -35,6 +37,9 @@ export class AppShellComponent {
   authStore = inject(AuthStore);
 
   currentYear = new Date().getFullYear();
+
+  meNameSignal = computed(() => this.authStore.me()?.name ?? null);
+  meEmailSignal = computed(() => this.authStore.me()?.email ?? null);
 
   userInitials = computed(() => {
     const name = this.authStore.me()?.name ?? 'Usuário';

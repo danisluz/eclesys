@@ -44,9 +44,12 @@
       }
 
       <div class="profile-header">
-        <div class="avatar">
-          <mat-icon class="avatar__icon">person</mat-icon>
-        </div>
+        <app-user-avatar
+          [userNameSignal]="meNameSignal()"
+          [userEmailSignal]="meEmailSignal()"
+          [sizeSignal]="56"
+          ariaLabelSignal="Avatar do usuário"
+        ></app-user-avatar>
 
         <div class="profile-header__info">
           @if (!isEditingProfileSignal()) {
@@ -54,7 +57,10 @@
             <div class="profile-header__email">{{ me.email }}</div>
           } @else {
             <div class="profile-edit">
-              <mat-form-field appearance="outline" class="form-field form-field--full">
+              <mat-form-field
+                appearance="outline"
+                class="form-field form-field--full"
+              >
                 <mat-label>Nome</mat-label>
                 <input
                   matInput
@@ -123,7 +129,10 @@
         <div class="form-body">
           <div class="form-grid">
             <!-- Senha atual -->
-            <mat-form-field appearance="outline" class="form-field form-field--full">
+            <mat-form-field
+              appearance="outline"
+              class="form-field form-field--full"
+            >
               <mat-label>Senha atual</mat-label>
               <input
                 matInput
@@ -139,7 +148,9 @@
                 (click)="toggleCurrentPasswordVisibility()"
               >
                 <mat-icon>
-                  {{ isCurrentPasswordVisible() ? 'visibility_off' : 'visibility' }}
+                  {{
+                    isCurrentPasswordVisible() ? "visibility_off" : "visibility"
+                  }}
                 </mat-icon>
               </button>
             </mat-form-field>
@@ -161,7 +172,7 @@
                 (click)="toggleNewPasswordVisibility()"
               >
                 <mat-icon>
-                  {{ isNewPasswordVisible() ? 'visibility_off' : 'visibility' }}
+                  {{ isNewPasswordVisible() ? "visibility_off" : "visibility" }}
                 </mat-icon>
               </button>
               <mat-hint>Mínimo 8 caracteres</mat-hint>
@@ -188,7 +199,9 @@
                 (click)="toggleConfirmPasswordVisibility()"
               >
                 <mat-icon>
-                  {{ isConfirmPasswordVisible() ? 'visibility_off' : 'visibility' }}
+                  {{
+                    isConfirmPasswordVisible() ? "visibility_off" : "visibility"
+                  }}
                 </mat-icon>
               </button>
 

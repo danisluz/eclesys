@@ -1,0 +1,9 @@
+<div
+  class="avatar"
+  [style.width]="sizePxSignal()"
+  [style.height]="sizePxSignal()"
+  [style.backgroundColor]="backgroundColorSignal()"
+  [attr.aria-label]="ariaLabelSignal()"
+>
+  <span class="avatar__initials">{{ initialsSignal() }}</span>
+</div>

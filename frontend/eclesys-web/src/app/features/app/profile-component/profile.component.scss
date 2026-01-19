@@ -13,10 +13,16 @@
 .avatar {
   width: 56px;
   height: 56px;
-  border-radius: 16px;
+  border-radius: 50%;
   display: grid;
   place-items: center;
-  background: rgba(0, 0, 0, 0.05);
+}
+
+.avatar__initials {
+  color: white;
+  font-weight: 700;
+  font-size: 16px;
+  letter-spacing: 0.5px;
 }
 
 .avatar__icon {

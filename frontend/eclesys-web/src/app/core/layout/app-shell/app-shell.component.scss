@@ -2,18 +2,12 @@
   display: block;
 }
 
-/* ======================
-   S H E L L
-====================== */
 .shell {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
 }
 
-/* ======================
-   T O P B A R  (FIXO)
-====================== */
 .topbar {
   position: fixed;
   top: 0;
@@ -41,7 +35,6 @@
   min-width: 0;
 }
 
-/* BRAND */
 .topbar__brand {
   display: flex;
   align-items: center;
@@ -66,7 +59,6 @@
   opacity: 0.85;
 }
 
-/* NAV */
 .topbar__nav {
   display: flex;
   align-items: center;
@@ -80,23 +72,19 @@
   font-weight: 700;
 }
 
-/* ✅ HABILITADO (Material controla via classe, não via :disabled) */
 :host ::ng-deep .topbar__nav-btn:not(.mat-mdc-button-disabled) {
   color: var(--eclesys-text);
 }
 
-/* ✅ HOVER (HEX + transparência via color-mix) */
 :host ::ng-deep .topbar__nav-btn:not(.mat-mdc-button-disabled):hover {
   background-color: color-mix(in srgb, var(--eclesys-text) 16%, transparent);
 }
 
-/* ✅ DISABLED */
 :host ::ng-deep .topbar__nav-btn.mat-mdc-button-disabled {
   color: color-mix(in srgb, var(--eclesys-text) 45%, transparent);
   opacity: 1; /* evita o Material “lavar” demais */
 }
 
-/* ✅ Ícones seguem a cor do botão */
 :host ::ng-deep .topbar__nav-btn .mat-icon {
   color: currentColor;
   opacity: 0.9;
@@ -107,70 +95,69 @@
   flex: 1;
 }
 
-/* RIGHT SIDE */
 .topbar__right {
   display: flex;
   align-items: center;
   gap: 10px;
 }
 
-/* USER */
 .topbar__user-btn {
   height: 44px;
-  padding: 6px 10px 6px 12px;
+  padding: 6px 12px;
 
   border-radius: 999px;
 
   display: flex;
   align-items: center;
+  gap: 10px;
 }
 
-/* ✅ HABILITADO */
-:host ::ng-deep .topbar__user-btn:not(.mat-mdc-button-disabled) {
-  color: color-mix(in srgb, var(--eclesys-text) 16%, transparent);
-}
-
-/* ✅ HOVER */
-:host ::ng-deep .topbar__user-btn:not(.mat-mdc-button-disabled):hover {
-  background-color: rgba(255, 255, 255, 0.14);
-  color: color-mix(in srgb, var(--eclesys-primary) 16%, transparent);
-}
-
-/* ✅ DISABLED */
-:host ::ng-deep .topbar__user-btn.mat-mdc-button-disabled {
-  color: color-mix(in srgb, var(--eclesys-text) 16%, transparent);
-  opacity: 1;
-}
-
-:host ::ng-deep .topbar__user-btn .mat-icon {
-  color: currentColor;
-  opacity: 0.9;
+.topbar__user-avatar {
+  flex: 0 0 auto;
+  border: 2px solid rgba(255, 255, 255, 0.25);
+  border-radius: 50%;
 }
 
 .topbar__user-text {
   display: flex;
   flex-direction: column;
-  text-align: right;
+  justify-content: center;
   line-height: 1.05;
-  margin-right: 6px;
+  text-align: left;
+  margin: 0;
+  padding: 0;
 }
 
 .topbar__user-name {
   font-weight: 800;
   font-size: 13px;
+  margin: 0;
   color: var(--eclesys-text);
-  margin-bottom: 5px;
 }
 
 .topbar__user-tenant {
   font-size: 11px;
+  margin: 0;
   opacity: 0.85;
   letter-spacing: 0.3px;
   text-transform: uppercase;
-  color: color-mix(in srgb, var(--eclesys-text) 70%, transparent)
+  color: color-mix(in srgb, var(--eclesys-text) 70%, transparent);
 }
 
-/* MENU DROPDOWN (opcional; pode remover se quiser 100% default Material) */
+:host ::ng-deep .topbar__user-btn:not(.mat-mdc-button-disabled) {
+  color: var(--eclesys-text);
+}
+
+:host ::ng-deep .topbar__user-btn:not(.mat-mdc-button-disabled):hover {
+  background-color: rgba(255, 255, 255, 0.14);
+  color: var(--eclesys-text);
+}
+
+:host ::ng-deep .topbar__user-btn.mat-mdc-button-disabled {
+  color: color-mix(in srgb, var(--eclesys-text) 55%, transparent);
+  opacity: 1;
+}
+
 :host ::ng-deep .mat-mdc-menu-panel {
   border-radius: 12px !important;
 }
@@ -179,19 +166,12 @@
   padding: 6px !important;
 }
 
-/* ======================
-   C O N T E N T
-====================== */
-/* Compensa o header fixo (64px) */
 .content {
   flex: 1;
   padding: 24px 18px 0;
   padding-top: calc(64px + 24px);
 }
 
-/* ======================
-   F O O T E R
-====================== */
 .footer {
   padding: 14px 18px;
   background: var(--eclesys-bg);
@@ -205,9 +185,32 @@
   gap: 10px;
 
   font-size: 12px;
-  color: var(--eclesys-primary);;
+  color: var(--eclesys-primary);
 }
 
 .dot {
   opacity: 0.6;
+}
+
+:host ::ng-deep .topbar__user-btn .mat-icon {
+  display: flex;
+  align-items: center;
+}
+
+:host ::ng-deep .topbar__user-btn .mdc-button__label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+:host ::ng-deep .topbar__user-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+@media (max-width: 720px) {
+  .topbar__user-text {
+    display: none;
+  }
 }

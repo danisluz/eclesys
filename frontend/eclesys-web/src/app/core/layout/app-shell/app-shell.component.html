@@ -46,6 +46,15 @@
     <!-- USER -->
     <div class="topbar__right">
       <button mat-button class="topbar__user-btn" [matMenuTriggerFor]="userMenu">
+
+        <app-user-avatar
+          class="topbar__user-avatar"
+          [userNameSignal]="meNameSignal()"
+          [userEmailSignal]="meEmailSignal()"
+          [sizeSignal]="32"
+          ariaLabelSignal="Avatar do usuário"
+        ></app-user-avatar>
+
         <div class="topbar__user-text">
           @if (authStore.me(); as me) {
           <div class="topbar__user-name">

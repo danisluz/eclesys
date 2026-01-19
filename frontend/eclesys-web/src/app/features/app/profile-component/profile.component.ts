@@ -12,6 +12,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { UserAvatarComponent } from '../../../shared/ui/user-avatar/user-avatar.component';
 
 @Component({
   standalone: true,
@@ -26,6 +27,7 @@ import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
     MatFormFieldModule,
     MatInputModule,
     MatSnackBarModule,
+    UserAvatarComponent,
   ],
   templateUrl: './profile.component.html',
   styleUrl: './profile.component.scss',
@@ -40,6 +42,20 @@ export class ProfileComponent {
 
   profileName = signal('');
   profileErrorMessageSignal = signal<string | null>(null);
+
+  isCurrentPasswordVisible = signal(false);
+  isNewPasswordVisible = signal(false);
+  isConfirmPasswordVisible = signal(false);
+
+  currentPassword = signal('');
+  newPassword = signal('');
+  confirmNewPassword = signal('');
+
+  isChangingPasswordSignal = signal(false);
+  passwordErrorMessageSignal = signal<string | null>(null);
+
+  meNameSignal = computed(() => this.authStore.me()?.name ?? null);
+  meEmailSignal = computed(() => this.authStore.me()?.email ?? null);
 
   isProfileDirty = computed(() => {
     const me = this.authStore.me();
@@ -75,21 +91,17 @@ export class ProfileComponent {
   saveProfile() {
     if (!this.canSaveProfile()) return;
 
-    const me = this.authStore.me();
-    if (!me?.userId) {
-      this.profileErrorMessageSignal.set(
-        'Não foi possível identificar o usuário logado.'
-      );
-      return;
-    }
+    this.usersService.updateMyName({
+      name: this.profileName().trim(),
+    });
 
     this.isSavingProfileSignal.set(true);
     this.profileErrorMessageSignal.set(null);
 
     this.usersService
-  .updateMyName({
-    name: this.profileName().trim(),
-  })
+      .updateMyName({
+        name: this.profileName().trim(),
+      })
 
       .subscribe({
         next: (updatedUser) => {
@@ -116,10 +128,6 @@ export class ProfileComponent {
       });
   }
 
-  isCurrentPasswordVisible = signal(false);
-  isNewPasswordVisible = signal(false);
-  isConfirmPasswordVisible = signal(false);
-
   toggleCurrentPasswordVisibility() {
     this.isCurrentPasswordVisible.set(!this.isCurrentPasswordVisible());
   }
@@ -131,13 +139,6 @@ export class ProfileComponent {
   toggleConfirmPasswordVisibility() {
     this.isConfirmPasswordVisible.set(!this.isConfirmPasswordVisible());
   }
-
-  currentPassword = signal('');
-  newPassword = signal('');
-  confirmNewPassword = signal('');
-
-  isChangingPasswordSignal = signal(false);
-  passwordErrorMessageSignal = signal<string | null>(null);
 
   canChangePassword = computed(() => {
     if (this.isChangingPasswordSignal()) return false;
@@ -154,7 +155,7 @@ export class ProfileComponent {
     const me = this.authStore.me();
     if (!me?.userId) {
       this.passwordErrorMessageSignal.set(
-        'Não foi possível identificar o usuário logado.'
+        'Não foi possível identificar o usuário logado.',
       );
       return;
     }
