@@ -2,6 +2,7 @@ package com.eclesys.api.features.users;
 
 import com.eclesys.api.domain.user.UserRole;
 import com.eclesys.api.features.users.dto.CreateUserRequest;
+import com.eclesys.api.features.users.dto.UpdateMyProfileRequest;
 import com.eclesys.api.features.users.dto.UpdateUserPasswordRequest;
 import com.eclesys.api.features.users.dto.UpdateUserRequest;
 import com.eclesys.api.features.users.dto.UserResponse;
@@ -112,6 +113,27 @@ public class UserService {
 
     user.setPasswordHash(passwordEncoder.encode(request.newPassword()));
     userRepository.save(user);
+  }
+
+  @Transactional
+  public UserResponse updateMyProfile(UUID tenantId, UUID userId, UpdateMyProfileRequest request) {
+    UserEntity user = userRepository.findByTenantIdAndId(tenantId, userId)
+        .orElseThrow(() -> new IllegalArgumentException("Usuário não encontrado"));
+
+    String newName = request.name() == null ? "" : request.name().trim();
+    if (newName.isEmpty()) {
+      throw new IllegalArgumentException("Nome é obrigatório");
+    }
+    if (newName.length() < 3) {
+      throw new IllegalArgumentException("Nome deve ter pelo menos 3 caracteres");
+    }
+    if (newName.length() > 120) {
+      throw new IllegalArgumentException("Nome deve ter no máximo 120 caracteres");
+    }
+
+    user.setName(newName);
+
+    return map(userRepository.save(user));
   }
 
   private UserResponse map(UserEntity user) {

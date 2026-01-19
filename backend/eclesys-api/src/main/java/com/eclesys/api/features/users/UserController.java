@@ -2,8 +2,10 @@ package com.eclesys.api.features.users;
 
 import com.eclesys.api.domain.user.UserRole;
 import com.eclesys.api.features.users.dto.CreateUserRequest;
+import com.eclesys.api.features.users.dto.UpdateMyProfileRequest;
 import com.eclesys.api.features.users.dto.UpdateUserPasswordRequest;
 import com.eclesys.api.features.users.dto.UpdateUserRequest;
+import com.eclesys.api.features.users.dto.UserResponse;
 import jakarta.validation.Valid;
 import java.util.Map;
 import java.util.UUID;
@@ -91,4 +93,14 @@ public class UserController {
     return Map.of("status", "success", "data", Map.of("message", "Senha atualizada com sucesso"));
   }
 
+  @PatchMapping("/me")
+  public Map<String, Object> updateMe(@RequestBody UpdateMyProfileRequest request) {
+    UUID tenantId = currentUserService.getTenantId();
+    UUID userId = currentUserService.getUserId();
+
+    return Map.of(
+        "status", "success",
+        "data", userService.updateMyProfile(tenantId, userId, request)
+    );
+  }
 }
