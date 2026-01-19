@@ -7,22 +7,66 @@
       </div>
 
       <div class="page-header__actions">
-        <button mat-stroked-button disabled>
-          <mat-icon>edit</mat-icon>
-          Editar
-        </button>
+        @if (!isEditingProfileSignal()) {
+          <button mat-stroked-button (click)="startEditProfile()">
+            <mat-icon>edit</mat-icon>
+            Editar
+          </button>
+        } @else {
+          <button mat-stroked-button (click)="cancelEditProfile()">
+            <mat-icon>close</mat-icon>
+            Cancelar
+          </button>
+
+          <button
+            mat-flat-button
+            (click)="saveProfile()"
+            [disabled]="!canSaveProfile()"
+          >
+            @if (isSavingProfileSignal()) {
+              <mat-progress-spinner diameter="18" mode="indeterminate" />
+            } @else {
+              <mat-icon>save</mat-icon>
+            }
+            Salvar
+          </button>
+        }
       </div>
     </header>
 
     <mat-card appearance="outlined" class="card profile-card">
+      <!-- Erro ao salvar perfil -->
+      @if (profileErrorMessageSignal(); as errorMessage) {
+        <div class="form-error" style="margin: 16px">
+          <mat-icon>error</mat-icon>
+          <div>{{ errorMessage }}</div>
+        </div>
+      }
+
       <div class="profile-header">
         <div class="avatar">
           <mat-icon class="avatar__icon">person</mat-icon>
         </div>
 
         <div class="profile-header__info">
-          <div class="profile-header__name">{{ me.name }}</div>
-          <div class="profile-header__email">{{ me.email }}</div>
+          @if (!isEditingProfileSignal()) {
+            <div class="profile-header__name">{{ me.name }}</div>
+            <div class="profile-header__email">{{ me.email }}</div>
+          } @else {
+            <div class="profile-edit">
+              <mat-form-field appearance="outline" class="form-field form-field--full">
+                <mat-label>Nome</mat-label>
+                <input
+                  matInput
+                  [ngModel]="profileName()"
+                  (ngModelChange)="profileName.set($event)"
+                  autocomplete="name"
+                />
+              </mat-form-field>
+
+              <div class="profile-header__email">{{ me.email }}</div>
+            </div>
+          }
 
           <div class="badges">
             <span class="badge">{{ me.tenantName }}</span>
@@ -78,7 +122,7 @@
 
         <div class="form-body">
           <div class="form-grid">
-            <!-- Linha inteira -->
+            <!-- Senha atual -->
             <mat-form-field appearance="outline" class="form-field form-field--full">
               <mat-label>Senha atual</mat-label>
               <input
@@ -93,13 +137,14 @@
                 mat-icon-button
                 matSuffix
                 (click)="toggleCurrentPasswordVisibility()"
-                [attr.aria-label]="isCurrentPasswordVisible() ? 'Ocultar senha' : 'Mostrar senha'"
               >
-                <mat-icon>{{ isCurrentPasswordVisible() ? 'visibility_off' : 'visibility' }}</mat-icon>
+                <mat-icon>
+                  {{ isCurrentPasswordVisible() ? 'visibility_off' : 'visibility' }}
+                </mat-icon>
               </button>
             </mat-form-field>
 
-            <!-- Metade esquerda -->
+            <!-- Nova senha -->
             <mat-form-field appearance="outline" class="form-field">
               <mat-label>Nova senha</mat-label>
               <input
@@ -114,9 +159,10 @@
                 mat-icon-button
                 matSuffix
                 (click)="toggleNewPasswordVisibility()"
-                [attr.aria-label]="isNewPasswordVisible() ? 'Ocultar senha' : 'Mostrar senha'"
               >
-                <mat-icon>{{ isNewPasswordVisible() ? 'visibility_off' : 'visibility' }}</mat-icon>
+                <mat-icon>
+                  {{ isNewPasswordVisible() ? 'visibility_off' : 'visibility' }}
+                </mat-icon>
               </button>
               <mat-hint>Mínimo 8 caracteres</mat-hint>
 
@@ -125,7 +171,7 @@
               }
             </mat-form-field>
 
-            <!-- Metade direita -->
+            <!-- Confirmar nova senha -->
             <mat-form-field appearance="outline" class="form-field">
               <mat-label>Confirmar nova senha</mat-label>
               <input
@@ -140,9 +186,10 @@
                 mat-icon-button
                 matSuffix
                 (click)="toggleConfirmPasswordVisibility()"
-                [attr.aria-label]="isConfirmPasswordVisible() ? 'Ocultar senha' : 'Mostrar senha'"
               >
-                <mat-icon>{{ isConfirmPasswordVisible() ? 'visibility_off' : 'visibility' }}</mat-icon>
+                <mat-icon>
+                  {{ isConfirmPasswordVisible() ? 'visibility_off' : 'visibility' }}
+                </mat-icon>
               </button>
 
               @if (
@@ -158,7 +205,11 @@
       </mat-card-content>
 
       <mat-card-actions class="form-actions m-3">
-        <button mat-flat-button (click)="changePassword()" [disabled]="!canChangePassword()">
+        <button
+          mat-flat-button
+          (click)="changePassword()"
+          [disabled]="!canChangePassword()"
+        >
           @if (isChangingPasswordSignal()) {
             <mat-progress-spinner diameter="18" mode="indeterminate" />
           } @else {

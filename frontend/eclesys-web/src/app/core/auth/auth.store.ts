@@ -13,7 +13,9 @@ export class AuthStore {
   private tokenStorage = inject(TokenStorage);
 
   private tokenSignal = signal<string | null>(this.tokenStorage.getToken());
-  private meSignal = signal<AuthUser | null>(this.tokenStorage.getUser<AuthUser>());
+  private meSignal = signal<AuthUser | null>(
+    this.tokenStorage.getUser<AuthUser>(),
+  );
   private isMeLoadingSignal = signal(false);
 
   isAuthenticated = computed(() => !!this.tokenSignal());
@@ -31,7 +33,8 @@ export class AuthStore {
   }
 
   loadMe() {
-    if (!this.tokenSignal() || this.isMeLoadingSignal() || this.meSignal()) return;
+    if (!this.tokenSignal() || this.isMeLoadingSignal() || this.meSignal())
+      return;
 
     this.isMeLoadingSignal.set(true);
 
@@ -46,6 +49,24 @@ export class AuthStore {
         this.logout();
       },
     });
+  }
+
+  updateMe(updatedUser: Partial<AuthUser>) {
+    let currentUser = this.meSignal();
+
+    if (!currentUser) {
+      this.meSignal.set(updatedUser as AuthUser);
+      this.tokenStorage.setUser(updatedUser);
+      return;
+    }
+
+    let mergedUser = {
+      ...currentUser,
+      ...updatedUser,
+    } as AuthUser;
+
+    this.meSignal.set(mergedUser);
+    this.tokenStorage.setUser(mergedUser);
   }
 
   login(request: LoginRequest) {
