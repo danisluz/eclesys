@@ -1,0 +1,91 @@
+<section class="page">
+  <!-- ===============================
+       HEADER
+  ================================ -->
+  <header class="page__header">
+    <div class="page__heading">
+      <h1 class="page__title">Usuários</h1>
+      <p class="page__subtitle">Gerencie usuários da igreja</p>
+    </div>
+
+    <div class="page__actions">
+      <button
+        mat-stroked-button
+        type="button"
+        (click)="reload()"
+        [disabled]="usersStore.isListLoading()"
+      >
+        <mat-icon>refresh</mat-icon>
+        Atualizar
+      </button>
+
+      <button mat-flat-button type="button" (click)="openCreateDialog()">
+        <mat-icon>add</mat-icon>
+        Novo usuário
+      </button>
+    </div>
+  </header>
+
+  <!-- ===============================
+       CONTENT
+  ================================ -->
+  <mat-card appearance="outlined" class="card">
+    <mat-card-content>
+      <!-- LOADING -->
+      @if (usersStore.isListLoading()) {
+        <div class="state">
+          <mat-progress-spinner mode="indeterminate"></mat-progress-spinner>
+        </div>
+      }
+
+      <!-- ERROR -->
+      @else if (usersStore.listErrorMessage(); as errorMessage) {
+        <div class="state state--error">
+          <div class="state__title">Não foi possível carregar usuários</div>
+          <div class="state__text">
+            {{ errorMessage }}
+          </div>
+
+          <div class="state__actions">
+            <button mat-stroked-button type="button" (click)="reload()">
+              Tentar novamente
+            </button>
+          </div>
+        </div>
+      }
+
+      <!-- EMPTY -->
+      @else if (usersStore.users().length === 0) {
+        <div class="state">
+          <div class="state__title">Nenhum usuário cadastrado</div>
+          <div class="state__text">
+            Crie o primeiro usuário para esta tenant.
+          </div>
+        </div>
+      }
+
+      <!-- LIST -->
+      @else {
+        <div class="list">
+          @for (user of usersStore.users(); track user.id) {
+            <div class="row">
+              <div class="row__main">
+                <div class="row__title">{{ user.name }}</div>
+                <div class="row__subtitle">{{ user.email }}</div>
+              </div>
+
+              <div class="row__meta">
+                <mat-chip-set>
+                  <mat-chip>{{ user.role }}</mat-chip>
+                  <mat-chip [class.is-inactive]="!user.isActive">
+                    {{ user.isActive ? 'Ativo' : 'Inativo' }}
+                  </mat-chip>
+                </mat-chip-set>
+              </div>
+            </div>
+          }
+        </div>
+      }
+    </mat-card-content>
+  </mat-card>
+</section>

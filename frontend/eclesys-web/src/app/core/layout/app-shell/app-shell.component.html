@@ -24,15 +24,21 @@
           </button>
         </mat-menu>
 
-        <button mat-button class="topbar__nav-btn" disabled>
-          Membros
-          <mat-icon>expand_more</mat-icon>
-        </button>
+        <button
+  mat-button
+  class="topbar__nav-btn"
+  [matMenuTriggerFor]="menuAdmin"
+>
+  Administração
+  <mat-icon>expand_more</mat-icon>
+</button>
 
-        <button mat-button class="topbar__nav-btn" disabled>
-          Famílias
-          <mat-icon>expand_more</mat-icon>
-        </button>
+<mat-menu #menuAdmin="matMenu">
+  <button mat-menu-item routerLink="/app/users">
+    <mat-icon>group</mat-icon>
+    Usuários
+  </button>
+</mat-menu>
 
         <button mat-button class="topbar__nav-btn" disabled>
           Eventos

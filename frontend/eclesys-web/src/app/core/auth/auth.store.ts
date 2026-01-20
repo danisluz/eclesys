@@ -51,6 +51,18 @@ export class AuthStore {
     });
   }
 
+  async ensureMeLoaded(): Promise<boolean> {
+    if (!this.isAuthenticated()) return false;
+    if (this.me()) return true;
+
+    try {
+      await this.loadMe();
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
   updateMe(updatedUser: Partial<AuthUser>) {
     let currentUser = this.meSignal();
 

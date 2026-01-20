@@ -23,12 +23,16 @@ export const routes: Routes = [
   {
     path: 'app',
     component: AppShellComponent,
-    // canActivate: [authGuard],
+    canActivate: [authGuard],
     children: [
       { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
       { path: 'dashboard', component: DashboardComponent },
       { path: 'profile', component: ProfileComponent },
-
+      {
+        path: 'users',
+        loadChildren: () =>
+          import('./features/app/users/users.routes').then(m => m.USERS_ROUTES)
+      },
     ],
   },
   { path: '**', redirectTo: '' },
