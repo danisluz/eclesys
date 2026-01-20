@@ -120,7 +120,7 @@ export class UsersPageComponent {
     this.usersStore.clearResetPasswordError();
 
     this.matDialog.open(ResetPasswordDialogComponent, {
-      width: '520px',
+      width: '640px',
       maxWidth: '92vw',
       autoFocus: false,
       data: { user },

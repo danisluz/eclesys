@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import {
   MAT_DIALOG_DATA,
@@ -13,6 +13,8 @@ import { MatInputModule } from '@angular/material/input';
 import { UsersStore } from '../../data/users.store';
 import { UserDto } from '../../models/user.models';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatIcon } from '@angular/material/icon';
+import { passwordMatchValidator } from '../../../../../shared/validators/password-match.validator';
 
 export interface ResetPasswordDialogData {
   user: UserDto;
@@ -27,6 +29,7 @@ export interface ResetPasswordDialogData {
     MatButtonModule,
     MatFormFieldModule,
     MatInputModule,
+    MatIcon,
   ],
   templateUrl: './reset-password-dialog.component.html',
   styleUrls: ['./reset-password-dialog.component.scss'],
@@ -37,15 +40,46 @@ export class ResetPasswordDialogComponent {
   dialogData = inject<ResetPasswordDialogData>(MAT_DIALOG_DATA);
   formBuilder = inject(FormBuilder);
   snackBar = inject(MatSnackBar);
+  wasSubmitted = signal(false);
 
   isSubmitting = signal(false);
 
-  formGroup = this.formBuilder.group({
-    newPassword: ['', [Validators.required, Validators.minLength(6)]],
-    confirmPassword: ['', [Validators.required, Validators.minLength(6)]],
-  });
+  showNewPassword = signal(false);
+  showConfirmPassword = signal(false);
+
+  newPasswordHasMinLength(): boolean {
+    const newPasswordValue = this.formGroup.controls.newPassword.value;
+    return (newPasswordValue ?? '').length >= 6;
+  }
+
+  isPasswordMismatch(): boolean {
+    return this.formGroup.hasError('passwordMismatch');
+  }
+
+  confirmPasswordHasMinLength(): boolean {
+    const confirmPasswordValue = this.formGroup.controls.confirmPassword.value;
+    return (confirmPasswordValue ?? '').length >= 6;
+  }
+
+  toggleNewPasswordVisibility() {
+    this.showNewPassword.update((value) => !value);
+  }
+
+  toggleConfirmPasswordVisibility() {
+    this.showConfirmPassword.update((value) => !value);
+  }
+
+  formGroup = this.formBuilder.group(
+    {
+      newPassword: ['', [Validators.required, Validators.minLength(6)]],
+      confirmPassword: ['', [Validators.required, Validators.minLength(6)]],
+    },
+    { validators: passwordMatchValidator },
+  );
 
   async submit(): Promise<void> {
+    this.wasSubmitted.set(true);
+
     if (this.isSubmitting()) return;
 
     this.usersStore.clearResetPasswordError();
@@ -55,15 +89,9 @@ export class ResetPasswordDialogComponent {
       return;
     }
 
-    const newPassword = this.formGroup.controls.newPassword.value!;
-    const confirmPassword = this.formGroup.controls.confirmPassword.value!;
-
-    if (newPassword !== confirmPassword) {
-      this.usersStore.setResetPasswordError('As senhas não conferem.');
-      return;
-    }
-
     this.isSubmitting.set(true);
+
+    const newPassword = this.formGroup.controls.newPassword.value!;
 
     const success = await this.usersStore.resetUserPassword(
       this.dialogData.user.id,
