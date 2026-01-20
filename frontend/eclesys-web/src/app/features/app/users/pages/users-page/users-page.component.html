@@ -87,10 +87,33 @@
                   <mat-slide-toggle
                     [checked]="user.isActive"
                     [disabled]="!isAdmin() || isMasterUser(user)"
-                    (change)="onToggleStatus(user, $event.checked)"
+                    (change)="onToggleStatus(user, $event)"
+                    [matTooltip]="
+                      user.isActive
+                        ? 'Clique para desativar este usuário'
+                        : 'Clique para ativar este usuário'
+                    "
+                    matTooltipPosition="above"
                     aria-label="Alterar status do usuário"
                   ></mat-slide-toggle>
                 </div>
+
+                <button
+                  mat-icon-button
+                  type="button"
+                  [matMenuTriggerFor]="userActionsMenu"
+                  [disabled]="!isAdmin() || isMasterUser(user)"
+                  aria-label="Ações do usuário"
+                >
+                  <mat-icon>more_vert</mat-icon>
+                </button>
+
+                <mat-menu #userActionsMenu="matMenu">
+                  <button mat-menu-item (click)="openResetPasswordDialog(user)">
+                    <mat-icon>lock_reset</mat-icon>
+                    Redefinir senha
+                  </button>
+                </mat-menu>
               </div>
             </div>
           }

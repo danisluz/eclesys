@@ -70,7 +70,7 @@ export class UsersStore {
     return fallbackMessage;
   }
 
-  async updateStatus(userId: string, isActive: boolean): Promise<void> {
+  async updateStatus(userId: string, isActive: boolean): Promise<boolean> {
     this.listErrorMessage.set(null);
 
     try {
@@ -79,6 +79,8 @@ export class UsersStore {
       this.users.update((currentUsers) =>
         currentUsers.map((user) => (user.id === userId ? updatedUser : user)),
       );
+
+      return true;
     } catch (error: any) {
       this.listErrorMessage.set(
         this.parseErrorMessage(
@@ -86,6 +88,38 @@ export class UsersStore {
           'Não foi possível atualizar o status do usuário.',
         ),
       );
+      return false;
+    }
+  }
+
+  resetPasswordErrorMessage = signal<string | null>(null);
+  isResetPasswordLoading = signal(false);
+
+  clearResetPasswordError(): void {
+    this.resetPasswordErrorMessage.set(null);
+  }
+
+  setResetPasswordError(message: string): void {
+    this.resetPasswordErrorMessage.set(message);
+  }
+
+  async resetUserPassword(
+    userId: string,
+    newPassword: string,
+  ): Promise<boolean> {
+    this.isResetPasswordLoading.set(true);
+    this.resetPasswordErrorMessage.set(null);
+
+    try {
+      await this.usersApi.resetPassword(userId, newPassword);
+      return true;
+    } catch (error: any) {
+      this.resetPasswordErrorMessage.set(
+        this.parseErrorMessage(error, 'Não foi possível redefinir a senha.'),
+      );
+      return false;
+    } finally {
+      this.isResetPasswordLoading.set(false);
     }
   }
 }

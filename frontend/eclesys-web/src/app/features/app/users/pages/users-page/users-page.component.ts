@@ -15,6 +15,11 @@ import { UserAvatarComponent } from '../../../../../shared/ui/user-avatar/user-a
 import { UserDto } from '../../models/user.models';
 import { AuthStore } from '../../../../../core/auth/auth.store';
 import { ConfirmDialogComponent } from '../../../../../shared/ui/confirm-dialog/confirm-dialog.component';
+import { MatMenuModule } from '@angular/material/menu';
+import { ResetPasswordDialogComponent } from '../../components/reset-password-dialog/reset-password-dialog.component';
+import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatSlideToggleChange } from '@angular/material/slide-toggle';
 
 @Component({
   standalone: true,
@@ -27,6 +32,9 @@ import { ConfirmDialogComponent } from '../../../../../shared/ui/confirm-dialog/
     MatChipsModule,
     UserAvatarComponent,
     MatSlideToggleModule,
+    MatMenuModule,
+    MatSnackBarModule,
+    MatTooltipModule,
   ],
   templateUrl: './users-page.component.html',
   styleUrls: ['./users-page.component.scss'],
@@ -35,6 +43,7 @@ export class UsersPageComponent {
   usersStore = inject(UsersStore);
   matDialog = inject(MatDialog);
   authStore = inject(AuthStore);
+  snackBar = inject(MatSnackBar);
 
   constructor() {
     afterNextRender(() => {
@@ -63,29 +72,39 @@ export class UsersPageComponent {
     this.usersStore.loadUsers();
   }
 
-  onToggleStatus(user: UserDto, isActive: boolean): void {
+  onToggleStatus(user: UserDto, event: MatSlideToggleChange): void {
     const previousValue = user.isActive;
+    const newValue = event.checked;
 
     this.matDialog
       .open(ConfirmDialogComponent, {
         data: {
-          title: isActive ? 'Ativar usuário' : 'Desativar usuário',
-          message: `Deseja ${isActive ? 'ativar' : 'desativar'} ${user.name}?`,
+          title: newValue ? 'Ativar usuário' : 'Desativar usuário',
+          message: `Deseja ${newValue ? 'ativar' : 'desativar'} ${user.name}?`,
+          confirmColor: newValue ? 'primary' : 'warn',
         },
       })
       .afterClosed()
       .subscribe(async (confirmed) => {
         if (!confirmed) {
-          // 🔄 reverte visualmente
-          this.usersStore.users.update((users) =>
-            users.map((u) =>
-              u.id === user.id ? { ...u, isActive: previousValue } : u,
-            ),
-          );
+          event.source.checked = previousValue;
           return;
         }
 
-        await this.usersStore.updateStatus(user.id, isActive);
+        const success = await this.usersStore.updateStatus(user.id, newValue);
+
+        if (!success) {
+          event.source.checked = previousValue;
+          return;
+        }
+
+        this.snackBar.open(
+          newValue
+            ? `Usuário ${user.name} ativado com sucesso`
+            : `Usuário ${user.name} desativado com sucesso`,
+          'Fechar',
+          { duration: 3000 },
+        );
       });
   }
 
@@ -95,5 +114,16 @@ export class UsersPageComponent {
 
     // regra atual: usuário logado (email único)
     return user.email === me.email;
+  }
+
+  openResetPasswordDialog(user: UserDto): void {
+    this.usersStore.clearResetPasswordError();
+
+    this.matDialog.open(ResetPasswordDialogComponent, {
+      width: '520px',
+      maxWidth: '92vw',
+      autoFocus: false,
+      data: { user },
+    });
   }
 }

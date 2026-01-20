@@ -49,4 +49,12 @@ export class UsersApi {
     );
     return response.data;
   }
+
+  async resetPassword(userId: string, newPassword: string): Promise<void> {
+    await firstValueFrom(
+      this.httpClient.patch('/api/users/' + userId + '/password', {
+        newPassword,
+      }),
+    );
+  }
 }
