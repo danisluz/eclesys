@@ -1,0 +1,14 @@
+.dialog-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dialog-icon {
+  opacity: 0.8;
+}
+
+.dialog-content {
+  padding-top: 8px;
+  max-width: 420px;
+}

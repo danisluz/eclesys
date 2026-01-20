@@ -31,7 +31,7 @@ export class UsersStore {
       this.users.set(Array.isArray(users) ? users : []);
     } catch (error: any) {
       this.listErrorMessage.set(
-        this.parseErrorMessage(error, 'Não foi possível carregar usuários.')
+        this.parseErrorMessage(error, 'Não foi possível carregar usuários.'),
       );
     } finally {
       this.isListLoading.set(false);
@@ -54,7 +54,7 @@ export class UsersStore {
       return createdUser;
     } catch (error: any) {
       this.createErrorMessage.set(
-        this.parseErrorMessage(error, 'Não foi possível criar o usuário.')
+        this.parseErrorMessage(error, 'Não foi possível criar o usuário.'),
       );
       return null;
     } finally {
@@ -68,5 +68,24 @@ export class UsersStore {
       return apiMessage;
     }
     return fallbackMessage;
+  }
+
+  async updateStatus(userId: string, isActive: boolean): Promise<void> {
+    this.listErrorMessage.set(null);
+
+    try {
+      const updatedUser = await this.usersApi.updateUser(userId, { isActive });
+
+      this.users.update((currentUsers) =>
+        currentUsers.map((user) => (user.id === userId ? updatedUser : user)),
+      );
+    } catch (error: any) {
+      this.listErrorMessage.set(
+        this.parseErrorMessage(
+          error,
+          'Não foi possível atualizar o status do usuário.',
+        ),
+      );
+    }
   }
 }

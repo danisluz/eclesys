@@ -1,7 +1,4 @@
 <section class="page">
-  <!-- ===============================
-       HEADER
-  ================================ -->
   <header class="page__header">
     <div class="page__heading">
       <h1 class="page__title">Usuários</h1>
@@ -26,20 +23,13 @@
     </div>
   </header>
 
-  <!-- ===============================
-       CONTENT
-  ================================ -->
   <mat-card appearance="outlined" class="card">
     <mat-card-content>
-      <!-- LOADING -->
       @if (usersStore.isListLoading()) {
         <div class="state">
           <mat-progress-spinner mode="indeterminate"></mat-progress-spinner>
         </div>
-      }
-
-      <!-- ERROR -->
-      @else if (usersStore.listErrorMessage(); as errorMessage) {
+      } @else if (usersStore.listErrorMessage(); as errorMessage) {
         <div class="state state--error">
           <div class="state__title">Não foi possível carregar usuários</div>
           <div class="state__text">
@@ -52,35 +42,55 @@
             </button>
           </div>
         </div>
-      }
-
-      <!-- EMPTY -->
-      @else if (usersStore.users().length === 0) {
+      } @else if (usersStore.users().length === 0) {
         <div class="state">
           <div class="state__title">Nenhum usuário cadastrado</div>
           <div class="state__text">
             Crie o primeiro usuário para esta tenant.
           </div>
         </div>
-      }
-
-      <!-- LIST -->
-      @else {
+      } @else {
         <div class="list">
           @for (user of usersStore.users(); track user.id) {
             <div class="row">
               <div class="row__main">
-                <div class="row__title">{{ user.name }}</div>
-                <div class="row__subtitle">{{ user.email }}</div>
+                <app-user-avatar
+                  [userNameSignal]="user.name"
+                  [userEmailSignal]="user.email"
+                  [sizeSignal]="32"
+                  ariaLabelSignal="Avatar do usuário"
+                ></app-user-avatar>
+
+                <div>
+                  <div class="row__title">{{ user.name }}</div>
+                  <div class="row__subtitle">{{ user.email }}</div>
+                </div>
               </div>
 
               <div class="row__meta">
                 <mat-chip-set>
                   <mat-chip>{{ user.role }}</mat-chip>
-                  <mat-chip [class.is-inactive]="!user.isActive">
-                    {{ user.isActive ? 'Ativo' : 'Inativo' }}
-                  </mat-chip>
+
+                  @if (isMasterUser(user)) {
+                    <mat-chip color="primary">MASTER</mat-chip>
+                  }
                 </mat-chip-set>
+
+                <div class="status">
+                  <span
+                    class="status__label"
+                    [class.is-inactive]="!user.isActive"
+                  >
+                    {{ user.isActive ? "Ativo" : "Inativo" }}
+                  </span>
+
+                  <mat-slide-toggle
+                    [checked]="user.isActive"
+                    [disabled]="!isAdmin() || isMasterUser(user)"
+                    (change)="onToggleStatus(user, $event.checked)"
+                    aria-label="Alterar status do usuário"
+                  ></mat-slide-toggle>
+                </div>
               </div>
             </div>
           }

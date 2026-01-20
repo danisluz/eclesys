@@ -8,6 +8,12 @@ export interface UserDto {
   isActive: boolean;
 }
 
+export type UpdateUserRequest = Partial<{
+  name: string;
+  role: UserRole;
+  isActive: boolean;
+}>;
+
 export interface CreateUserRequest {
   name: string;
   email: string;
