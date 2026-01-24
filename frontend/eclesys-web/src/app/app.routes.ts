@@ -10,6 +10,8 @@ import { AppShellComponent } from './core/layout/app-shell/app-shell.component';
 import { ProfileComponent } from './features/app/profile-component/profile.component';
 import { OrganizationsComponent } from './features/app/organizations/organizations.component';
 import { ChurchRolesComponent } from './features/app/church-roles/church-roles.component';
+import { FunctionRolesComponent } from './features/app/function-roles/function-roles.component';
+import { MembersComponent } from './features/app/members/members.component';
 
 export const routes: Routes = [
   {
@@ -32,6 +34,8 @@ export const routes: Routes = [
       { path: 'profile', component: ProfileComponent },
       { path: 'organizations', component: OrganizationsComponent },
       { path: 'church-roles', component: ChurchRolesComponent },
+      { path: 'function-roles', component: FunctionRolesComponent },
+      { path: 'members', component: MembersComponent },
       {
         path: 'users',
         loadChildren: () =>
