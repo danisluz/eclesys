@@ -20,7 +20,7 @@ spring:
 eclesys:
   jwt:
     secret: "CHANGE_ME_TO_A_LONG_RANDOM_SECRET_AT_LEAST_64_CHARS_1234567890_CHANGE_ME"
-    expiration-minutes: 120
+    expiration-minutes: 480  # 8 horas para desenvolvimento
 
 management:
   endpoints:

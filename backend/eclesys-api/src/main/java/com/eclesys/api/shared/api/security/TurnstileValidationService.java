@@ -32,6 +32,10 @@ public class TurnstileValidationService {
   @SuppressWarnings("unchecked")
   public boolean isValid(String token) {
 
+    logger.info("=== TURNSTILE VALIDATION ===");
+    logger.info("Token recebido: {}", token != null ? (token.length() > 20 ? token.substring(0, 20) + "..." : token) : "NULL");
+    logger.info("Secret configurada: {}", secret != null && !secret.isBlank() ? "SIM" : "NÃO");
+
     if (token == null || token.isBlank()) {
       logger.warn("Turnstile token vazio");
       return false;
@@ -47,6 +51,8 @@ public class TurnstileValidationService {
       form.add("secret", secret);
       form.add("response", token);
 
+      logger.info("Enviando requisição para Cloudflare...");
+
       Map<String, Object> response = this.restClient.post()
           .uri("https://challenges.cloudflare.com/turnstile/v0/siteverify")
           .contentType(MediaType.APPLICATION_FORM_URLENCODED)
@@ -54,11 +60,16 @@ public class TurnstileValidationService {
           .retrieve()
           .body(Map.class);
 
+      logger.info("Resposta do Cloudflare: {}", response);
+
       Object success = response.get("success");
       boolean valid = success instanceof Boolean && (Boolean) success;
 
       if (!valid) {
         logger.warn("Turnstile falhou: {}", response);
+        logger.warn("Error codes: {}", response.get("error-codes"));
+      } else {
+        logger.info("Turnstile validado com sucesso!");
       }
 
       return valid;

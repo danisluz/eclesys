@@ -8,6 +8,7 @@ import { SignupComponent } from './features/public/signup-component/signup.compo
 import { LoginComponent } from './features/public/login-component/login.component';
 import { AppShellComponent } from './core/layout/app-shell/app-shell.component';
 import { ProfileComponent } from './features/app/profile-component/profile.component';
+import { OrganizationsComponent } from './features/app/organizations/organizations.component';
 
 export const routes: Routes = [
   {
@@ -28,10 +29,13 @@ export const routes: Routes = [
       { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
       { path: 'dashboard', component: DashboardComponent },
       { path: 'profile', component: ProfileComponent },
+      { path: 'organizations', component: OrganizationsComponent },
       {
         path: 'users',
         loadChildren: () =>
-          import('./features/app/users/users.routes').then(m => m.USERS_ROUTES)
+          import('./features/app/users/users.routes').then(
+            (m) => m.USERS_ROUTES,
+          ),
       },
     ],
   },

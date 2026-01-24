@@ -58,7 +58,7 @@ export class SignupComponent {
 
       if (!turnstile || !this.turnstileContainer?.nativeElement) {
         this.errorMessage.set(
-          'Turnstile não carregou. Confere o script no index.html.'
+          'Turnstile não carregou. Confere o script no index.html.',
         );
         return;
       }
@@ -71,7 +71,7 @@ export class SignupComponent {
         'error-callback': () => {
           this.turnstileToken.set(null);
           this.errorMessage.set(
-            'Falha na verificação anti-bot. Tente novamente.'
+            'Falha na verificação anti-bot. Tente novamente.',
           );
         },
       });
@@ -95,41 +95,54 @@ export class SignupComponent {
     this.errorMessage.set(null);
     this.isSuccess.set(false);
 
+    console.log('[Signup] Form valid:', form.valid);
+    console.log(
+      '[Signup] Turnstile token:',
+      this.turnstileToken() ? 'EXISTS' : 'NULL',
+    );
+
     if (form.invalid) {
       Object.values(form.controls).forEach((control) =>
-        control.markAsTouched()
+        control.markAsTouched(),
       );
+      return;
+    }
+
+    if (!this.turnstileToken()) {
+      this.errorMessage.set('Confirme a verificação anti-bot para continuar.');
+      this.isLoading.set(false);
       return;
     }
 
     this.isLoading.set(true);
 
-    if (!this.turnstileToken()) {
-      this.errorMessage.set('Confirme a verificação anti-bot para continuar.');
-      return;
-    }
+    const payload = {
+      tenantCode: this.tenantCode,
+      churchName: this.churchName.trim(),
+      adminName: this.adminName.trim(),
+      adminEmail: this.email.trim().toLowerCase(),
+      adminPassword: this.adminPassword,
+      antiBotToken: this.turnstileToken(),
+      logoUrl: null,
+    };
 
-    this.signupService
-      .create({
-        tenantCode: this.tenantCode,
-        churchName: this.churchName.trim(),
-        adminName: this.adminName.trim(),
-        adminEmail: this.email.trim().toLowerCase(),
-        adminPassword: this.adminPassword,
-        antiBotToken: this.turnstileToken(),
-        logoUrl: null,
-      })
-      .subscribe({
-        next: () => {
-          this.isSuccess.set(true);
-          this.isLoading.set(false);
-        },
-        error: (err) => {
-          this.errorMessage.set(
-            err?.error?.message || 'Erro ao solicitar acesso'
-          );
-          this.isLoading.set(false);
-        },
-      });
+    console.log(
+      '[Signup] Sending payload with token:',
+      payload.antiBotToken ? 'EXISTS' : 'NULL',
+    );
+
+    this.signupService.create(payload).subscribe({
+      next: () => {
+        this.isSuccess.set(true);
+        this.isLoading.set(false);
+      },
+      error: (err) => {
+        console.error('[Signup] Error:', err);
+        this.errorMessage.set(
+          err?.error?.message || 'Erro ao solicitar acesso',
+        );
+        this.isLoading.set(false);
+      },
+    });
   }
 }

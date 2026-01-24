@@ -27,10 +27,18 @@ public class OnboardingController {
   public ResponseEntity<ApiResponse<OnboardingResponse>> create(
       @Valid @RequestBody OnboardingRequest request
   ) {
+    System.out.println("=== ONBOARDING REQUEST ===");
+    System.out.println("Tenant Code: " + request.tenantCode);
+    System.out.println("Church Name: " + request.churchName);
+    System.out.println("Admin Email: " + request.adminEmail);
+    System.out.println("Anti-bot token: " + (request.antiBotToken != null && !request.antiBotToken.isBlank() ? "EXISTS (length: " + request.antiBotToken.length() + ")" : "NULL/EMPTY"));
+    
     if (!turnstileValidationService.isValid(request.antiBotToken)) {
+      System.out.println("❌ Turnstile validation FAILED");
       return ResponseEntity.badRequest().body(ApiResponse.error("Validação anti-bot falhou"));
     }
 
+    System.out.println("✅ Turnstile validation PASSED");
     OnboardingResponse response = onboardingService.createTenantWithAdmin(request);
     return ResponseEntity.ok(ApiResponse.success(response));
   }

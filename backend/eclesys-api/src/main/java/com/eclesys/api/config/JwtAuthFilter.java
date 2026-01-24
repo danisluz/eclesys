@@ -13,6 +13,8 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.List;
@@ -20,6 +22,8 @@ import java.util.Map;
 
 @Component
 public class JwtAuthFilter extends OncePerRequestFilter {
+
+  private static final Logger logger = LoggerFactory.getLogger(JwtAuthFilter.class);
 
   private JwtTokenService jwtTokenService;
 
@@ -72,6 +76,9 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
     } catch (Exception ex) {
       SecurityContextHolder.clearContext();
+
+      // Log detalhado do erro
+      logger.warn("JWT validation failed: {} - {}", ex.getClass().getSimpleName(), ex.getMessage());
 
       response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
       response.setContentType(MediaType.APPLICATION_JSON_VALUE);
