@@ -35,7 +35,6 @@
     </header>
 
     <mat-card appearance="outlined" class="card profile-card">
-      <!-- Erro ao salvar perfil -->
       @if (profileErrorMessageSignal(); as errorMessage) {
         <div class="form-error" style="margin: 16px">
           <mat-icon>error</mat-icon>
@@ -66,6 +65,7 @@
                   matInput
                   [ngModel]="profileName()"
                   (ngModelChange)="profileName.set($event)"
+                  [ngModelOptions]="{ standalone: true }"
                   autocomplete="name"
                 />
               </mat-form-field>
@@ -139,8 +139,12 @@
                 [type]="isCurrentPasswordVisible() ? 'text' : 'password'"
                 [ngModel]="currentPassword()"
                 (ngModelChange)="currentPassword.set($event)"
+                [ngModelOptions]="{ standalone: true }"
                 autocomplete="current-password"
+                required
+                #currentPasswordModel="ngModel"
               />
+
               <button
                 type="button"
                 mat-icon-button
@@ -153,6 +157,13 @@
                   }}
                 </mat-icon>
               </button>
+
+              @if (
+                (currentPasswordModel.dirty || currentPasswordModel.touched) &&
+                currentPasswordModel.errors?.["required"]
+              ) {
+                <mat-error>Informe a senha atual</mat-error>
+              }
             </mat-form-field>
 
             <!-- Nova senha -->
@@ -163,8 +174,13 @@
                 [type]="isNewPasswordVisible() ? 'text' : 'password'"
                 [ngModel]="newPassword()"
                 (ngModelChange)="newPassword.set($event)"
+                [ngModelOptions]="{ standalone: true }"
                 autocomplete="new-password"
+                required
+                minlength="8"
+                #newPasswordModel="ngModel"
               />
+
               <button
                 type="button"
                 mat-icon-button
@@ -175,10 +191,21 @@
                   {{ isNewPasswordVisible() ? "visibility_off" : "visibility" }}
                 </mat-icon>
               </button>
+
               <mat-hint>Mínimo 8 caracteres</mat-hint>
 
-              @if (newPassword().length > 0 && newPassword().length < 8) {
+              @if (
+                (newPasswordModel.dirty || newPasswordModel.touched) &&
+                newPasswordModel.errors?.["minlength"]
+              ) {
                 <mat-error>Use pelo menos 8 caracteres</mat-error>
+              }
+
+              @if (
+                (newPasswordModel.dirty || newPasswordModel.touched) &&
+                newPasswordModel.errors?.["required"]
+              ) {
+                <mat-error>Informe a nova senha</mat-error>
               }
             </mat-form-field>
 
@@ -190,8 +217,14 @@
                 [type]="isConfirmPasswordVisible() ? 'text' : 'password'"
                 [ngModel]="confirmNewPassword()"
                 (ngModelChange)="confirmNewPassword.set($event)"
+                [ngModelOptions]="{ standalone: true }"
                 autocomplete="new-password"
+                required
+                minlength="8"
+                [errorStateMatcher]="confirmPasswordErrorStateMatcher"
+                #confirmPasswordModel="ngModel"
               />
+
               <button
                 type="button"
                 mat-icon-button
@@ -206,11 +239,22 @@
               </button>
 
               @if (
-                newPassword().length > 0 &&
-                confirmNewPassword().length > 0 &&
-                newPassword() !== confirmNewPassword()
+                (confirmPasswordModel.dirty || confirmPasswordModel.touched) &&
+                confirmPasswordModel.errors?.["minlength"]
+              ) {
+                <mat-error>Use pelo menos 8 caracteres</mat-error>
+              } @else if (
+                (confirmPasswordModel.dirty || confirmPasswordModel.touched) &&
+                isNewPasswordMismatch()
               ) {
                 <mat-error>As senhas não conferem</mat-error>
+              }
+
+              @if (
+                (confirmPasswordModel.dirty || confirmPasswordModel.touched) &&
+                confirmPasswordModel.errors?.["required"]
+              ) {
+                <mat-error>Confirme a nova senha</mat-error>
               }
             </mat-form-field>
           </div>
