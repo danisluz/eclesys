@@ -1,6 +1,7 @@
 package com.eclesys.api.domain.member;
 
 import com.eclesys.api.domain.churchrole.ChurchRole;
+import com.eclesys.api.domain.organization.OrganizationUnit;
 import com.eclesys.api.domain.tenant.TenantEntity;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -45,6 +46,14 @@ public class Member {
   @Column(name = "baptism_date")
   private LocalDate baptismDate;
 
+  @Enumerated(EnumType.STRING)
+  @Column(length = 1)
+  private Gender gender;
+
+  @Enumerated(EnumType.STRING)
+  @Column(name = "marital_status", length = 20)
+  private MaritalStatus maritalStatus;
+
   @JdbcTypeCode(SqlTypes.JSON)
   @Column(columnDefinition = "jsonb")
   private Map<String, Object> address;
@@ -54,8 +63,25 @@ public class Member {
   private MemberStatus status;
 
   @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "organization_unit_id")
+  private OrganizationUnit organizationUnit;
+
+  @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "church_role_id")
   private ChurchRole churchRole;
+
+  // Relacionamentos familiares
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "spouse_id")
+  private Member spouse;
+
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "father_id")
+  private Member father;
+
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "mother_id")
+  private Member mother;
 
   @Column(name = "created_at", nullable = false)
   private LocalDateTime createdAt;

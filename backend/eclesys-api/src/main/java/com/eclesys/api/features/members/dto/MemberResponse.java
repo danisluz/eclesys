@@ -1,5 +1,7 @@
 package com.eclesys.api.features.members.dto;
 
+import com.eclesys.api.domain.member.Gender;
+import com.eclesys.api.domain.member.MaritalStatus;
 import com.eclesys.api.domain.member.MemberStatus;
 
 import java.time.LocalDate;
@@ -15,10 +17,15 @@ public record MemberResponse(
     String document,
     LocalDate birthDate,
     LocalDate baptismDate,
-    Map<String, Object> address,
+    Gender gender,
+    MaritalStatus maritalStatus,
+    AddressDto address,
     MemberStatus status,
+    UUID organizationUnitId,
+    String organizationUnitName,
     UUID churchRoleId,
     String churchRoleName,
+    FamilyRelationshipsDto family,
     LocalDateTime createdAt,
     LocalDateTime updatedAt
 ) {}

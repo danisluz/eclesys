@@ -1,8 +1,11 @@
 package com.eclesys.api.features.members.dto;
 
+import com.eclesys.api.domain.member.Gender;
+import com.eclesys.api.domain.member.MaritalStatus;
 import com.eclesys.api.domain.member.MemberStatus;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 import java.time.LocalDate;
@@ -28,7 +31,20 @@ public record CreateMemberRequest(
 
     LocalDate baptismDate,
 
-    Map<String, Object> address,
+    Gender gender,
 
-    UUID churchRoleId
+    MaritalStatus maritalStatus,
+
+    AddressDto address,
+
+    @NotNull(message = "Congregação é obrigatória")
+    UUID organizationUnitId,
+
+    UUID churchRoleId,
+
+    UUID spouseId,
+
+    UUID fatherId,
+
+    UUID motherId
 ) {}

@@ -1,5 +1,7 @@
 package com.eclesys.api.features.members.dto;
 
+import com.eclesys.api.domain.member.Gender;
+import com.eclesys.api.domain.member.MaritalStatus;
 import com.eclesys.api.domain.member.MemberStatus;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Size;
@@ -26,9 +28,21 @@ public record UpdateMemberRequest(
 
     LocalDate baptismDate,
 
-    Map<String, Object> address,
+    Gender gender,
+
+    MaritalStatus maritalStatus,
+
+    AddressDto address,
 
     MemberStatus status,
 
-    UUID churchRoleId
+    UUID organizationUnitId,
+
+    UUID churchRoleId,
+
+    UUID spouseId,
+
+    UUID fatherId,
+
+    UUID motherId
 ) {}
