@@ -1,0 +1,11 @@
+{
+  "analyzerProperties": {
+    "sonar.java.source": "21",
+    "sonar.typescript.tsconfigPath": "frontend/eclesys-web/tsconfig.json"
+  },
+  "rules": {
+    "Web:S6840": {
+      "level": "off"
+    }
+  }
+}
