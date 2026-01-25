@@ -8,6 +8,11 @@ import { SignupComponent } from './features/public/signup-component/signup.compo
 import { LoginComponent } from './features/public/login-component/login.component';
 import { AppShellComponent } from './core/layout/app-shell/app-shell.component';
 import { ProfileComponent } from './features/app/profile-component/profile.component';
+import { OrganizationsComponent } from './features/app/organizations/organizations.component';
+import { ChurchRolesComponent } from './features/app/church-roles/church-roles.component';
+import { FunctionRolesComponent } from './features/app/function-roles/function-roles.component';
+import { MembersComponent } from './features/app/members/members.component';
+import { PendingApprovalsComponent } from './features/app/pending-approvals/pending-approvals.component';
 
 export const routes: Routes = [
   {
@@ -28,10 +33,17 @@ export const routes: Routes = [
       { path: '', pathMatch: 'full', redirectTo: 'dashboard' },
       { path: 'dashboard', component: DashboardComponent },
       { path: 'profile', component: ProfileComponent },
+      { path: 'organizations', component: OrganizationsComponent },
+      { path: 'church-roles', component: ChurchRolesComponent },
+      { path: 'function-roles', component: FunctionRolesComponent },
+      { path: 'members', component: MembersComponent },
+      { path: 'pending-approvals', component: PendingApprovalsComponent },
       {
         path: 'users',
         loadChildren: () =>
-          import('./features/app/users/users.routes').then(m => m.USERS_ROUTES)
+          import('./features/app/users/users.routes').then(
+            (m) => m.USERS_ROUTES,
+          ),
       },
     ],
   },

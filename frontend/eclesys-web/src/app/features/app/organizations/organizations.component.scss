@@ -1,0 +1,135 @@
+.loading-state,
+.error-state,
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1rem;
+  text-align: center;
+  color: rgba(0, 0, 0, 0.6);
+
+  mat-icon {
+    font-size: 48px;
+    width: 48px;
+    height: 48px;
+    margin-bottom: 1rem;
+  }
+
+  p {
+    margin: 0 0 1rem 0;
+    font-size: 1rem;
+  }
+
+  button {
+    margin-top: 0.5rem;
+  }
+}
+
+.organizations-tree {
+  padding: 1rem;
+}
+
+.org-node {
+  margin-bottom: 1rem;
+  border-radius: 8px;
+  overflow: hidden;
+  transition: all 0.2s ease;
+
+  &.church-node {
+    border: 2px solid #1976d2;
+    background: #f5f9ff;
+  }
+
+  &.sector-node {
+    border: 2px solid #7b1fa2;
+    background: #f9f5ff;
+    margin-left: 2rem;
+    margin-top: 0.5rem;
+  }
+
+  &.congregation-node {
+    border: 2px solid #388e3c;
+    background: #f5fff5;
+    margin-left: 2rem;
+    margin-top: 0.5rem;
+  }
+}
+
+.org-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem;
+  gap: 1rem;
+}
+
+.org-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex: 1;
+  min-width: 0;
+
+  mat-icon {
+    flex-shrink: 0;
+    color: rgba(0, 0, 0, 0.7);
+  }
+}
+
+.org-details {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+
+  h3,
+  h4,
+  h5 {
+    margin: 0;
+    font-weight: 500;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  h3 {
+    font-size: 1.125rem;
+    color: #1976d2;
+  }
+
+  h4 {
+    font-size: 1rem;
+    color: #7b1fa2;
+  }
+
+  h5 {
+    font-size: 0.9375rem;
+    color: #388e3c;
+  }
+}
+
+.org-code {
+  font-size: 0.8125rem;
+  color: rgba(0, 0, 0, 0.6);
+  font-family: "Roboto Mono", monospace;
+}
+
+.headquarters-chip {
+  flex-shrink: 0;
+  font-size: 0.6875rem;
+  height: 24px;
+  padding: 0 8px;
+  background: #ff9800;
+  color: white;
+}
+
+.org-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.org-children {
+  padding: 0.5rem 0 0.5rem 1rem;
+}

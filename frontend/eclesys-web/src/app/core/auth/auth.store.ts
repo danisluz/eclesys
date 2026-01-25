@@ -18,6 +18,15 @@ export class AuthStore {
   );
   private isMeLoadingSignal = signal(false);
 
+  constructor() {
+    const storedToken = this.tokenStorage.getToken();
+    console.log(
+      '[AuthStore] Constructor - Token from storage:',
+      storedToken ? 'EXISTS' : 'NULL',
+    );
+    console.log('[AuthStore] Token length:', storedToken?.length);
+  }
+
   isAuthenticated = computed(() => !!this.tokenSignal());
   isMeLoading = computed(() => this.isMeLoadingSignal());
 
@@ -29,7 +38,12 @@ export class AuthStore {
   tenantCode = computed(() => this.meSignal()?.tenantCode ?? null);
 
   token() {
-    return this.tokenSignal();
+    const currentToken = this.tokenSignal();
+    console.log(
+      '[AuthStore] token() called:',
+      currentToken ? 'EXISTS' : 'NULL',
+    );
+    return currentToken;
   }
 
   loadMe() {
@@ -86,8 +100,18 @@ export class AuthStore {
       next: (response) => {
         let token = response.data.token;
 
+        console.log('[AuthStore] Login successful, saving token');
+        console.log('[AuthStore] Token length:', token?.length);
+
         this.tokenStorage.setToken(token);
         this.tokenSignal.set(token);
+
+        // Verificar se foi salvo
+        const savedToken = this.tokenStorage.getToken();
+        console.log(
+          '[AuthStore] Token saved to storage:',
+          savedToken ? 'YES' : 'NO',
+        );
 
         this.meSignal.set(null);
         this.tokenStorage.setUser(null);
@@ -106,5 +130,11 @@ export class AuthStore {
     this.tokenSignal.set(null);
     this.meSignal.set(null);
     this.router.navigateByUrl('/login');
+  }
+
+  logoutWithMessage(message: string = 'Sessão expirada') {
+    this.logout();
+    // Opcional: exibir mensagem via snackbar se injetado
+    console.warn('[AuthStore]', message);
   }
 }

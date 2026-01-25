@@ -1,9 +1,13 @@
 <section class="bg-slate-50">
-  <div class="mx-auto grid max-w-6xl grid-cols-1 gap-10 px-6 py-16 md:grid-cols-2 md:items-center">
+  <div
+    class="mx-auto grid max-w-6xl grid-cols-1 gap-10 px-6 py-16 md:grid-cols-2 md:items-center"
+  >
     <div>
       <div class="flex items-center gap-3">
         <img src="assets/brand/eclesys-logo.svg" alt="ECLESYS" class="h-8" />
-        <span class="text-xs font-semibold tracking-widest text-slate-500">Plataforma de Gestão para Igrejas</span>
+        <span class="text-xs font-semibold tracking-widest text-slate-500"
+          >Plataforma de Gestão para Igrejas</span
+        >
       </div>
 
       <h1 class="mt-6 text-4xl font-semibold tracking-tight text-slate-900">
@@ -17,8 +21,9 @@
       <div class="mt-8 rounded-2xl border border-slate-200 bg-white p-5">
         <p class="text-sm font-medium text-slate-900">Dica rápida</p>
         <p class="mt-2 text-sm text-slate-600">
-          O <span class="font-medium text-slate-900">tenant code</span> é o identificador da sua organização
-          (ex.: <span class="font-mono text-slate-800">igreja-teste-central</span>).
+          O <span class="font-medium text-slate-900">tenant code</span> é o
+          identificador da sua organização (ex.:
+          <span class="font-mono text-slate-800">igreja-teste-central</span>).
         </p>
       </div>
     </div>
@@ -28,7 +33,12 @@
         <p class="text-sm font-medium text-slate-900">Acesso</p>
       </div>
 
-      <form class="mt-5 space-y-4" (ngSubmit)="submit(form)" #form="ngForm" novalidate>
+      <form
+        class="mt-5 space-y-4"
+        (ngSubmit)="submit(form)"
+        #form="ngForm"
+        novalidate
+      >
         <div>
           <label class="text-sm font-medium text-slate-700">Tenant code</label>
           <input
@@ -36,8 +46,17 @@
             name="tenantCode"
             placeholder="igreja-teste-central"
             autocomplete="organization"
-            class="mt-2 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-slate-400 focus:outline-none focus:ring-4 focus:ring-slate-100"
+            required
+            #tenantCodeInput="ngModel"
+            [class]="
+              tenantCodeInput.invalid && tenantCodeInput.touched
+                ? 'mt-2 w-full rounded-xl border-2 border-red-500 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-red-600 focus:outline-none focus:ring-4 focus:ring-red-100'
+                : 'mt-2 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-slate-400 focus:outline-none focus:ring-4 focus:ring-slate-100'
+            "
           />
+          @if (tenantCodeInput.invalid && tenantCodeInput.touched) {
+            <p class="mt-1 text-xs text-red-600">Campo obrigatório</p>
+          }
         </div>
 
         <div>
@@ -48,8 +67,22 @@
             type="email"
             placeholder="admin@igreja.com"
             autocomplete="email"
-            class="mt-2 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-slate-400 focus:outline-none focus:ring-4 focus:ring-slate-100"
+            required
+            email
+            #emailInput="ngModel"
+            [class]="
+              emailInput.invalid && emailInput.touched
+                ? 'mt-2 w-full rounded-xl border-2 border-red-500 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-red-600 focus:outline-none focus:ring-4 focus:ring-red-100'
+                : 'mt-2 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-slate-400 focus:outline-none focus:ring-4 focus:ring-slate-100'
+            "
           />
+          @if (emailInput.invalid && emailInput.touched) {
+            @if (emailInput.errors?.["required"]) {
+              <p class="mt-1 text-xs text-red-600">Campo obrigatório</p>
+            } @else if (emailInput.errors?.["email"]) {
+              <p class="mt-1 text-xs text-red-600">E-mail inválido</p>
+            }
+          }
         </div>
 
         <div>
@@ -60,11 +93,29 @@
             type="password"
             placeholder="••••••"
             autocomplete="current-password"
-            class="mt-2 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-slate-400 focus:outline-none focus:ring-4 focus:ring-slate-100"
+            required
+            minlength="8"
+            #passwordInput="ngModel"
+            [class]="
+              passwordInput.invalid && passwordInput.touched
+                ? 'mt-2 w-full rounded-xl border-2 border-red-500 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-red-600 focus:outline-none focus:ring-4 focus:ring-red-100'
+                : 'mt-2 w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:border-slate-400 focus:outline-none focus:ring-4 focus:ring-slate-100'
+            "
           />
+          @if (passwordInput.invalid && passwordInput.touched) {
+            @if (passwordInput.errors?.["required"]) {
+              <p class="mt-1 text-xs text-red-600">Campo obrigatório</p>
+            } @else if (passwordInput.errors?.["minlength"]) {
+              <p class="mt-1 text-xs text-red-600">Mínimo 8 caracteres</p>
+            }
+          }
         </div>
 
-        <div #turnstileContainer class="turnstile"></div>
+        <div
+          #turnstileContainer
+          class="turnstile"
+          style="min-height: 65px"
+        ></div>
 
         @if (wasSubmitted() && !turnstileToken()) {
           <div class="field-error">
@@ -81,7 +132,10 @@
 
         <p class="pt-2 text-sm text-slate-600">
           Não tem acesso?
-          <a routerLink="/signup" class="font-medium text-slate-900 underline underline-offset-4 hover:text-slate-700">
+          <a
+            routerLink="/signup"
+            class="font-medium text-slate-900 underline underline-offset-4 hover:text-slate-700"
+          >
             Assinar
           </a>
         </p>

@@ -18,4 +18,12 @@ export class ApiClientService {
   post<T>(path: string, body: unknown) {
     return this.httpClient.post<T>(this.buildUrl(path), body);
   }
+
+  put<T>(path: string, body: unknown) {
+    return this.httpClient.put<T>(this.buildUrl(path), body);
+  }
+
+  delete<T>(path: string) {
+    return this.httpClient.delete<T>(this.buildUrl(path));
+  }
 }

@@ -4,41 +4,66 @@
     <div class="topbar__left">
       <!-- BRAND -->
       <div class="topbar__brand">
-        <img class="topbar__brand-logo" src="assets/brand/eclesys-logo-white.svg" alt="ECLESYS" />
+        <img
+          class="topbar__brand-logo"
+          src="assets/brand/eclesys-logo-white.svg"
+          alt="ECLESYS"
+        />
 
         <div class="topbar__brand-text">
           <div class="topbar__brand-subtitle">administração</div>
         </div>
       </div>
 
-
       <!-- NAV -->
       <nav class="topbar__nav">
-        <button mat-button class="topbar__nav-btn" [matMenuTriggerFor]="menuDashboard">
+        <button
+          mat-button
+          class="topbar__nav-btn"
+          [matMenuTriggerFor]="menuDashboard"
+        >
           Dashboard
           <mat-icon>expand_more</mat-icon>
         </button>
         <mat-menu #menuDashboard="matMenu">
-          <button mat-menu-item routerLink="/app/dashboard">
-            Dashboard
-          </button>
+          <button mat-menu-item routerLink="/app/dashboard">Dashboard</button>
         </mat-menu>
 
         <button
-  mat-button
-  class="topbar__nav-btn"
-  [matMenuTriggerFor]="menuAdmin"
->
-  Administração
-  <mat-icon>expand_more</mat-icon>
-</button>
+          mat-button
+          class="topbar__nav-btn"
+          [matMenuTriggerFor]="menuAdmin"
+        >
+          Administração
+          <mat-icon>expand_more</mat-icon>
+        </button>
 
-<mat-menu #menuAdmin="matMenu">
-  <button mat-menu-item routerLink="/app/users">
-    <mat-icon>group</mat-icon>
-    Usuários
-  </button>
-</mat-menu>
+        <mat-menu #menuAdmin="matMenu">
+          <button mat-menu-item routerLink="/app/organizations">
+            <mat-icon>church</mat-icon>
+            Organizações
+          </button>
+          <button mat-menu-item routerLink="/app/members">
+            <mat-icon>people</mat-icon>
+            Membros
+          </button>
+          <button mat-menu-item routerLink="/app/pending-approvals">
+            <mat-icon>how_to_reg</mat-icon>
+            Aprovações
+          </button>
+          <button mat-menu-item routerLink="/app/church-roles">
+            <mat-icon>badge</mat-icon>
+            Cargos Eclesiásticos
+          </button>
+          <button mat-menu-item routerLink="/app/function-roles">
+            <mat-icon>assignment_ind</mat-icon>
+            Funções Administrativas
+          </button>
+          <button mat-menu-item routerLink="/app/users">
+            <mat-icon>group</mat-icon>
+            Usuários
+          </button>
+        </mat-menu>
 
         <button mat-button class="topbar__nav-btn" disabled>
           Eventos
@@ -51,8 +76,11 @@
 
     <!-- USER -->
     <div class="topbar__right">
-      <button mat-button class="topbar__user-btn" [matMenuTriggerFor]="userMenu">
-
+      <button
+        mat-button
+        class="topbar__user-btn"
+        [matMenuTriggerFor]="userMenu"
+      >
         <app-user-avatar
           class="topbar__user-avatar"
           [userNameSignal]="meNameSignal()"
@@ -63,15 +91,15 @@
 
         <div class="topbar__user-text">
           @if (authStore.me(); as me) {
-          <div class="topbar__user-name">
-            {{ me.name }}
-          </div>
-          <div class="topbar__user-tenant">
-            {{ me.tenantName }}
-          </div>
+            <div class="topbar__user-name">
+              {{ me.name }}
+            </div>
+            <div class="topbar__user-tenant">
+              {{ me.tenantName }}
+            </div>
           } @else {
-          <div class="topbar__user-name">Carregando…</div>
-          <div class="topbar__user-tenant">—</div>
+            <div class="topbar__user-name">Carregando…</div>
+            <div class="topbar__user-tenant">—</div>
           }
         </div>
 

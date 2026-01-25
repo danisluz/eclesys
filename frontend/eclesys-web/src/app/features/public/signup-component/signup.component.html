@@ -169,10 +169,10 @@
             name="adminPassword"
             type="password"
             required
-            minlength="6"
+            minlength="8"
             maxlength="120"
             #adminPasswordModel="ngModel"
-            placeholder="Mínimo 6 caracteres"
+            placeholder="Mínimo 8 caracteres"
             autocomplete="new-password"
             [ngClass]="
               adminPasswordModel.invalid &&
@@ -183,7 +183,7 @@
           />
 
           <p class="mt-2 text-xs text-slate-500">
-            Dica: use no mínimo 6 caracteres. Depois você poderá trocar no
+            Dica: use no mínimo 8 caracteres. Depois você poderá trocar no
             painel.
           </p>
 
@@ -194,7 +194,7 @@
             "
             class="mt-2 text-xs text-red-700"
           >
-            A senha precisa ter pelo menos 6 caracteres.
+            A senha precisa ter pelo menos 8 caracteres.
           </p>
         </div>
 

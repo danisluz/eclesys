@@ -1,5 +1,5 @@
 import { Component, inject, signal, computed } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import { FormControl, FormsModule } from '@angular/forms';
 
 import { AuthStore } from '../../../core/auth/auth.store';
 import { UsersService } from '../../../core/auth/users.service';
@@ -13,6 +13,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { UserAvatarComponent } from '../../../shared/ui/user-avatar/user-avatar.component';
+import { ErrorStateMatcher } from '@angular/material/core';
 
 @Component({
   standalone: true,
@@ -69,6 +70,16 @@ export class ProfileComponent {
     if (!this.isEditingProfileSignal()) return false;
     if (!this.isProfileDirty()) return false;
     if (this.profileName().trim().length < 3) return false;
+
+    return true;
+  });
+
+  canChangePassword = computed(() => {
+    if (this.isChangingPasswordSignal()) return false;
+    if (this.currentPassword().trim().length === 0) return false;
+    if (this.newPassword().trim().length < 8) return false;
+    if (this.confirmNewPassword().trim().length < 8) return false;
+    if (this.isNewPasswordMismatch()) return false;
 
     return true;
   });
@@ -140,16 +151,8 @@ export class ProfileComponent {
     this.isConfirmPasswordVisible.set(!this.isConfirmPasswordVisible());
   }
 
-  canChangePassword = computed(() => {
-    if (this.isChangingPasswordSignal()) return false;
-    if (this.currentPassword().trim().length === 0) return false;
-    if (this.newPassword().trim().length < 8) return false;
-    if (this.newPassword() !== this.confirmNewPassword()) return false;
-
-    return true;
-  });
-
   changePassword() {
+    if (this.isChangingPasswordSignal()) return;
     if (!this.canChangePassword()) return;
 
     const me = this.authStore.me();
@@ -160,13 +163,33 @@ export class ProfileComponent {
       return;
     }
 
+    const currentPasswordValue = this.currentPassword().trim();
+    const newPasswordValue = this.newPassword().trim();
+
+    if (currentPasswordValue.length === 0) {
+      this.passwordErrorMessageSignal.set('Informe a senha atual.');
+      return;
+    }
+
+    if (newPasswordValue.length < 8) {
+      this.passwordErrorMessageSignal.set(
+        'A nova senha deve ter no mínimo 8 caracteres.',
+      );
+      return;
+    }
+
+    if (this.isNewPasswordMismatch()) {
+      this.passwordErrorMessageSignal.set('As senhas não conferem.');
+      return;
+    }
+
     this.isChangingPasswordSignal.set(true);
     this.passwordErrorMessageSignal.set(null);
 
     this.usersService
       .changePassword(me.userId, {
-        currentPassword: this.currentPassword(),
-        newPassword: this.newPassword(),
+        currentPassword: currentPasswordValue,
+        newPassword: newPasswordValue,
       })
       .subscribe({
         next: () => {
@@ -188,4 +211,28 @@ export class ProfileComponent {
         },
       });
   }
+
+  isNewPasswordMismatch = computed(() => {
+    const newPasswordValue = this.newPassword().trim();
+    const confirmPasswordValue = this.confirmNewPassword().trim();
+
+    if (newPasswordValue.length === 0 || confirmPasswordValue.length === 0) {
+      return false;
+    }
+
+    if (newPasswordValue.length < 8 || confirmPasswordValue.length < 8) {
+      return false;
+    }
+
+    return newPasswordValue !== confirmPasswordValue;
+  });
+
+  confirmPasswordErrorStateMatcher: ErrorStateMatcher = {
+    isErrorState: (control: FormControl | null) => {
+      if (!control) return false;
+
+      const shouldShowError = control.dirty || control.touched;
+      return shouldShowError && this.isNewPasswordMismatch();
+    },
+  };
 }
