@@ -87,8 +87,13 @@ import { MemberFormDialogComponent } from './member-form-dialog.component';
                 <td mat-cell *matCellDef="let member">
                   <div>
                     <div class="member-name">{{ member.fullName }}</div>
+                    @if (member.organizationUnitName) {
+                      <div class="member-detail">
+                        {{ member.organizationUnitName }}
+                      </div>
+                    }
                     @if (member.churchRoleName) {
-                      <div class="member-role">
+                      <div class="member-detail">
                         {{ member.churchRoleName }}
                       </div>
                     }
@@ -169,7 +174,7 @@ import { MemberFormDialogComponent } from './member-form-dialog.component';
       .member-name {
         font-weight: 500;
       }
-      .member-role {
+      .member-detail {
         font-size: 0.875rem;
         color: rgba(0, 0, 0, 0.6);
       }
@@ -245,7 +250,8 @@ export class MembersComponent implements OnInit {
 
   openCreateDialog() {
     const dialogRef = this.dialog.open(MemberFormDialogComponent, {
-      width: '700px',
+      width: '800px',
+      maxHeight: '90vh',
       data: { mode: 'create' },
     });
 
@@ -261,7 +267,8 @@ export class MembersComponent implements OnInit {
 
   openEditDialog(member: Member) {
     const dialogRef = this.dialog.open(MemberFormDialogComponent, {
-      width: '700px',
+      width: '800px',
+      maxHeight: '90vh',
       data: { mode: 'edit', member },
     });
 
