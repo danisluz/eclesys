@@ -3,6 +3,8 @@ package com.eclesys.api.features.members;
 import com.eclesys.api.domain.member.MemberStatus;
 import com.eclesys.api.features.members.dto.CreateMemberRequest;
 import com.eclesys.api.features.members.dto.MemberResponse;
+import com.eclesys.api.features.members.dto.MemberTransferResponse;
+import com.eclesys.api.features.members.dto.TransferMemberRequest;
 import com.eclesys.api.features.members.dto.UpdateMemberRequest;
 import com.eclesys.api.features.users.CurrentUserService;
 import com.eclesys.api.shared.api.ApiResponse;
@@ -68,5 +70,38 @@ public class MemberController {
   ) {
     service.delete(currentUserService.getTenantId(), id);
     return ResponseEntity.ok(ApiResponse.success(null));
+  }
+
+  // ==================== TRANSFERÊNCIAS ====================
+
+  @PostMapping("/{id}/transfer")
+  public ResponseEntity<ApiResponse<MemberTransferResponse>> transferMember(
+      @PathVariable UUID id,
+      @Valid @RequestBody TransferMemberRequest request
+  ) {
+    MemberTransferResponse response = service.transferMember(
+        currentUserService.getTenantId(),
+        id,
+        request,
+        currentUserService.getUserId()
+    );
+    return ResponseEntity.ok(ApiResponse.success(response));
+  }
+
+  @GetMapping("/{id}/transfers")
+  public ResponseEntity<ApiResponse<List<MemberTransferResponse>>> getMemberTransferHistory(
+      @PathVariable UUID id
+  ) {
+    List<MemberTransferResponse> response = service.getMemberTransferHistory(
+        currentUserService.getTenantId(),
+        id
+    );
+    return ResponseEntity.ok(ApiResponse.success(response));
+  }
+
+  @GetMapping("/transfers")
+  public ResponseEntity<ApiResponse<List<MemberTransferResponse>>> getAllTransfers() {
+    List<MemberTransferResponse> response = service.getAllTransfers(currentUserService.getTenantId());
+    return ResponseEntity.ok(ApiResponse.success(response));
   }
 }

@@ -7,6 +7,8 @@ import {
   CreateMemberRequest,
   UpdateMemberRequest,
   MemberStatus,
+  TransferMemberRequest,
+  MemberTransfer,
 } from '../models/member.model';
 
 @Injectable({
@@ -49,5 +51,29 @@ export class MembersService {
 
   delete(id: string): Observable<ApiResponse<void>> {
     return this.api.delete<ApiResponse<void>>(`/members/${id}`);
+  }
+
+  // ==================== TRANSFERÊNCIAS ====================
+
+  transferMember(
+    id: string,
+    request: TransferMemberRequest,
+  ): Observable<ApiResponse<MemberTransfer>> {
+    return this.api.post<ApiResponse<MemberTransfer>>(
+      `/members/${id}/transfer`,
+      request,
+    );
+  }
+
+  getMemberTransferHistory(
+    id: string,
+  ): Observable<ApiResponse<MemberTransfer[]>> {
+    return this.api.get<ApiResponse<MemberTransfer[]>>(
+      `/members/${id}/transfers`,
+    );
+  }
+
+  getAllTransfers(): Observable<ApiResponse<MemberTransfer[]>> {
+    return this.api.get<ApiResponse<MemberTransfer[]>>('/members/transfers');
   }
 }

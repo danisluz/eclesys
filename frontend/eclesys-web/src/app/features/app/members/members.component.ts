@@ -11,9 +11,12 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import { MembersService } from '../../../shared/api/members.service';
 import { Member, MemberStatus } from '../../../shared/models/member.model';
 import { MemberFormDialogComponent } from './member-form-dialog.component';
+import { TransferDialogComponent } from './transfer-dialog.component';
+import { MemberViewDialogComponent } from './member-view-dialog.component';
 
 @Component({
   selector: 'app-members',
@@ -29,6 +32,7 @@ import { MemberFormDialogComponent } from './member-form-dialog.component';
     MatInputModule,
     MatFormFieldModule,
     MatSelectModule,
+    MatTooltipModule,
   ],
   template: `
     <div class="page">
@@ -127,9 +131,27 @@ import { MemberFormDialogComponent } from './member-form-dialog.component';
               </ng-container>
 
               <ng-container matColumnDef="actions">
-                <th mat-header-cell *matHeaderCellDef class="w-32">Ações</th>
+                <th mat-header-cell *matHeaderCellDef class="w-56">Ações</th>
                 <td mat-cell *matCellDef="let member">
-                  <button mat-icon-button (click)="openEditDialog(member)">
+                  <button
+                    mat-icon-button
+                    (click)="openViewDialog(member)"
+                    matTooltip="Visualizar"
+                  >
+                    <mat-icon>visibility</mat-icon>
+                  </button>
+                  <button
+                    mat-icon-button
+                    (click)="openTransferDialog(member)"
+                    matTooltip="Transferir"
+                  >
+                    <mat-icon>swap_horiz</mat-icon>
+                  </button>
+                  <button
+                    mat-icon-button
+                    (click)="openEditDialog(member)"
+                    matTooltip="Editar"
+                  >
                     <mat-icon>edit</mat-icon>
                   </button>
                 </td>
@@ -147,6 +169,12 @@ import { MemberFormDialogComponent } from './member-form-dialog.component';
     `
       .w-32 {
         width: 8rem;
+      }
+      .w-48 {
+        width: 12rem;
+      }
+      .w-56 {
+        width: 14rem;
       }
       .w-full {
         width: 100%;
@@ -259,6 +287,30 @@ export class MembersComponent implements OnInit {
       if (result) {
         this.loadMembers();
         this.snackBar.open('Membro criado com sucesso', 'Fechar', {
+          duration: 3000,
+        });
+      }
+    });
+  }
+
+  openViewDialog(member: Member) {
+    this.dialog.open(MemberViewDialogComponent, {
+      width: '900px',
+      maxHeight: '90vh',
+      data: { member },
+    });
+  }
+
+  openTransferDialog(member: Member) {
+    const dialogRef = this.dialog.open(TransferDialogComponent, {
+      width: '600px',
+      data: { member },
+    });
+
+    dialogRef.afterClosed().subscribe((result) => {
+      if (result) {
+        this.loadMembers();
+        this.snackBar.open('Transferência realizada com sucesso', 'Fechar', {
           duration: 3000,
         });
       }

@@ -5,10 +5,14 @@ import com.eclesys.api.domain.churchrole.ChurchRoleRepository;
 import com.eclesys.api.domain.member.Member;
 import com.eclesys.api.domain.member.MemberRepository;
 import com.eclesys.api.domain.member.MemberStatus;
+import com.eclesys.api.domain.member.MemberTransfer;
+import com.eclesys.api.domain.member.MemberTransferRepository;
 import com.eclesys.api.domain.organization.OrganizationUnit;
 import com.eclesys.api.domain.organization.OrganizationUnitRepository;
 import com.eclesys.api.domain.tenant.TenantEntity;
 import com.eclesys.api.domain.tenant.TenantRepository;
+import com.eclesys.api.domain.user.UserEntity;
+import com.eclesys.api.domain.user.UserRepository;
 import com.eclesys.api.features.members.dto.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,17 +30,23 @@ public class MemberService {
   private final TenantRepository tenantRepository;
   private final ChurchRoleRepository churchRoleRepository;
   private final OrganizationUnitRepository organizationUnitRepository;
+  private final MemberTransferRepository transferRepository;
+  private final UserRepository userRepository;
 
   public MemberService(
       MemberRepository repository,
       TenantRepository tenantRepository,
       ChurchRoleRepository churchRoleRepository,
-      OrganizationUnitRepository organizationUnitRepository
+      OrganizationUnitRepository organizationUnitRepository,
+      MemberTransferRepository transferRepository,
+      UserRepository userRepository
   ) {
     this.repository = repository;
     this.tenantRepository = tenantRepository;
     this.churchRoleRepository = churchRoleRepository;
     this.organizationUnitRepository = organizationUnitRepository;
+    this.transferRepository = transferRepository;
+    this.userRepository = userRepository;
   }
 
   @Transactional
@@ -279,6 +289,99 @@ public class MemberService {
         spouseId, spouseName,
         fatherId, fatherName,
         motherId, motherName
+    );
+  }
+
+  // ==================== TRANSFERÊNCIAS ====================
+
+  @Transactional
+  public MemberTransferResponse transferMember(UUID tenantId, UUID memberId, TransferMemberRequest request, UUID userId) {
+    TenantEntity tenant = tenantRepository.findById(tenantId)
+        .orElseThrow(() -> new RuntimeException("Tenant não encontrado"));
+
+    Member member = repository.findByTenantAndId(tenant, memberId)
+        .orElseThrow(() -> new RuntimeException("Membro não encontrado"));
+
+    UserEntity user = userRepository.findById(userId)
+        .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+
+    OrganizationUnit fromCongregation = member.getOrganizationUnit();
+    MemberTransfer transfer = new MemberTransfer();
+    transfer.setTenant(tenant);
+    transfer.setMember(member);
+    transfer.setFromCongregation(fromCongregation);
+    transfer.setTransferredBy(user);
+
+    if (request.toCongregationId() != null) {
+      // Transferência interna (dentro do mesmo tenant)
+      OrganizationUnit toCongregation = organizationUnitRepository.findByTenantAndId(tenant, request.toCongregationId())
+          .orElseThrow(() -> new RuntimeException("Congregação de destino não encontrada"));
+
+      transfer.setToCongregation(toCongregation);
+      transfer.setReason(request.reason());
+
+      // Atualiza a congregação do membro
+      member.setOrganizationUnit(toCongregation);
+      // Status continua ACTIVE
+      repository.save(member);
+    } else {
+      // Transferência externa (para outra igreja/cidade)
+      if (request.externalDestination() == null || request.externalDestination().isBlank()) {
+        throw new RuntimeException("Destino externo deve ser informado para transferência externa");
+      }
+
+      transfer.setToCongregation(null);
+      transfer.setReason(request.reason() + " | Destino: " + request.externalDestination());
+
+      // Membro fica com status TRANSFERRED
+      member.setStatus(MemberStatus.TRANSFERRED);
+      repository.save(member);
+    }
+
+    MemberTransfer saved = transferRepository.save(transfer);
+    return toTransferResponse(saved);
+  }
+
+  @Transactional(readOnly = true)
+  public List<MemberTransferResponse> getMemberTransferHistory(UUID tenantId, UUID memberId) {
+    TenantEntity tenant = tenantRepository.findById(tenantId)
+        .orElseThrow(() -> new RuntimeException("Tenant não encontrado"));
+
+    Member member = repository.findByTenantAndId(tenant, memberId)
+        .orElseThrow(() -> new RuntimeException("Membro não encontrado"));
+
+    return transferRepository.findByTenantAndMemberOrderByCreatedAtDesc(tenant, member)
+        .stream()
+        .map(this::toTransferResponse)
+        .collect(Collectors.toList());
+  }
+
+  @Transactional(readOnly = true)
+  public List<MemberTransferResponse> getAllTransfers(UUID tenantId) {
+    TenantEntity tenant = tenantRepository.findById(tenantId)
+        .orElseThrow(() -> new RuntimeException("Tenant não encontrado"));
+
+    return transferRepository.findByTenantOrderByCreatedAtDesc(tenant)
+        .stream()
+        .map(this::toTransferResponse)
+        .collect(Collectors.toList());
+  }
+
+  private MemberTransferResponse toTransferResponse(MemberTransfer transfer) {
+    OrganizationUnit from = transfer.getFromCongregation();
+    OrganizationUnit to = transfer.getToCongregation();
+
+    return new MemberTransferResponse(
+        transfer.getId(),
+        transfer.getMember().getId(),
+        transfer.getMember().getFullName(),
+        from != null ? from.getId() : null,
+        from != null ? from.getName() : null,
+        to != null ? to.getId() : null,
+        to != null ? to.getName() : null,
+        transfer.getReason(),
+        transfer.getTransferredBy().getName(),
+        transfer.getCreatedAt()
     );
   }
 }

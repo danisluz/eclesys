@@ -36,4 +36,4 @@ logging:
 security:
   turnstile:
     secret: ${TURNSTILE_SECRET:}
-
+    dev-mode: ${TURNSTILE_DEV_MODE:true}

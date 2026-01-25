@@ -19,14 +19,18 @@ public class TurnstileValidationService {
 
   private final RestClient restClient;
   private final String secret;
+  private final boolean devMode;
 
   public TurnstileValidationService(
-      @Value("${security.turnstile.secret}") String secret
+      @Value("${security.turnstile.secret}") String secret,
+      @Value("${security.turnstile.dev-mode:false}") boolean devMode
   ) {
     this.secret = secret;
+    this.devMode = devMode;
     this.restClient = RestClient.create();
 
     logger.info("Turnstile secret carregada? {}", secret != null && !secret.isBlank());
+    logger.info("Turnstile DEV MODE: {}", devMode);
   }
 
   @SuppressWarnings("unchecked")
@@ -35,6 +39,12 @@ public class TurnstileValidationService {
     logger.info("=== TURNSTILE VALIDATION ===");
     logger.info("Token recebido: {}", token != null ? (token.length() > 20 ? token.substring(0, 20) + "..." : token) : "NULL");
     logger.info("Secret configurada: {}", secret != null && !secret.isBlank() ? "SIM" : "NÃO");
+    logger.info("DEV MODE: {}", devMode);
+
+    if (devMode) {
+      logger.warn("⚠️ DEV MODE ATIVO - Validação do Turnstile DESABILITADA");
+      return true;
+    }
 
     if (token == null || token.isBlank()) {
       logger.warn("Turnstile token vazio");

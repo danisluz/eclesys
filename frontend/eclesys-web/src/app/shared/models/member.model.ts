@@ -81,3 +81,22 @@ export interface UpdateMemberRequest {
   fatherId?: string | null;
   motherId?: string | null;
 }
+
+export interface TransferMemberRequest {
+  toCongregationId?: string | null; // null = transferência externa
+  reason: string;
+  externalDestination?: string | null; // usado quando toCongregationId é null
+}
+
+export interface MemberTransfer {
+  id: string;
+  memberId: string;
+  memberName: string;
+  fromCongregationId: string | null;
+  fromCongregationName: string | null;
+  toCongregationId: string | null;
+  toCongregationName: string | null;
+  reason: string;
+  transferredByUserName: string;
+  createdAt: string;
+}
