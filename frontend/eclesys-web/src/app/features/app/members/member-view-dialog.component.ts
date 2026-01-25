@@ -496,20 +496,29 @@ export class MemberViewDialogComponent implements OnInit {
   constructor(
     @Inject(MAT_DIALOG_DATA) public data: { member: Member },
     private dialogRef: MatDialogRef<MemberViewDialogComponent>,
-  ) {}
+  ) {
+    console.log(
+      '🏗️ MemberViewDialogComponent construído com membro:',
+      data.member,
+    );
+  }
 
   ngOnInit() {
+    console.log('🚀 ngOnInit executado, carregando histórico...');
     this.loadTransferHistory();
   }
 
   loadTransferHistory() {
     this.loadingTransfers.set(true);
+    console.log('🔍 Carregando histórico para membro:', this.data.member.id);
     this.service.getMemberTransferHistory(this.data.member.id).subscribe({
       next: (response) => {
+        console.log('✅ Histórico recebido:', response);
         this.transfers.set(response.data);
         this.loadingTransfers.set(false);
       },
-      error: () => {
+      error: (err) => {
+        console.error('❌ Erro ao carregar histórico:', err);
         this.loadingTransfers.set(false);
       },
     });

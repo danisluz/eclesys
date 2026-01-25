@@ -17,6 +17,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatRadioModule } from '@angular/material/radio';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatIconModule } from '@angular/material/icon';
 import { Member } from '../../../shared/models/member.model';
 import { MembersService } from '../../../shared/api/members.service';
 import { OrganizationsService } from '../../../shared/api/organizations.service';
@@ -35,6 +36,7 @@ import { OrganizationUnit } from '../../../shared/api/organization-unit.model';
     MatSelectModule,
     MatRadioModule,
     MatProgressSpinnerModule,
+    MatIconModule,
   ],
   template: `
     <h2 mat-dialog-title>Transferir Membro</h2>
@@ -64,6 +66,11 @@ import { OrganizationUnit } from '../../../shared/api/organization-unit.model';
             <mat-select formControlName="toCongregationId">
               @if (loadingCongregations()) {
                 <mat-option disabled>Carregando...</mat-option>
+              } @else if (congregations().length === 0) {
+                <mat-option disabled>
+                  Nenhuma congregação cadastrada. Crie congregações primeiro em
+                  Organizações.
+                </mat-option>
               } @else {
                 @for (congregation of congregations(); track congregation.id) {
                   @if (congregation.id !== data.member.organizationUnitId) {
@@ -81,6 +88,17 @@ import { OrganizationUnit } from '../../../shared/api/organization-unit.model';
               <mat-error>Selecione a congregação de destino</mat-error>
             }
           </mat-form-field>
+
+          @if (congregations().length === 0) {
+            <div class="info-message">
+              <mat-icon>info</mat-icon>
+              <p>
+                Você precisa cadastrar congregações antes de fazer
+                transferências internas. Vá em <strong>Organizações</strong> e
+                crie pelo menos uma congregação.
+              </p>
+            </div>
+          }
         }
 
         @if (form.value.transferType === 'external') {
@@ -165,6 +183,27 @@ import { OrganizationUnit } from '../../../shared/api/organization-unit.model';
         margin-bottom: 1rem;
       }
 
+      .info-message {
+        display: flex;
+        gap: 0.75rem;
+        padding: 1rem;
+        background-color: #e3f2fd;
+        border-radius: 4px;
+        border-left: 4px solid #1976d2;
+        margin-bottom: 1rem;
+      }
+
+      .info-message mat-icon {
+        color: #1976d2;
+        flex-shrink: 0;
+      }
+
+      .info-message p {
+        margin: 0;
+        font-size: 0.875rem;
+        color: rgba(0, 0, 0, 0.87);
+      }
+
       button mat-spinner {
         display: inline-block;
         margin-right: 0.5rem;
@@ -212,17 +251,49 @@ export class TransferDialogComponent implements OnInit {
   }
 
   ngOnInit() {
+    console.log('🚀 TransferDialog ngOnInit - carregando congregações');
     this.loadCongregations();
   }
 
   loadCongregations() {
+    console.log('📋 Iniciando carregamento de congregações');
     this.loadingCongregations.set(true);
     this.organizationsService.listAll().subscribe({
       next: (response) => {
-        this.congregations.set(response.data);
+        console.log('✅ Organizações recebidas:', response.data);
+
+        // Função recursiva para achatar a hierarquia e pegar só congregações
+        const extractCongregations = (
+          orgs: OrganizationUnit[],
+        ): OrganizationUnit[] => {
+          let congregations: OrganizationUnit[] = [];
+
+          for (const org of orgs) {
+            // Se é congregação, adiciona
+            if (org.type === 'CONGREGATION') {
+              congregations.push(org);
+            }
+            // Se tem filhos, processa recursivamente
+            if (org.children && org.children.length > 0) {
+              congregations = [
+                ...congregations,
+                ...extractCongregations(org.children),
+              ];
+            }
+          }
+
+          return congregations;
+        };
+
+        const congregations = extractCongregations(response.data);
+        console.log('🏛️ Congregações encontradas:', congregations);
+        console.log('📊 Total de congregações:', congregations.length);
+
+        this.congregations.set(congregations);
         this.loadingCongregations.set(false);
       },
-      error: () => {
+      error: (err) => {
+        console.error('❌ Erro ao carregar congregações:', err);
         this.loadingCongregations.set(false);
       },
     });
