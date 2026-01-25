@@ -89,7 +89,7 @@ import { ChurchRole } from '../../../shared/models/church-role.model';
             </mat-form-field>
 
             <mat-form-field appearance="outline" class="congregation-field">
-              <mat-label>Congregações</mat-label>
+              <mat-label>{{ getCongregationFilterLabel() }}</mat-label>
               <mat-chip-grid #chipGrid>
                 @for (id of selectedCongregations(); track id) {
                   <mat-chip-row (removed)="removeCongregation(id)">
@@ -477,6 +477,7 @@ export class MembersComponent implements OnInit {
   filteredCongregations = signal<OrganizationUnit[]>([]);
   selectedCongregations = signal<string[]>([]);
   churchRoles = signal<ChurchRole[]>([]);
+  rootChurch = signal<OrganizationUnit | null>(null);
 
   // Pagination signals
   totalElements = signal(0);
@@ -510,6 +511,12 @@ export class MembersComponent implements OnInit {
         '🔍 Tipos encontrados:',
         response.data.map((o) => `${o.name} (${o.type})`),
       );
+
+      // Busca a root church para obter os labels customizados
+      const rootChurch = response.data.find((org) => org.type === 'CHURCH');
+      if (rootChurch) {
+        this.rootChurch.set(rootChurch);
+      }
 
       // Função recursiva para achatar a árvore e pegar todas as congregações
       const flattenCongregations = (
@@ -669,6 +676,11 @@ export class MembersComponent implements OnInit {
     const org = this.congregations().find((c) => c.id === id);
     if (!org) return '';
     return org.parentName ? `${org.name} (${org.parentName})` : org.name;
+  }
+
+  getCongregationFilterLabel(): string {
+    const church = this.rootChurch();
+    return church?.congregationLabel ?? 'Congregações';
   }
 
   getStatusLabel(status: MemberStatus): string {

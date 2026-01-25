@@ -71,11 +71,11 @@ interface DialogData {
 
         <div class="form-row">
           <mat-form-field appearance="outline" class="w-full">
-            <mat-label>Congregação *</mat-label>
+            <mat-label>{{ getCongregationLabel() }} *</mat-label>
             <mat-select formControlName="organizationUnitId">
               @if (congregations().length === 0) {
                 <mat-option disabled
-                  >Nenhuma congregação cadastrada. Cadastre em
+                  >Nenhuma {{ getCongregationLabel() }} cadastrada. Cadastre em
                   Organizações.</mat-option
                 >
               }
@@ -84,7 +84,7 @@ interface DialogData {
               }
             </mat-select>
             @if (form.controls.organizationUnitId.hasError('required')) {
-              <mat-error>Congregação é obrigatória</mat-error>
+              <mat-error>{{ getCongregationLabel() }} é obrigatória</mat-error>
             }
           </mat-form-field>
         </div>
@@ -366,6 +366,7 @@ export class MemberFormDialogComponent implements OnInit {
   saving = signal(false);
   churchRoles = signal<ChurchRole[]>([]);
   congregations = signal<OrganizationUnit[]>([]);
+  rootChurch = signal<OrganizationUnit | null>(null);
   allMembers = signal<Member[]>([]);
 
   form = this.fb.group({
@@ -442,6 +443,12 @@ export class MemberFormDialogComponent implements OnInit {
       next: (response) => {
         const allOrgs = response.data || [];
         console.log('[DEBUG] Estrutura hierárquica recebida:', allOrgs);
+
+        // Busca a root church para obter os labels customizados
+        const rootChurch = allOrgs.find((org) => org.type === 'CHURCH');
+        if (rootChurch) {
+          this.rootChurch.set(rootChurch);
+        }
 
         // Achatar a estrutura hierárquica recursivamente
         const flattenOrganizations = (
@@ -556,5 +563,17 @@ export class MemberFormDialogComponent implements OnInit {
         this.saving.set(false);
       },
     });
+  }
+
+  getCongregationLabel(): string {
+    return this.rootChurch()?.congregationLabel ?? 'Congregação';
+  }
+
+  getCongregationLabelPlural(): string {
+    const label = this.getCongregationLabel();
+    if (label.endsWith('ão')) {
+      return label.slice(0, -2) + 'ões';
+    }
+    return label + 's';
   }
 }

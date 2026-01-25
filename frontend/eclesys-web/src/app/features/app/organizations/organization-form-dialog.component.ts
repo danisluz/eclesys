@@ -102,13 +102,33 @@ export interface OrganizationFormDialogData {
           @if (type !== OrganizationUnitType.CHURCH) {
             <mat-form-field appearance="outline" class="full-width">
               <mat-label>Unidade Pai</mat-label>
-              <mat-select [(ngModel)]="parentId" name="parentId" required>
+              <mat-select
+                [(ngModel)]="parentId"
+                name="parentId"
+                [required]="availableParents().length > 0"
+              >
+                @if (availableParents().length === 0) {
+                  <mat-option disabled>
+                    Nenhuma unidade pai disponível. Crie uma "Sede Central"
+                    primeiro.
+                  </mat-option>
+                }
                 @for (parent of availableParents(); track parent.id) {
                   <mat-option [value]="parent.id">
                     {{ parent.name }} ({{ parent.code }})
                   </mat-option>
                 }
               </mat-select>
+              @if (availableParents().length === 0) {
+                <mat-hint style="color: #f44336">
+                  ⚠️ Você precisa criar uma "Sede Central" antes de criar
+                  {{
+                    type === OrganizationUnitType.SECTOR
+                      ? 'um Setor'
+                      : 'uma Congregação'
+                  }}.
+                </mat-hint>
+              }
             </mat-form-field>
           }
 
@@ -187,7 +207,7 @@ export interface OrganizationFormDialogData {
       <button
         mat-raised-button
         color="primary"
-        [disabled]="form.invalid || isSaving()"
+        [disabled]="!isFormValid() || isSaving()"
         (click)="save()"
       >
         @if (isSaving()) {
@@ -318,6 +338,30 @@ export class OrganizationFormDialogComponent {
       this.parentId = null;
     }
     this.isHeadquarters = false;
+  }
+
+  isFormValid(): boolean {
+    // Valida campos básicos
+    if (!this.name || this.name.length < 3) return false;
+    if (!this.code || this.code.length < 2) return false;
+    if (!this.type) return false;
+
+    // Se for CHURCH, valida labels personalizados
+    if (this.type === OrganizationUnitType.CHURCH) {
+      if (!this.sectorLabel || this.sectorLabel.length < 3) return false;
+      if (!this.congregationLabel || this.congregationLabel.length < 3)
+        return false;
+    }
+
+    // Se NÃO for CHURCH, valida se precisa de pai
+    if (this.type !== OrganizationUnitType.CHURCH) {
+      // Se tem pais disponíveis, precisa selecionar um
+      if (this.availableParents().length > 0 && !this.parentId) {
+        return false;
+      }
+    }
+
+    return true;
   }
 
   cancel() {

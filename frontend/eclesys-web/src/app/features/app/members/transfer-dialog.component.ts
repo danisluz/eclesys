@@ -45,7 +45,7 @@ import { OrganizationUnit } from '../../../shared/api/organization-unit.model';
       <div class="transfer-info">
         <p><strong>Membro:</strong> {{ data.member.fullName }}</p>
         <p>
-          <strong>Congregação Atual:</strong>
+          <strong>{{ getCongregationLabel() }} Atual:</strong>
           {{ data.member.organizationUnitName || 'Não definida' }}
         </p>
       </div>
@@ -62,14 +62,14 @@ import { OrganizationUnit } from '../../../shared/api/organization-unit.model';
 
         @if (form.value.transferType === 'internal') {
           <mat-form-field appearance="outline" class="full-width">
-            <mat-label>Congregação de Destino</mat-label>
+            <mat-label>{{ getCongregationLabel() }} de Destino</mat-label>
             <mat-select formControlName="toCongregationId">
               @if (loadingCongregations()) {
                 <mat-option disabled>Carregando...</mat-option>
               } @else if (congregations().length === 0) {
                 <mat-option disabled>
-                  Nenhuma congregação cadastrada. Crie congregações primeiro em
-                  Organizações.
+                  Nenhuma {{ getCongregationLabel() }} cadastrada. Crie
+                  {{ getCongregationLabelPlural() }} primeiro em Organizações.
                 </mat-option>
               } @else {
                 @for (congregation of congregations(); track congregation.id) {
@@ -85,7 +85,10 @@ import { OrganizationUnit } from '../../../shared/api/organization-unit.model';
               form.get('toCongregationId')?.invalid &&
               form.get('toCongregationId')?.touched
             ) {
-              <mat-error>Selecione a congregação de destino</mat-error>
+              <mat-error
+                >Selecione {{ getCongregationLabel().toLowerCase() }} de
+                destino</mat-error
+              >
             }
           </mat-form-field>
 
@@ -93,9 +96,10 @@ import { OrganizationUnit } from '../../../shared/api/organization-unit.model';
             <div class="info-message">
               <mat-icon>info</mat-icon>
               <p>
-                Você precisa cadastrar congregações antes de fazer
-                transferências internas. Vá em <strong>Organizações</strong> e
-                crie pelo menos uma congregação.
+                Você precisa cadastrar {{ getCongregationLabelPlural() }} antes
+                de fazer transferências internas. Vá em
+                <strong>Organizações</strong> e crie pelo menos uma
+                {{ getCongregationLabel() }}.
               </p>
             </div>
           }
@@ -218,6 +222,7 @@ export class TransferDialogComponent implements OnInit {
 
   form: FormGroup;
   congregations = signal<OrganizationUnit[]>([]);
+  rootChurch = signal<OrganizationUnit | null>(null);
   loadingCongregations = signal(true);
   saving = signal(false);
 
@@ -262,6 +267,12 @@ export class TransferDialogComponent implements OnInit {
       next: (response) => {
         console.log('✅ Organizações recebidas:', response.data);
 
+        // Busca a root church para obter os labels customizados
+        const rootChurch = response.data.find((org) => org.type === 'CHURCH');
+        if (rootChurch) {
+          this.rootChurch.set(rootChurch);
+        }
+
         // Função recursiva para achatar a hierarquia e pegar só congregações
         const extractCongregations = (
           orgs: OrganizationUnit[],
@@ -297,6 +308,19 @@ export class TransferDialogComponent implements OnInit {
         this.loadingCongregations.set(false);
       },
     });
+  }
+
+  getCongregationLabel(): string {
+    return this.rootChurch()?.congregationLabel ?? 'Congregação';
+  }
+
+  getCongregationLabelPlural(): string {
+    const label = this.getCongregationLabel();
+    // Simples pluralização: adiciona 's' ou 'ões'
+    if (label.endsWith('ão')) {
+      return label.slice(0, -2) + 'ões';
+    }
+    return label + 's';
   }
 
   save() {

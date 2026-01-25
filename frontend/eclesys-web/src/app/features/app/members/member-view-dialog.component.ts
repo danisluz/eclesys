@@ -13,6 +13,8 @@ import { MatDividerModule } from '@angular/material/divider';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { Member, MemberTransfer } from '../../../shared/models/member.model';
 import { MembersService } from '../../../shared/api/members.service';
+import { OrganizationsService } from '../../../shared/api/organizations.service';
+import { OrganizationUnit } from '../../../shared/api/organization-unit.model';
 
 @Component({
   selector: 'app-member-view-dialog',
@@ -110,7 +112,7 @@ import { MembersService } from '../../../shared/api/members.service';
               <div class="info-grid">
                 @if (data.member.organizationUnitName) {
                   <div class="info-item">
-                    <label>Congregação</label>
+                    <label>{{ getCongregationLabel() }}</label>
                     <p>{{ data.member.organizationUnitName }}</p>
                   </div>
                 }
@@ -587,9 +589,11 @@ import { MembersService } from '../../../shared/api/members.service';
 })
 export class MemberViewDialogComponent implements OnInit {
   private service = inject(MembersService);
+  private organizationsService = inject(OrganizationsService);
 
   transfers = signal<MemberTransfer[]>([]);
   loadingTransfers = signal(true);
+  rootChurch = signal<OrganizationUnit | null>(null);
 
   constructor(
     @Inject(MAT_DIALOG_DATA) public data: { member: Member },
@@ -603,7 +607,22 @@ export class MemberViewDialogComponent implements OnInit {
 
   ngOnInit() {
     console.log('🚀 ngOnInit executado, carregando histórico...');
+    this.loadRootChurch();
     this.loadTransferHistory();
+  }
+
+  loadRootChurch() {
+    this.organizationsService.listAll().subscribe({
+      next: (response) => {
+        const rootChurch = response.data.find((org) => org.type === 'CHURCH');
+        if (rootChurch) {
+          this.rootChurch.set(rootChurch);
+        }
+      },
+      error: (err) => {
+        console.error('❌ Erro ao carregar organizações:', err);
+      },
+    });
   }
 
   loadTransferHistory() {
@@ -674,5 +693,8 @@ export class MemberViewDialogComponent implements OnInit {
     };
 
     return transferStatusLabels[status] || memberStatusLabels[status] || status;
+  }
+  getCongregationLabel(): string {
+    return this.rootChurch()?.congregationLabel ?? 'Congregação';
   }
 }

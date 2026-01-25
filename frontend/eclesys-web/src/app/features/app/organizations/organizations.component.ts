@@ -90,6 +90,24 @@ export class OrganizationsComponent implements OnInit {
     return labels[type] || type;
   }
 
+  getSectorLabel(): string {
+    return this.getRootChurch()?.sectorLabel ?? 'Setor';
+  }
+
+  getCongregationLabel(): string {
+    return this.getRootChurch()?.congregationLabel ?? 'Congregação';
+  }
+
+  getHeadquartersLabel(type: OrganizationUnitType): string {
+    if (type === OrganizationUnitType.CHURCH) {
+      return 'Sede Principal';
+    }
+    if (type === OrganizationUnitType.CONGREGATION) {
+      return `Sede ${this.getSectorLabel()}`;
+    }
+    return 'Sede';
+  }
+
   getTypeIcon(type: OrganizationUnitType): string {
     const icons = {
       [OrganizationUnitType.CHURCH]: 'church',

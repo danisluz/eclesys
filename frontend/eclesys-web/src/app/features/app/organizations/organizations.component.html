@@ -48,7 +48,9 @@
                   <span class="org-code">{{ church.code }}</span>
                 </div>
                 @if (church.isHeadquarters) {
-                  <mat-chip class="headquarters-chip">Sede Principal</mat-chip>
+                  <mat-chip class="headquarters-chip">{{
+                    getHeadquartersLabel(church.type)
+                  }}</mat-chip>
                 }
               </div>
               <div class="org-actions">
@@ -65,7 +67,7 @@
                     (click)="openCreateDialog(church.id, church.type)"
                   >
                     <mat-icon>add</mat-icon>
-                    Adicionar Setor
+                    Adicionar {{ getSectorLabel() }}
                   </button>
                   <button mat-menu-item (click)="deleteUnit(church)">
                     <mat-icon color="warn">delete</mat-icon>
@@ -107,7 +109,7 @@
                             (click)="openCreateDialog(sector.id, sector.type)"
                           >
                             <mat-icon>add</mat-icon>
-                            Adicionar Congregação
+                            Adicionar {{ getCongregationLabel() }}
                           </button>
                           <button mat-menu-item (click)="deleteUnit(sector)">
                             <mat-icon color="warn">delete</mat-icon>
@@ -136,9 +138,9 @@
                                   }}</span>
                                 </div>
                                 @if (congregation.isHeadquarters) {
-                                  <mat-chip class="headquarters-chip"
-                                    >Sede do Setor</mat-chip
-                                  >
+                                  <mat-chip class="headquarters-chip">{{
+                                    getHeadquartersLabel(congregation.type)
+                                  }}</mat-chip>
                                 }
                               </div>
                               <div class="org-actions">
