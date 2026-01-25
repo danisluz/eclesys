@@ -7,13 +7,16 @@ import com.eclesys.api.domain.member.MemberRepository;
 import com.eclesys.api.domain.member.MemberStatus;
 import com.eclesys.api.domain.member.MemberTransfer;
 import com.eclesys.api.domain.member.MemberTransferRepository;
+import com.eclesys.api.domain.member.TransferStatus;
 import com.eclesys.api.domain.organization.OrganizationUnit;
 import com.eclesys.api.domain.organization.OrganizationUnitRepository;
+import com.eclesys.api.domain.tenant.ApprovalLevel;
 import com.eclesys.api.domain.tenant.TenantEntity;
 import com.eclesys.api.domain.tenant.TenantRepository;
 import com.eclesys.api.domain.user.UserEntity;
 import com.eclesys.api.domain.user.UserRepository;
 import com.eclesys.api.features.members.dto.*;
+import com.eclesys.api.service.TransferApprovalService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -32,6 +35,7 @@ public class MemberService {
   private final OrganizationUnitRepository organizationUnitRepository;
   private final MemberTransferRepository transferRepository;
   private final UserRepository userRepository;
+  private final TransferApprovalService approvalService;
 
   public MemberService(
       MemberRepository repository,
@@ -39,7 +43,8 @@ public class MemberService {
       ChurchRoleRepository churchRoleRepository,
       OrganizationUnitRepository organizationUnitRepository,
       MemberTransferRepository transferRepository,
-      UserRepository userRepository
+      UserRepository userRepository,
+      TransferApprovalService approvalService
   ) {
     this.repository = repository;
     this.tenantRepository = tenantRepository;
@@ -47,6 +52,7 @@ public class MemberService {
     this.organizationUnitRepository = organizationUnitRepository;
     this.transferRepository = transferRepository;
     this.userRepository = userRepository;
+    this.approvalService = approvalService;
   }
 
   @Transactional
@@ -311,6 +317,7 @@ public class MemberService {
     transfer.setMember(member);
     transfer.setFromCongregation(fromCongregation);
     transfer.setTransferredBy(user);
+    transfer.setRequestedBy(user);
 
     if (request.toCongregationId() != null) {
       // Transferência interna (dentro do mesmo tenant)
@@ -319,11 +326,6 @@ public class MemberService {
 
       transfer.setToCongregation(toCongregation);
       transfer.setReason(request.reason());
-
-      // Atualiza a congregação do membro
-      member.setOrganizationUnit(toCongregation);
-      // Status continua ACTIVE
-      repository.save(member);
     } else {
       // Transferência externa (para outra igreja/cidade)
       if (request.externalDestination() == null || request.externalDestination().isBlank()) {
@@ -332,10 +334,28 @@ public class MemberService {
 
       transfer.setToCongregation(null);
       transfer.setReason(request.reason() + " | Destino: " + request.externalDestination());
+    }
 
-      // Membro fica com status TRANSFERRED
-      member.setStatus(MemberStatus.TRANSFERRED);
+    // Determine approval level
+    ApprovalLevel requiredLevel = approvalService.determineRequiredApprovalLevel(transfer);
+
+    if (requiredLevel == ApprovalLevel.AUTO) {
+      // Auto-approve: execute immediately
+      transfer.setStatus(TransferStatus.APPROVED);
+      transfer.setApprovedBy(user);
+      transfer.setApprovedAt(java.time.LocalDateTime.now());
+
+      // Execute transfer
+      if (transfer.getToCongregation() != null) {
+        member.setOrganizationUnit(transfer.getToCongregation());
+      } else {
+        member.setStatus(MemberStatus.TRANSFERRED);
+      }
       repository.save(member);
+    } else {
+      // Requires approval: create as PENDING
+      transfer.setStatus(TransferStatus.PENDING);
+      // Member stays in current congregation until approved
     }
 
     MemberTransfer saved = transferRepository.save(transfer);
@@ -367,7 +387,7 @@ public class MemberService {
         .collect(Collectors.toList());
   }
 
-  private MemberTransferResponse toTransferResponse(MemberTransfer transfer) {
+  public MemberTransferResponse toTransferResponse(MemberTransfer transfer) {
     OrganizationUnit from = transfer.getFromCongregation();
     OrganizationUnit to = transfer.getToCongregation();
 
@@ -381,7 +401,12 @@ public class MemberService {
         to != null ? to.getName() : null,
         transfer.getReason(),
         transfer.getTransferredBy().getName(),
-        transfer.getCreatedAt()
+        transfer.getCreatedAt(),
+        transfer.getStatus() != null ? transfer.getStatus().name() : null,
+        transfer.getRequestedBy() != null ? transfer.getRequestedBy().getName() : null,
+        transfer.getApprovedBy() != null ? transfer.getApprovedBy().getName() : null,
+        transfer.getApprovedAt(),
+        transfer.getRejectionReason()
     );
   }
 }

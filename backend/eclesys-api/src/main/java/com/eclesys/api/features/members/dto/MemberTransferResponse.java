@@ -13,6 +13,11 @@ public record MemberTransferResponse(
     String toCongregationName,
     String reason,
     String transferredByUserName,
-    LocalDateTime createdAt
+    LocalDateTime createdAt,
+    String status,
+    String requestedByUserName,
+    String approvedByUserName,
+    LocalDateTime approvedAt,
+    String rejectionReason
 ) {
 }

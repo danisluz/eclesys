@@ -12,6 +12,7 @@ import { OrganizationsComponent } from './features/app/organizations/organizatio
 import { ChurchRolesComponent } from './features/app/church-roles/church-roles.component';
 import { FunctionRolesComponent } from './features/app/function-roles/function-roles.component';
 import { MembersComponent } from './features/app/members/members.component';
+import { PendingApprovalsComponent } from './features/app/pending-approvals/pending-approvals.component';
 
 export const routes: Routes = [
   {
@@ -36,6 +37,7 @@ export const routes: Routes = [
       { path: 'church-roles', component: ChurchRolesComponent },
       { path: 'function-roles', component: FunctionRolesComponent },
       { path: 'members', component: MembersComponent },
+      { path: 'pending-approvals', component: PendingApprovalsComponent },
       {
         path: 'users',
         loadChildren: () =>

@@ -13,4 +13,8 @@ public interface MemberTransferRepository extends JpaRepository<MemberTransfer, 
   List<MemberTransfer> findByTenantAndMemberOrderByCreatedAtDesc(TenantEntity tenant, Member member);
 
   List<MemberTransfer> findByTenantOrderByCreatedAtDesc(TenantEntity tenant);
+
+  List<MemberTransfer> findByTenantIdAndStatus(UUID tenantId, TransferStatus status);
+
+  List<MemberTransfer> findByTenantIdAndRequestedByIdAndStatus(UUID tenantId, UUID requestedById, TransferStatus status);
 }

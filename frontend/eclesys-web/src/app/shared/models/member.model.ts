@@ -7,6 +7,19 @@ export type MaritalStatus =
   | 'DIVORCED'
   | 'SEPARATED';
 
+export type TransferStatus = 'PENDING' | 'APPROVED' | 'REJECTED' | 'CANCELLED';
+export type ApprovalLevel =
+  | 'AUTO'
+  | 'SECRETARY_CONGREGATION'
+  | 'SECRETARY_SECTOR'
+  | 'SECRETARY_CHURCH'
+  | 'ADMIN';
+export type OrganizationRole =
+  | 'SECRETARY'
+  | 'LEADER'
+  | 'TREASURER'
+  | 'ASSISTANT';
+
 export interface Address {
   street: string | null;
   number: string | null;
@@ -99,4 +112,29 @@ export interface MemberTransfer {
   reason: string;
   transferredByUserName: string;
   createdAt: string;
+  status: TransferStatus | null;
+  requestedByUserName: string | null;
+  approvedByUserName: string | null;
+  approvedAt: string | null;
+  rejectionReason: string | null;
+}
+
+export interface TenantTransferApprovalSettings {
+  internalSameSectorApproval: ApprovalLevel;
+  internalCrossSectorApproval: ApprovalLevel;
+  externalApproval: ApprovalLevel;
+  requireJustificationOnRejection: boolean;
+  allowRequesterCancel: boolean;
+}
+
+export interface UpdateApprovalSettingsRequest {
+  internalSameSectorApproval?: ApprovalLevel;
+  internalCrossSectorApproval?: ApprovalLevel;
+  externalApproval?: ApprovalLevel;
+  requireJustificationOnRejection?: boolean;
+  allowRequesterCancel?: boolean;
+}
+
+export interface RejectTransferRequest {
+  reason: string;
 }

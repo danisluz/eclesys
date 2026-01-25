@@ -232,6 +232,11 @@ import { MembersService } from '../../../shared/api/members.service';
               </div>
             } @else {
               <div class="transfers-list">
+                <p
+                  style="font-size: 0.75rem; color: #666; margin-bottom: 1rem;"
+                >
+                  Total de transferências: {{ transfers().length }}
+                </p>
                 @for (transfer of transfers(); track transfer.id) {
                   <div class="transfer-card">
                     <div class="transfer-header">
@@ -239,6 +244,16 @@ import { MembersService } from '../../../shared/api/members.service';
                       <span class="transfer-date">{{
                         formatDateTime(transfer.createdAt)
                       }}</span>
+                      @if (transfer.status) {
+                        <mat-chip
+                          [class]="
+                            'status-chip status-' +
+                            transfer.status.toLowerCase()
+                          "
+                        >
+                          {{ getStatusLabel(transfer.status) }}
+                        </mat-chip>
+                      }
                     </div>
 
                     <div class="transfer-body">
@@ -271,10 +286,41 @@ import { MembersService } from '../../../shared/api/members.service';
                         </div>
                       }
 
+                      @if (transfer.rejectionReason) {
+                        <div class="rejection-reason">
+                          <strong>Motivo da rejeição:</strong>
+                          {{ transfer.rejectionReason }}
+                        </div>
+                      }
+
                       <div class="transfer-footer">
-                        <span class="transferred-by"
-                          >Por: {{ transfer.transferredByUserName }}</span
-                        >
+                        <div class="transfer-users">
+                          @if (transfer.requestedByUserName) {
+                            <span class="user-info">
+                              <strong>Solicitado por:</strong>
+                              {{ transfer.requestedByUserName }}
+                            </span>
+                          }
+                          @if (transfer.approvedByUserName) {
+                            <span class="user-info">
+                              <strong
+                                >{{
+                                  transfer.status === 'REJECTED'
+                                    ? 'Rejeitado'
+                                    : 'Aprovado'
+                                }}
+                                por:</strong
+                              >
+                              {{ transfer.approvedByUserName }}
+                            </span>
+                          }
+                          @if (transfer.approvedAt) {
+                            <span class="user-info">
+                              <strong>em:</strong>
+                              {{ formatDateTime(transfer.approvedAt) }}
+                            </span>
+                          }
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -311,6 +357,8 @@ import { MembersService } from '../../../shared/api/members.service';
       .tab-content {
         padding: 1.5rem;
         min-height: 400px;
+        max-height: 500px;
+        overflow-y: auto;
       }
 
       .info-section {
@@ -423,6 +471,34 @@ import { MembersService } from '../../../shared/api/members.service';
         font-size: 0.875rem;
         color: rgba(0, 0, 0, 0.6);
         font-weight: 500;
+        flex: 1;
+      }
+
+      .status-chip {
+        font-size: 0.75rem;
+        padding: 4px 8px;
+        border-radius: 12px;
+        font-weight: 500;
+      }
+
+      .status-chip.status-pending {
+        background-color: #fff3cd;
+        color: #856404;
+      }
+
+      .status-chip.status-approved {
+        background-color: #d4edda;
+        color: #155724;
+      }
+
+      .status-chip.status-rejected {
+        background-color: #f8d7da;
+        color: #721c24;
+      }
+
+      .status-chip.status-cancelled {
+        background-color: #e2e3e5;
+        color: #383d41;
       }
 
       .transfer-body {
@@ -475,9 +551,31 @@ import { MembersService } from '../../../shared/api/members.service';
         margin-bottom: 0.75rem;
       }
 
+      .rejection-reason {
+        font-size: 0.875rem;
+        color: #721c24;
+        background-color: #f8d7da;
+        padding: 0.75rem;
+        border-radius: 4px;
+        margin-bottom: 0.75rem;
+        border: 1px solid #f5c6cb;
+      }
+
       .transfer-footer {
         display: flex;
         justify-content: flex-end;
+      }
+
+      .transfer-users {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+        width: 100%;
+      }
+
+      .user-info {
+        font-size: 0.75rem;
+        color: rgba(0, 0, 0, 0.6);
       }
 
       .transferred-by {
@@ -514,7 +612,10 @@ export class MemberViewDialogComponent implements OnInit {
     this.service.getMemberTransferHistory(this.data.member.id).subscribe({
       next: (response) => {
         console.log('✅ Histórico recebido:', response);
+        console.log('📊 Total de transferências:', response.data?.length);
+        console.log('📋 Transferências:', response.data);
         this.transfers.set(response.data);
+        console.log('✔️ Signal atualizado, valor atual:', this.transfers());
         this.loadingTransfers.set(false);
       },
       error: (err) => {
@@ -556,12 +657,22 @@ export class MemberViewDialogComponent implements OnInit {
   }
 
   getStatusLabel(status: string): string {
-    const labels: Record<string, string> = {
+    // Labels para status de membro
+    const memberStatusLabels: Record<string, string> = {
       ACTIVE: 'Ativo',
       INACTIVE: 'Inativo',
       TRANSFERRED: 'Transferido',
       DECEASED: 'Falecido',
     };
-    return labels[status] || status;
+
+    // Labels para status de transferência
+    const transferStatusLabels: Record<string, string> = {
+      PENDING: 'Pendente',
+      APPROVED: 'Aprovada',
+      REJECTED: 'Rejeitada',
+      CANCELLED: 'Cancelada',
+    };
+
+    return transferStatusLabels[status] || memberStatusLabels[status] || status;
   }
 }

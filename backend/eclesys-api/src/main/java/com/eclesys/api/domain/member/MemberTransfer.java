@@ -37,6 +37,24 @@ public class MemberTransfer {
   @JoinColumn(name = "transferred_by_user_id", nullable = false)
   private UserEntity transferredBy;
 
+  @Enumerated(EnumType.STRING)
+  @Column(name = "status", nullable = false)
+  private TransferStatus status;
+
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "requested_by_user_id", nullable = false)
+  private UserEntity requestedBy;
+
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "approved_by_user_id")
+  private UserEntity approvedBy;
+
+  @Column(name = "approved_at")
+  private LocalDateTime approvedAt;
+
+  @Column(name = "rejection_reason", columnDefinition = "TEXT")
+  private String rejectionReason;
+
   @Column(columnDefinition = "TEXT")
   private String reason;
 
@@ -107,5 +125,45 @@ public class MemberTransfer {
 
   public void setCreatedAt(LocalDateTime createdAt) {
     this.createdAt = createdAt;
+  }
+
+  public TransferStatus getStatus() {
+    return status;
+  }
+
+  public void setStatus(TransferStatus status) {
+    this.status = status;
+  }
+
+  public UserEntity getRequestedBy() {
+    return requestedBy;
+  }
+
+  public void setRequestedBy(UserEntity requestedBy) {
+    this.requestedBy = requestedBy;
+  }
+
+  public UserEntity getApprovedBy() {
+    return approvedBy;
+  }
+
+  public void setApprovedBy(UserEntity approvedBy) {
+    this.approvedBy = approvedBy;
+  }
+
+  public LocalDateTime getApprovedAt() {
+    return approvedAt;
+  }
+
+  public void setApprovedAt(LocalDateTime approvedAt) {
+    this.approvedAt = approvedAt;
+  }
+
+  public String getRejectionReason() {
+    return rejectionReason;
+  }
+
+  public void setRejectionReason(String rejectionReason) {
+    this.rejectionReason = rejectionReason;
   }
 }
