@@ -17,6 +17,8 @@ public record MemberResponse(
     String document,
     LocalDate birthDate,
     LocalDate baptismDate,
+    String baptismChurch,
+    String baptismLocation,
     Gender gender,
     MaritalStatus maritalStatus,
     AddressDto address,

@@ -2,6 +2,8 @@ package com.eclesys.api.features.members;
 
 import com.eclesys.api.domain.member.MemberStatus;
 import com.eclesys.api.features.members.dto.CreateMemberRequest;
+import com.eclesys.api.features.members.dto.MemberHistoryResponse;
+import com.eclesys.api.features.members.dto.MemberPositionHistoryResponse;
 import com.eclesys.api.features.members.dto.MemberResponse;
 import com.eclesys.api.features.members.dto.MemberTransferResponse;
 import com.eclesys.api.features.members.dto.TransferMemberRequest;
@@ -9,6 +11,10 @@ import com.eclesys.api.features.members.dto.UpdateMemberRequest;
 import com.eclesys.api.features.users.CurrentUserService;
 import com.eclesys.api.shared.api.ApiResponse;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -39,11 +45,29 @@ public class MemberController {
   }
 
   @GetMapping
-  public ResponseEntity<ApiResponse<List<MemberResponse>>> listAll(
+  public ResponseEntity<ApiResponse<Page<MemberResponse>>> listAll(
       @RequestParam(required = false) MemberStatus status,
-      @RequestParam(required = false) String search
+      @RequestParam(required = false) String search,
+      @RequestParam(required = false) List<UUID> organizationUnitIds,
+      @RequestParam(required = false) UUID churchRoleId,
+      @RequestParam(defaultValue = "0") int page,
+      @RequestParam(defaultValue = "50") int size,
+      @RequestParam(defaultValue = "fullName") String sortBy,
+      @RequestParam(defaultValue = "asc") String sortDir
   ) {
-    List<MemberResponse> members = service.listAll(currentUserService.getTenantId(), status, search);
+    Sort sort = sortDir.equalsIgnoreCase("desc") 
+        ? Sort.by(sortBy).descending() 
+        : Sort.by(sortBy).ascending();
+    Pageable pageable = PageRequest.of(page, size, sort);
+    
+    Page<MemberResponse> members = service.listAll(
+        currentUserService.getTenantId(), 
+        status, 
+        search, 
+        organizationUnitIds,
+        churchRoleId,
+        pageable
+    );
     return ResponseEntity.ok(ApiResponse.success(members));
   }
 
@@ -60,7 +84,12 @@ public class MemberController {
       @PathVariable UUID id,
       @Valid @RequestBody UpdateMemberRequest request
   ) {
-    MemberResponse response = service.update(currentUserService.getTenantId(), id, request);
+    MemberResponse response = service.update(
+        currentUserService.getTenantId(), 
+        id, 
+        request, 
+        currentUserService.getUserId()
+    );
     return ResponseEntity.ok(ApiResponse.success(response));
   }
 
@@ -93,6 +122,28 @@ public class MemberController {
       @PathVariable UUID id
   ) {
     List<MemberTransferResponse> response = service.getMemberTransferHistory(
+        currentUserService.getTenantId(),
+        id
+    );
+    return ResponseEntity.ok(ApiResponse.success(response));
+  }
+
+  @GetMapping("/{id}/positions")
+  public ResponseEntity<ApiResponse<List<MemberPositionHistoryResponse>>> getMemberPositionHistory(
+      @PathVariable UUID id
+  ) {
+    List<MemberPositionHistoryResponse> response = service.getMemberPositionHistory(
+        currentUserService.getTenantId(),
+        id
+    );
+    return ResponseEntity.ok(ApiResponse.success(response));
+  }
+
+  @GetMapping("/{id}/history")
+  public ResponseEntity<ApiResponse<List<MemberHistoryResponse>>> getMemberHistory(
+      @PathVariable UUID id
+  ) {
+    List<MemberHistoryResponse> response = service.getMemberHistory(
         currentUserService.getTenantId(),
         id
     );

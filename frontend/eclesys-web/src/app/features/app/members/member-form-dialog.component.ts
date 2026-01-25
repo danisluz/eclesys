@@ -13,6 +13,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { MatRadioModule } from '@angular/material/radio';
+import { NgxMaskDirective } from 'ngx-mask';
 import {
   Member,
   MemberStatus,
@@ -24,6 +25,7 @@ import { ChurchRolesService } from '../../../shared/api/church-roles.service';
 import { ChurchRole } from '../../../shared/models/church-role.model';
 import { OrganizationsService } from '../../../shared/api/organizations.service';
 import { OrganizationUnit } from '../../../shared/api/organization-unit.model';
+import { cpfValidator } from '../../../shared/validators/cpf.validator';
 
 interface DialogData {
   mode: 'create' | 'edit';
@@ -44,6 +46,7 @@ interface DialogData {
     MatDatepickerModule,
     MatNativeDateModule,
     MatRadioModule,
+    NgxMaskDirective,
   ],
   template: `
     <h2 mat-dialog-title>
@@ -97,14 +100,29 @@ interface DialogData {
 
           <mat-form-field appearance="outline">
             <mat-label>Telefone</mat-label>
-            <input matInput formControlName="phone" />
+            <input
+              matInput
+              formControlName="phone"
+              mask="(00) 0000-0000||(00) 0 0000-0000"
+            />
           </mat-form-field>
         </div>
 
         <div class="form-row two-cols">
           <mat-form-field appearance="outline">
-            <mat-label>CPF/Documento</mat-label>
-            <input matInput formControlName="document" />
+            <mat-label>CPF/Documento *</mat-label>
+            <input
+              matInput
+              formControlName="document"
+              mask="000.000.000-00"
+              [readonly]="data.mode === 'edit'"
+            />
+            @if (form.controls.document.hasError('required')) {
+              <mat-error>CPF é obrigatório</mat-error>
+            }
+            @if (form.controls.document.hasError('cpfInvalido')) {
+              <mat-error>CPF inválido</mat-error>
+            }
           </mat-form-field>
 
           <mat-form-field appearance="outline">
@@ -168,6 +186,18 @@ interface DialogData {
               [for]="baptismPicker"
             ></mat-datepicker-toggle>
             <mat-datepicker #baptismPicker></mat-datepicker>
+          </mat-form-field>
+        </div>
+
+        <div class="form-row two-cols">
+          <mat-form-field appearance="outline">
+            <mat-label>Igreja do Batismo</mat-label>
+            <input matInput formControlName="baptismChurch" />
+          </mat-form-field>
+
+          <mat-form-field appearance="outline">
+            <mat-label>Local do Batismo</mat-label>
+            <input matInput formControlName="baptismLocation" />
           </mat-form-field>
         </div>
 
@@ -263,7 +293,6 @@ interface DialogData {
               <mat-select formControlName="status">
                 <mat-option value="ACTIVE">Ativo</mat-option>
                 <mat-option value="INACTIVE">Inativo</mat-option>
-                <mat-option value="TRANSFERRED">Transferido</mat-option>
                 <mat-option value="DECEASED">Falecido</mat-option>
               </mat-select>
             </mat-form-field>
@@ -344,11 +373,13 @@ export class MemberFormDialogComponent implements OnInit {
     organizationUnitId: ['', [Validators.required]],
     email: ['', [Validators.email]],
     phone: [''],
-    document: [''],
+    document: ['', [Validators.required, cpfValidator()]],
     gender: [null as Gender | null],
     maritalStatus: [null as MaritalStatus | null],
     birthDate: [null as Date | null],
     baptismDate: [null as Date | null],
+    baptismChurch: [''],
+    baptismLocation: [''],
     churchRoleId: [null as string | null],
     addressStreet: [''],
     addressNumber: [''],
@@ -380,6 +411,8 @@ export class MemberFormDialogComponent implements OnInit {
         maritalStatus: member.maritalStatus,
         birthDate: member.birthDate ? new Date(member.birthDate) : null,
         baptismDate: member.baptismDate ? new Date(member.baptismDate) : null,
+        baptismChurch: member.baptismChurch || '',
+        baptismLocation: member.baptismLocation || '',
         churchRoleId: member.churchRoleId,
         addressStreet: member.address?.street || '',
         addressNumber: member.address?.number || '',
@@ -445,15 +478,19 @@ export class MemberFormDialogComponent implements OnInit {
   }
 
   loadAllMembers() {
-    this.service.listAll().subscribe({
-      next: (response) => {
-        const currentMemberId = this.data.member?.id;
-        const members = currentMemberId
-          ? response.data.filter((m) => m.id !== currentMemberId)
-          : response.data;
-        this.allMembers.set(members);
-      },
-    });
+    this.service
+      .listAll(undefined, undefined, undefined, undefined, 0, 1000)
+      .subscribe({
+        next: (response) => {
+          const currentMemberId = this.data.member?.id;
+          const members = currentMemberId
+            ? response.data.content.filter(
+                (m: Member) => m.id !== currentMemberId,
+              )
+            : response.data.content;
+          this.allMembers.set(members);
+        },
+      });
   }
 
   cancel() {
@@ -496,6 +533,8 @@ export class MemberFormDialogComponent implements OnInit {
       baptismDate: formValue.baptismDate
         ? formValue.baptismDate.toISOString().split('T')[0]
         : null,
+      baptismChurch: formValue.baptismChurch || null,
+      baptismLocation: formValue.baptismLocation || null,
       address,
       churchRoleId: formValue.churchRoleId || null,
       spouseId: formValue.spouseId || null,

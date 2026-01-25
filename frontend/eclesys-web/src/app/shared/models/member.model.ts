@@ -47,6 +47,8 @@ export interface Member {
   document: string | null;
   birthDate: string | null;
   baptismDate: string | null;
+  baptismChurch: string | null;
+  baptismLocation: string | null;
   gender: Gender | null;
   maritalStatus: MaritalStatus | null;
   address: Address | null;
@@ -67,6 +69,8 @@ export interface CreateMemberRequest {
   document?: string | null;
   birthDate?: string | null;
   baptismDate?: string | null;
+  baptismChurch: string | null;
+  baptismLocation: string | null;
   gender?: Gender | null;
   maritalStatus?: MaritalStatus | null;
   address?: Address | null;
@@ -84,6 +88,8 @@ export interface UpdateMemberRequest {
   document?: string | null;
   birthDate?: string | null;
   baptismDate?: string | null;
+  baptismChurch?: string | null;
+  baptismLocation?: string | null;
   gender?: Gender | null;
   maritalStatus?: MaritalStatus | null;
   address?: Address | null;

@@ -46,6 +46,12 @@ public class Member {
   @Column(name = "baptism_date")
   private LocalDate baptismDate;
 
+  @Column(name = "baptism_church")
+  private String baptismChurch;
+
+  @Column(name = "baptism_location")
+  private String baptismLocation;
+
   @Enumerated(EnumType.STRING)
   @Column(length = 1)
   private Gender gender;

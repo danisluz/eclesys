@@ -3,6 +3,8 @@ package com.eclesys.api.features.members;
 import com.eclesys.api.domain.churchrole.ChurchRole;
 import com.eclesys.api.domain.churchrole.ChurchRoleRepository;
 import com.eclesys.api.domain.member.Member;
+import com.eclesys.api.domain.member.MemberPositionHistory;
+import com.eclesys.api.domain.member.MemberPositionHistoryRepository;
 import com.eclesys.api.domain.member.MemberRepository;
 import com.eclesys.api.domain.member.MemberStatus;
 import com.eclesys.api.domain.member.MemberTransfer;
@@ -19,7 +21,10 @@ import com.eclesys.api.features.members.dto.*;
 import com.eclesys.api.service.TransferApprovalService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -36,6 +41,7 @@ public class MemberService {
   private final MemberTransferRepository transferRepository;
   private final UserRepository userRepository;
   private final TransferApprovalService approvalService;
+  private final MemberPositionHistoryRepository positionHistoryRepository;
 
   public MemberService(
       MemberRepository repository,
@@ -44,7 +50,8 @@ public class MemberService {
       OrganizationUnitRepository organizationUnitRepository,
       MemberTransferRepository transferRepository,
       UserRepository userRepository,
-      TransferApprovalService approvalService
+      TransferApprovalService approvalService,
+      MemberPositionHistoryRepository positionHistoryRepository
   ) {
     this.repository = repository;
     this.tenantRepository = tenantRepository;
@@ -53,12 +60,28 @@ public class MemberService {
     this.transferRepository = transferRepository;
     this.userRepository = userRepository;
     this.approvalService = approvalService;
+    this.positionHistoryRepository = positionHistoryRepository;
   }
 
   @Transactional
   public MemberResponse create(UUID tenantId, CreateMemberRequest request) {
     TenantEntity tenant = tenantRepository.findById(tenantId)
         .orElseThrow(() -> new RuntimeException("Tenant não encontrado"));
+
+    // Validar CPF obrigatório
+    if (request.document() == null || request.document().trim().isEmpty()) {
+      throw new IllegalArgumentException("CPF é obrigatório");
+    }
+
+    // Validar formato do CPF
+    if (!com.eclesys.api.util.CpfValidator.isValid(request.document())) {
+      throw new IllegalArgumentException("CPF inválido");
+    }
+
+    // Validar CPF único no tenant
+    if (repository.existsByTenantAndDocument(tenant, request.document())) {
+      throw new IllegalArgumentException("Já existe um membro cadastrado com este CPF");
+    }
 
     OrganizationUnit organizationUnit = organizationUnitRepository.findByTenantAndId(tenant, request.organizationUnitId())
         .orElseThrow(() -> new RuntimeException("Congregação não encontrada"));
@@ -71,6 +94,8 @@ public class MemberService {
     member.setDocument(request.document());
     member.setBirthDate(request.birthDate());
     member.setBaptismDate(request.baptismDate());
+    member.setBaptismChurch(request.baptismChurch());
+    member.setBaptismLocation(request.baptismLocation());
     member.setGender(request.gender());
     member.setMaritalStatus(request.maritalStatus());
     member.setAddress(addressDtoToMap(request.address()));
@@ -105,23 +130,43 @@ public class MemberService {
   }
 
   @Transactional(readOnly = true)
-  public List<MemberResponse> listAll(UUID tenantId, MemberStatus status, String search) {
+  public Page<MemberResponse> listAll(
+      UUID tenantId, 
+      MemberStatus status, 
+      String search,
+      List<UUID> organizationUnitIds,
+      UUID churchRoleId,
+      Pageable pageable
+  ) {
     TenantEntity tenant = tenantRepository.findById(tenantId)
         .orElseThrow(() -> new RuntimeException("Tenant não encontrado"));
 
-    List<Member> members;
+    Page<Member> members;
+    boolean hasOrgFilter = organizationUnitIds != null && !organizationUnitIds.isEmpty();
 
+    // Busca com filtros combinados
     if (search != null && !search.isBlank()) {
-      members = repository.searchByTenant(tenant, search);
-    } else if (status != null) {
-      members = repository.findAllByTenantAndStatusOrderByFullNameAsc(tenant, status);
+      members = repository.searchByTenantWithFilters(
+          tenant, 
+          search, 
+          status, 
+          hasOrgFilter ? organizationUnitIds : null, 
+          churchRoleId, 
+          pageable
+      );
+    } else if (status != null || hasOrgFilter || churchRoleId != null) {
+      members = repository.findAllByTenantWithFilters(
+          tenant, 
+          status, 
+          hasOrgFilter ? organizationUnitIds : null, 
+          churchRoleId, 
+          pageable
+      );
     } else {
-      members = repository.findAllByTenantOrderByFullNameAsc(tenant);
+      members = repository.findAllByTenant(tenant, pageable);
     }
 
-    return members.stream()
-        .map(this::toResponse)
-        .collect(Collectors.toList());
+    return members.map(this::toResponse);
   }
 
   @Transactional(readOnly = true)
@@ -136,12 +181,20 @@ public class MemberService {
   }
 
   @Transactional
-  public MemberResponse update(UUID tenantId, UUID id, UpdateMemberRequest request) {
+  public MemberResponse update(UUID tenantId, UUID id, UpdateMemberRequest request, UUID updatingUserId) {
     TenantEntity tenant = tenantRepository.findById(tenantId)
         .orElseThrow(() -> new RuntimeException("Tenant não encontrado"));
 
     Member member = repository.findByTenantAndId(tenant, id)
         .orElseThrow(() -> new RuntimeException("Membro não encontrado"));
+
+    UserEntity updatingUser = userRepository.findById(updatingUserId)
+        .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+
+    // CPF não pode ser alterado
+    if (request.document() != null && !request.document().equals(member.getDocument())) {
+      throw new IllegalArgumentException("CPF não pode ser alterado após o cadastro");
+    }
 
     if (request.fullName() != null) {
       member.setFullName(request.fullName());
@@ -152,14 +205,17 @@ public class MemberService {
     if (request.phone() != null) {
       member.setPhone(request.phone());
     }
-    if (request.document() != null) {
-      member.setDocument(request.document());
-    }
     if (request.birthDate() != null) {
       member.setBirthDate(request.birthDate());
     }
     if (request.baptismDate() != null) {
       member.setBaptismDate(request.baptismDate());
+    }
+    if (request.baptismChurch() != null) {
+      member.setBaptismChurch(request.baptismChurch());
+    }
+    if (request.baptismLocation() != null) {
+      member.setBaptismLocation(request.baptismLocation());
     }
     if (request.gender() != null) {
       member.setGender(request.gender());
@@ -170,19 +226,46 @@ public class MemberService {
     if (request.address() != null) {
       member.setAddress(addressDtoToMap(request.address()));
     }
+    
+    // Status: não permitir mudar para TRANSFERRED (só via aprovação de transferência)
     if (request.status() != null) {
+      if (request.status() == MemberStatus.TRANSFERRED) {
+        throw new IllegalArgumentException("Status TRANSFERRED só pode ser definido via aprovação de transferência");
+      }
       member.setStatus(request.status());
     }
+    
     if (request.organizationUnitId() != null) {
       OrganizationUnit organizationUnit = organizationUnitRepository.findByTenantAndId(tenant, request.organizationUnitId())
           .orElseThrow(() -> new RuntimeException("Congregação não encontrada"));
       member.setOrganizationUnit(organizationUnit);
     }
+    
+    // Cargo eclesiástico: apenas ADMIN ou SECRETARIA podem alterar
     if (request.churchRoleId() != null) {
-      ChurchRole churchRole = churchRoleRepository.findByTenantAndId(tenant, request.churchRoleId())
-          .orElseThrow(() -> new RuntimeException("Cargo eclesiástico não encontrado"));
-      member.setChurchRole(churchRole);
+      if (updatingUser.getRole() != com.eclesys.api.domain.user.UserRole.ADMIN && 
+          updatingUser.getRole() != com.eclesys.api.domain.user.UserRole.SECRETARIA) {
+        throw new SecurityException("Apenas administradores e secretários gerais podem alterar cargos eclesiásticos");
+      }
+      
+      // Registrar mudança no histórico
+      ChurchRole newRole = request.churchRoleId().toString().equals("00000000-0000-0000-0000-000000000000") ? null :
+          churchRoleRepository.findByTenantAndId(tenant, request.churchRoleId())
+              .orElseThrow(() -> new RuntimeException("Cargo eclesiástico não encontrado"));
+      
+      if (member.getChurchRole() != newRole) {
+        MemberPositionHistory history = new MemberPositionHistory();
+        history.setTenant(tenant);
+        history.setMember(member);
+        history.setOldPosition(member.getChurchRole() != null ? member.getChurchRole().getName() : null);
+        history.setNewPosition(newRole != null ? newRole.getName() : null);
+        history.setChangedBy(updatingUser);
+        positionHistoryRepository.save(history);
+        
+        member.setChurchRole(newRole);
+      }
     }
+    
     if (request.spouseId() != null) {
       Member spouse = repository.findByTenantAndId(tenant, request.spouseId())
           .orElseThrow(() -> new RuntimeException("Cônjuge não encontrado"));
@@ -234,6 +317,8 @@ public class MemberService {
         member.getDocument(),
         member.getBirthDate(),
         member.getBaptismDate(),
+        member.getBaptismChurch(),
+        member.getBaptismLocation(),
         member.getGender(),
         member.getMaritalStatus(),
         addressDto,
@@ -377,6 +462,20 @@ public class MemberService {
   }
 
   @Transactional(readOnly = true)
+  public List<MemberPositionHistoryResponse> getMemberPositionHistory(UUID tenantId, UUID memberId) {
+    TenantEntity tenant = tenantRepository.findById(tenantId)
+        .orElseThrow(() -> new RuntimeException("Tenant não encontrado"));
+
+    Member member = repository.findByTenantAndId(tenant, memberId)
+        .orElseThrow(() -> new RuntimeException("Membro não encontrado"));
+
+    return positionHistoryRepository.findByMemberIdOrderByChangedAtDesc(memberId)
+        .stream()
+        .map(this::toPositionHistoryResponse)
+        .collect(Collectors.toList());
+  }
+
+  @Transactional(readOnly = true)
   public List<MemberTransferResponse> getAllTransfers(UUID tenantId) {
     TenantEntity tenant = tenantRepository.findById(tenantId)
         .orElseThrow(() -> new RuntimeException("Tenant não encontrado"));
@@ -408,5 +507,90 @@ public class MemberService {
         transfer.getApprovedAt(),
         transfer.getRejectionReason()
     );
+  }
+
+  private MemberPositionHistoryResponse toPositionHistoryResponse(MemberPositionHistory history) {
+    String oldPositionName = history.getOldPosition() != null ? 
+        history.getOldPosition() : "Sem cargo";
+    String newPositionName = history.getNewPosition() != null ? 
+        history.getNewPosition() : "Sem cargo";
+    String changedByUserName = history.getChangedBy() != null ? 
+        history.getChangedBy().getName() : "Sistema";
+
+    return new MemberPositionHistoryResponse(
+        history.getId(),
+        oldPositionName,
+        newPositionName,
+        history.getReason(),
+        changedByUserName,
+        history.getChangedAt()
+    );
+  }
+
+  /**
+   * Retorna o histórico completo do membro (transferências + mudanças de cargo)
+   * ordenado por data decrescente
+   */
+  @Transactional(readOnly = true)
+  public List<MemberHistoryResponse> getMemberHistory(UUID tenantId, UUID memberId) {
+    TenantEntity tenant = tenantRepository.findById(tenantId)
+        .orElseThrow(() -> new RuntimeException("Tenant não encontrado"));
+
+    Member member = repository.findByTenantAndId(tenant, memberId)
+        .orElseThrow(() -> new RuntimeException("Membro não encontrado"));
+
+    List<MemberHistoryResponse> history = new java.util.ArrayList<>();
+
+    // Adiciona histórico de mudanças de cargo
+    positionHistoryRepository.findByMemberIdOrderByChangedAtDesc(memberId)
+        .forEach(positionChange -> {
+          history.add(new MemberHistoryResponse(
+              positionChange.getId(),
+              "POSITION_CHANGE",
+              "Mudança de cargo",
+              positionChange.getOldPosition() != null ? positionChange.getOldPosition() : "Sem cargo",
+              positionChange.getNewPosition() != null ? positionChange.getNewPosition() : "Sem cargo",
+              positionChange.getReason(),
+              positionChange.getChangedBy() != null ? positionChange.getChangedBy().getName() : "Sistema",
+              positionChange.getChangedAt(),
+              null
+          ));
+        });
+
+    // Adiciona histórico de transferências
+    transferRepository.findByTenantAndMemberOrderByCreatedAtDesc(tenant, member)
+        .forEach(transfer -> {
+          String fromCongregation = transfer.getFromCongregation() != null 
+              ? transfer.getFromCongregation().getName() 
+              : "Sem congregação";
+          String toCongregation = transfer.getToCongregation() != null 
+              ? transfer.getToCongregation().getName() 
+              : "Externa";
+          
+          String description = transfer.getToCongregation() != null 
+              ? "Transferência interna" 
+              : "Transferência externa";
+
+          LocalDateTime eventDate = transfer.getApprovedAt() != null 
+              ? transfer.getApprovedAt() 
+              : transfer.getCreatedAt();
+
+          history.add(new MemberHistoryResponse(
+              transfer.getId(),
+              "TRANSFER",
+              description,
+              fromCongregation,
+              toCongregation,
+              transfer.getReason(),
+              transfer.getRequestedBy() != null ? transfer.getRequestedBy().getName() : "Sistema",
+              eventDate,
+              transfer.getStatus() != null ? transfer.getStatus().name() : "PENDING"
+          ));
+        });
+
+    // Ordena por data decrescente
+    history.sort((a, b) -> b.performedAt().compareTo(a.performedAt()));
+
+    return history;
   }
 }

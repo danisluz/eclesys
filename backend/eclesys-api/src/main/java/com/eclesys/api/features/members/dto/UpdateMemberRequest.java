@@ -28,6 +28,12 @@ public record UpdateMemberRequest(
 
     LocalDate baptismDate,
 
+    @Size(max = 255)
+    String baptismChurch,
+
+    @Size(max = 255)
+    String baptismLocation,
+
     Gender gender,
 
     MaritalStatus maritalStatus,

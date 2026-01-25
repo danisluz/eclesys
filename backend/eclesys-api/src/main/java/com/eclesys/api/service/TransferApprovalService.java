@@ -210,7 +210,7 @@ public class TransferApprovalService {
     } else {
       // External transfer - leaving the church
       member.setOrganizationUnit(null);
-      member.setStatus(MemberStatus.TRANSFERRED_OUT); // Member has left
+      member.setStatus(MemberStatus.TRANSFERRED); // Member has left
     }
 
     return transferRepository.save(transfer);
