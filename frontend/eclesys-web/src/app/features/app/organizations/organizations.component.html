@@ -1,184 +1,148 @@
 <div class="page-fullscreen">
   <div class="page-header">
-    <div class="page-title">
-      <h1>Organizações</h1>
+    <div>
+      <h1 class="page-title">Organizações</h1>
       <p class="page-subtitle">Gerencie igrejas, setores e congregações</p>
     </div>
-    <div class="page-actions">
-      <button mat-raised-button color="primary" (click)="openCreateDialog()">
-        <mat-icon>add</mat-icon>
-        Nova Unidade
-      </button>
-    </div>
+    <button mat-flat-button color="primary" (click)="openCreateDialog()">
+      <mat-icon>add</mat-icon>
+      Nova Unidade
+    </button>
   </div>
 
-  <mat-card class="page-card">
-    @if (isLoading()) {
-      <div class="loading-state">
-        <mat-spinner diameter="40"></mat-spinner>
-        <p>Carregando organizações...</p>
-      </div>
-    } @else if (errorMessage()) {
-      <div class="error-state">
-        <mat-icon color="warn">error</mat-icon>
-        <p>{{ errorMessage() }}</p>
-        <button mat-stroked-button (click)="loadOrganizations()">
-          <mat-icon>refresh</mat-icon>
-          Tentar novamente
-        </button>
-      </div>
-    } @else if (organizations().length === 0) {
-      <div class="empty-state">
-        <mat-icon>church</mat-icon>
-        <p>Nenhuma organização cadastrada</p>
-        <button mat-stroked-button color="primary" (click)="openCreateDialog()">
-          <mat-icon>add</mat-icon>
-          Cadastrar primeira unidade
-        </button>
-      </div>
-    } @else {
-      <div class="organizations-tree">
-        @for (church of organizations(); track church.id) {
-          <div class="org-node church-node">
-            <div class="org-header">
-              <div class="org-info">
-                <mat-icon>{{ getTypeIcon(church.type) }}</mat-icon>
-                <div class="org-details">
-                  <h3>{{ church.name }}</h3>
-                  <span class="org-code">{{ church.code }}</span>
-                </div>
-                @if (church.isHeadquarters) {
-                  <mat-chip class="headquarters-chip">{{
-                    getHeadquartersLabel(church.type)
-                  }}</mat-chip>
-                }
-              </div>
-              <div class="org-actions">
-                <button mat-icon-button [matMenuTriggerFor]="churchMenu">
-                  <mat-icon>more_vert</mat-icon>
-                </button>
-                <mat-menu #churchMenu="matMenu">
-                  <button mat-menu-item (click)="openEditDialog(church)">
-                    <mat-icon>edit</mat-icon>
-                    Editar
-                  </button>
-                  <button
-                    mat-menu-item
-                    (click)="openCreateDialog(church.id, church.type)"
-                  >
-                    <mat-icon>add</mat-icon>
-                    Adicionar {{ getSectorLabel() }}
-                  </button>
-                  <button mat-menu-item (click)="deleteUnit(church)">
-                    <mat-icon color="warn">delete</mat-icon>
-                    Excluir
-                  </button>
-                </mat-menu>
-              </div>
-            </div>
+  <mat-card appearance="outlined">
+    <mat-card-content>
+      @if (isLoading()) {
+        <div class="loading-container">
+          <mat-spinner diameter="40"></mat-spinner>
+          <p>Carregando organizações...</p>
+        </div>
+      } @else if (errorMessage()) {
+        <div class="error-state">
+          <mat-icon color="warn">error</mat-icon>
+          <p>{{ errorMessage() }}</p>
+          <button mat-stroked-button (click)="loadOrganizations()">
+            <mat-icon>refresh</mat-icon>
+            Tentar novamente
+          </button>
+        </div>
+      } @else if (organizations().length === 0) {
+        <div class="empty-state">
+          <mat-icon>church</mat-icon>
+          <p>Nenhuma organização cadastrada</p>
+          <button
+            mat-stroked-button
+            color="primary"
+            (click)="openCreateDialog()"
+          >
+            <mat-icon>add</mat-icon>
+            Cadastrar primeira unidade
+          </button>
+        </div>
+      } @else {
+        <div class="filter-container">
+          <mat-form-field appearance="outline" class="search-field">
+            <mat-label>Buscar</mat-label>
+            <input
+              matInput
+              [(ngModel)]="searchTerm"
+              placeholder="Nome, código, tipo ou organização pai"
+            />
+            <mat-icon matPrefix>search</mat-icon>
+            @if (searchTerm()) {
+              <button
+                matSuffix
+                mat-icon-button
+                (click)="searchTerm.set('')"
+                aria-label="Limpar busca"
+              >
+                <mat-icon>close</mat-icon>
+              </button>
+            }
+          </mat-form-field>
+        </div>
 
-            @if (church.children && church.children.length > 0) {
-              <div class="org-children">
-                @for (sector of church.children; track sector.id) {
-                  <div class="org-node sector-node">
-                    <div class="org-header">
-                      <div class="org-info">
-                        <mat-icon>{{ getTypeIcon(sector.type) }}</mat-icon>
-                        <div class="org-details">
-                          <h4>{{ sector.name }}</h4>
-                          <span class="org-code">{{ sector.code }}</span>
-                        </div>
-                      </div>
-                      <div class="org-actions">
-                        <button
-                          mat-icon-button
-                          [matMenuTriggerFor]="sectorMenu"
-                        >
-                          <mat-icon>more_vert</mat-icon>
-                        </button>
-                        <mat-menu #sectorMenu="matMenu">
-                          <button
-                            mat-menu-item
-                            (click)="openEditDialog(sector)"
-                          >
-                            <mat-icon>edit</mat-icon>
-                            Editar
-                          </button>
-                          <button
-                            mat-menu-item
-                            (click)="openCreateDialog(sector.id, sector.type)"
-                          >
-                            <mat-icon>add</mat-icon>
-                            Adicionar {{ getCongregationLabel() }}
-                          </button>
-                          <button mat-menu-item (click)="deleteUnit(sector)">
-                            <mat-icon color="warn">delete</mat-icon>
-                            Excluir
-                          </button>
-                        </mat-menu>
-                      </div>
-                    </div>
-
-                    @if (sector.children && sector.children.length > 0) {
-                      <div class="org-children">
-                        @for (
-                          congregation of sector.children;
-                          track congregation.id
-                        ) {
-                          <div class="org-node congregation-node">
-                            <div class="org-header">
-                              <div class="org-info">
-                                <mat-icon>{{
-                                  getTypeIcon(congregation.type)
-                                }}</mat-icon>
-                                <div class="org-details">
-                                  <h5>{{ congregation.name }}</h5>
-                                  <span class="org-code">{{
-                                    congregation.code
-                                  }}</span>
-                                </div>
-                                @if (congregation.isHeadquarters) {
-                                  <mat-chip class="headquarters-chip">{{
-                                    getHeadquartersLabel(congregation.type)
-                                  }}</mat-chip>
-                                }
-                              </div>
-                              <div class="org-actions">
-                                <button
-                                  mat-icon-button
-                                  [matMenuTriggerFor]="congregationMenu"
-                                >
-                                  <mat-icon>more_vert</mat-icon>
-                                </button>
-                                <mat-menu #congregationMenu="matMenu">
-                                  <button
-                                    mat-menu-item
-                                    (click)="openEditDialog(congregation)"
-                                  >
-                                    <mat-icon>edit</mat-icon>
-                                    Editar
-                                  </button>
-                                  <button
-                                    mat-menu-item
-                                    (click)="deleteUnit(congregation)"
-                                  >
-                                    <mat-icon color="warn">delete</mat-icon>
-                                    Excluir
-                                  </button>
-                                </mat-menu>
-                              </div>
-                            </div>
-                          </div>
-                        }
-                      </div>
+        <table class="organizations-table">
+          <thead>
+            <tr>
+              <th>Nome</th>
+              <th>Código</th>
+              <th>Tipo</th>
+              <th>Organização Pai</th>
+              <th>Responsável</th>
+              <th>Cargos</th>
+              <th class="col-actions">Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (unit of filteredUnits(); track unit.id) {
+              <tr class="org-row">
+                <td>
+                  <div class="name-cell">
+                    <mat-icon class="type-icon">{{
+                      getTypeIcon(unit.type)
+                    }}</mat-icon>
+                    <span>{{ unit.name }}</span>
+                    @if (unit.isHeadquarters) {
+                      <mat-chip class="headquarters-badge">{{
+                        getHeadquartersLabel(unit.type)
+                      }}</mat-chip>
                     }
                   </div>
-                }
-              </div>
+                </td>
+                <td>
+                  <span class="code">{{ unit.code }}</span>
+                </td>
+                <td>
+                  {{ getTypeLabel(unit.type) }}
+                </td>
+                <td>
+                  <span class="text-secondary">{{ getParentName(unit) }}</span>
+                </td>
+                <td>
+                  <span class="text-secondary">—</span>
+                </td>
+                <td>
+                  <span class="text-secondary">—</span>
+                </td>
+                <td class="col-actions">
+                  <button mat-icon-button [matMenuTriggerFor]="menu">
+                    <mat-icon>more_vert</mat-icon>
+                  </button>
+                  <mat-menu #menu="matMenu">
+                    <button mat-menu-item (click)="openEditDialog(unit)">
+                      <mat-icon>edit</mat-icon>
+                      Editar
+                    </button>
+                    @if (unit.type === OrganizationUnitType.CHURCH) {
+                      <button
+                        mat-menu-item
+                        (click)="openCreateDialog(unit.id, unit.type)"
+                      >
+                        <mat-icon>add</mat-icon>
+                        Adicionar {{ getSectorLabel() }}
+                      </button>
+                    }
+                    @if (unit.type === OrganizationUnitType.SECTOR) {
+                      <button
+                        mat-menu-item
+                        (click)="openCreateDialog(unit.id, unit.type)"
+                      >
+                        <mat-icon>add</mat-icon>
+                        Adicionar {{ getCongregationLabel() }}
+                      </button>
+                    }
+                    <button mat-menu-item (click)="deleteUnit(unit)">
+                      <mat-icon color="warn">delete</mat-icon>
+                      Excluir
+                    </button>
+                  </mat-menu>
+                </td>
+              </tr>
             }
-          </div>
-        }
-      </div>
-    }
+          </tbody>
+        </table>
+      }
+    </mat-card-content>
   </mat-card>
 </div>

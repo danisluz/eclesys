@@ -1,5 +1,6 @@
-import { Component, inject, signal, OnInit } from '@angular/core';
+import { Component, inject, signal, OnInit, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -8,6 +9,10 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatMenuModule } from '@angular/material/menu';
+import { MatTableModule } from '@angular/material/table';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
 
 import { OrganizationsService } from '../../../shared/api/organizations.service';
 import {
@@ -26,6 +31,7 @@ import {
   selector: 'app-organizations',
   imports: [
     CommonModule,
+    FormsModule,
     MatCardModule,
     MatButtonModule,
     MatIconModule,
@@ -33,6 +39,10 @@ import {
     MatDialogModule,
     MatChipsModule,
     MatMenuModule,
+    MatTableModule,
+    MatTooltipModule,
+    MatFormFieldModule,
+    MatInputModule,
   ],
   templateUrl: './organizations.component.html',
   styleUrls: ['./organizations.component.scss'],
@@ -45,6 +55,27 @@ export class OrganizationsComponent implements OnInit {
   organizations = signal<OrganizationUnit[]>([]);
   isLoading = signal(true);
   errorMessage = signal<string | null>(null);
+  searchTerm = signal('');
+
+  filteredUnits = computed(() => {
+    const term = this.searchTerm().toLowerCase().trim();
+    if (!term) {
+      return this.getAllUnitsFlat();
+    }
+
+    return this.getAllUnitsFlat().filter((unit) => {
+      const matchesName = unit.name?.toLowerCase().includes(term) ?? false;
+      const matchesCode = unit.code?.toLowerCase().includes(term) ?? false;
+      const matchesType = this.getTypeLabel(unit.type)
+        .toLowerCase()
+        .includes(term);
+      const matchesParent = this.getParentName(unit)
+        .toLowerCase()
+        .includes(term);
+
+      return matchesName || matchesCode || matchesType || matchesParent;
+    });
+  });
 
   OrganizationUnitType = OrganizationUnitType;
 
@@ -96,6 +127,52 @@ export class OrganizationsComponent implements OnInit {
 
   getCongregationLabel(): string {
     return this.getRootChurch()?.congregationLabel ?? 'Congregação';
+  }
+
+  getAllUnitsFlat(): OrganizationUnit[] {
+    const result: OrganizationUnit[] = [];
+
+    for (const church of this.organizations()) {
+      result.push(church);
+      if (church.children) {
+        for (const sector of church.children) {
+          result.push(sector);
+          if (sector.children) {
+            result.push(...sector.children);
+          }
+        }
+      }
+    }
+
+    return result;
+  }
+
+  getParentName(unit: OrganizationUnit): string {
+    if (unit.type === OrganizationUnitType.CHURCH) {
+      return '—';
+    }
+
+    // Find parent for sectors and congregations
+    for (const church of this.organizations()) {
+      if (
+        unit.type === OrganizationUnitType.SECTOR &&
+        unit.parentId === church.id
+      ) {
+        return church.name;
+      }
+      if (church.children) {
+        for (const sector of church.children) {
+          if (
+            unit.type === OrganizationUnitType.CONGREGATION &&
+            unit.parentId === sector.id
+          ) {
+            return sector.name;
+          }
+        }
+      }
+    }
+
+    return '—';
   }
 
   getHeadquartersLabel(type: OrganizationUnitType): string {
