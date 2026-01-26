@@ -16,6 +16,8 @@ public interface UserRepository extends JpaRepository<UserEntity, UUID> {
 
   Page<UserEntity> findAllByTenantId(UUID tenantId, Pageable pageable);
 
+  long countByTenantId(UUID tenantId);
+
   Page<UserEntity> findAllByTenantIdAndNameContainingIgnoreCaseOrTenantIdAndEmailContainingIgnoreCase(
       UUID tenantIdForName,
       String name,

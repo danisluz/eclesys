@@ -1,6 +1,8 @@
 package com.eclesys.api.domain.user;
 
 import com.eclesys.api.domain.organization.OrganizationUnit;
+import com.eclesys.api.domain.member.Member;
+import com.eclesys.api.domain.functionrole.FunctionRole;
 import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
@@ -20,16 +22,20 @@ public class UserOrganizationRole {
   private UUID id;
 
   @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "user_id", nullable = false)
+  @JoinColumn(name = "user_id", nullable = true)
   private UserEntity user;
+
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "member_id", nullable = true)
+  private Member member;
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "organization_unit_id", nullable = false)
   private OrganizationUnit organizationUnit;
 
-  @Enumerated(EnumType.STRING)
-  @Column(name = "role", nullable = false)
-  private OrganizationRole role;
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "function_role_id", nullable = false)
+  private FunctionRole functionRole;
 
   @CreationTimestamp
   @Column(name = "created_at", nullable = false, updatable = false)
@@ -56,6 +62,14 @@ public class UserOrganizationRole {
     this.user = user;
   }
 
+  public Member getMember() {
+    return member;
+  }
+
+  public void setMember(Member member) {
+    this.member = member;
+  }
+
   public OrganizationUnit getOrganizationUnit() {
     return organizationUnit;
   }
@@ -64,12 +78,12 @@ public class UserOrganizationRole {
     this.organizationUnit = organizationUnit;
   }
 
-  public OrganizationRole getRole() {
-    return role;
+  public FunctionRole getFunctionRole() {
+    return functionRole;
   }
 
-  public void setRole(OrganizationRole role) {
-    this.role = role;
+  public void setFunctionRole(FunctionRole functionRole) {
+    this.functionRole = functionRole;
   }
 
   public LocalDateTime getCreatedAt() {

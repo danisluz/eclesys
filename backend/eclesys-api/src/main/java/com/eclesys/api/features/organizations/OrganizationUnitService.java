@@ -3,9 +3,12 @@ package com.eclesys.api.features.organizations;
 import com.eclesys.api.domain.organization.*;
 import com.eclesys.api.domain.tenant.TenantEntity;
 import com.eclesys.api.domain.tenant.TenantRepository;
+import com.eclesys.api.domain.user.OrganizationRole;
+import com.eclesys.api.domain.user.UserOrganizationRole;
 import com.eclesys.api.features.organizations.dto.CreateOrganizationUnitRequest;
 import com.eclesys.api.features.organizations.dto.OrganizationUnitResponse;
 import com.eclesys.api.features.organizations.dto.UpdateOrganizationUnitRequest;
+import com.eclesys.api.repository.UserOrganizationRoleRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,13 +22,16 @@ public class OrganizationUnitService {
 
   private final OrganizationUnitRepository repository;
   private final TenantRepository tenantRepository;
+  private final UserOrganizationRoleRepository userOrgRoleRepository;
 
   public OrganizationUnitService(
       OrganizationUnitRepository repository,
-      TenantRepository tenantRepository
+      TenantRepository tenantRepository,
+      UserOrganizationRoleRepository userOrgRoleRepository
   ) {
     this.repository = repository;
     this.tenantRepository = tenantRepository;
+    this.userOrgRoleRepository = userOrgRoleRepository;
   }
 
   @Transactional
@@ -166,6 +172,25 @@ public class OrganizationUnitService {
   }
 
   private OrganizationUnitResponse toResponse(OrganizationUnit unit) {
+    // Buscar cargo de líder para esta unidade (com JOIN FETCH para carregar user/member)
+    List<UserOrganizationRole> roles = userOrgRoleRepository.findByOrganizationUnitIdWithDetails(unit.getId());
+    
+    // TODO: Implementar busca de líder via FunctionRole com nome "Líder" ou similar
+    String leaderName = roles.stream()
+        .filter(r -> r.getFunctionRole() != null && "Líder".equalsIgnoreCase(r.getFunctionRole().getName()))
+        .map(r -> {
+          if (r.getMember() != null) {
+            return r.getMember().getFullName();
+          } else if (r.getUser() != null) {
+            return r.getUser().getName();
+          }
+          return null;
+        })
+        .findFirst()
+        .orElse(null);
+    
+    Integer assignmentsCount = roles.size();
+    
     return new OrganizationUnitResponse(
         unit.getId(),
         unit.getType(),
@@ -179,7 +204,9 @@ public class OrganizationUnitService {
         unit.getCongregationLabel(),
         unit.getCreatedAt(),
         unit.getUpdatedAt(),
-        new ArrayList<>()
+        new ArrayList<>(),
+        leaderName,
+        assignmentsCount
     );
   }
 
@@ -189,6 +216,25 @@ public class OrganizationUnitService {
         .map(this::toResponseWithChildren)
         .collect(Collectors.toList());
 
+    // Buscar cargo de líder para esta unidade (com JOIN FETCH para carregar user/member)
+    List<UserOrganizationRole> roles = userOrgRoleRepository.findByOrganizationUnitIdWithDetails(unit.getId());
+    
+    // TODO: Implementar busca de líder via FunctionRole com nome "Líder" ou similar
+    String leaderName = roles.stream()
+        .filter(r -> r.getFunctionRole() != null && "Líder".equalsIgnoreCase(r.getFunctionRole().getName()))
+        .map(r -> {
+          if (r.getMember() != null) {
+            return r.getMember().getFullName();
+          } else if (r.getUser() != null) {
+            return r.getUser().getName();
+          }
+          return null;
+        })
+        .findFirst()
+        .orElse(null);
+    
+    Integer assignmentsCount = roles.size();
+
     return new OrganizationUnitResponse(
         unit.getId(),
         unit.getType(),
@@ -202,7 +248,9 @@ public class OrganizationUnitService {
         unit.getCongregationLabel(),
         unit.getCreatedAt(),
         unit.getUpdatedAt(),
-        childrenResponse
+        childrenResponse,
+        leaderName,
+        assignmentsCount
     );
   }
 }

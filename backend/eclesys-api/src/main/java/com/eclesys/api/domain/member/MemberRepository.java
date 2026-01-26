@@ -1,6 +1,7 @@
 package com.eclesys.api.domain.member;
 
 import com.eclesys.api.domain.tenant.TenantEntity;
+import com.eclesys.api.features.dashboard.DashboardStatsDTO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -27,6 +28,11 @@ public interface MemberRepository extends JpaRepository<Member, UUID> {
   List<Member> searchByTenant(@Param("tenant") TenantEntity tenant, @Param("search") String search);
 
   long countByTenantAndStatus(TenantEntity tenant, MemberStatus status);
+
+  long countByTenant(TenantEntity tenant);
+
+  @Query("SELECT COUNT(m) FROM Member m WHERE m.tenant = :tenant AND m.createdAt >= :date")
+  long countByTenantAndCreatedAtAfter(@Param("tenant") TenantEntity tenant, @Param("date") java.time.LocalDateTime date);
 
   /**
    * Verifica se já existe um membro com o CPF informado no tenant
@@ -63,4 +69,14 @@ public interface MemberRepository extends JpaRepository<Member, UUID> {
       @Param("churchRoleId") UUID churchRoleId,
       Pageable pageable
   );
+  
+  // Dashboard queries
+  long countByTenantAndGender(TenantEntity tenant, Gender gender);
+  
+  @Query("SELECT new com.eclesys.api.features.dashboard.DashboardStatsDTO$OrganizationMemberCount(o.name, COUNT(m)) " +
+         "FROM Member m JOIN m.organizationUnit o " +
+         "WHERE m.tenant = :tenant " +
+         "GROUP BY o.id, o.name " +
+         "ORDER BY COUNT(m) DESC")
+  List<DashboardStatsDTO.OrganizationMemberCount> countMembersByOrganization(@Param("tenant") TenantEntity tenant, Pageable pageable);
 }

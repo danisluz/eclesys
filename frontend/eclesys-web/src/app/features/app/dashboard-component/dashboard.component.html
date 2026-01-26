@@ -2,9 +2,7 @@
   <header class="dashboard__header">
     <div class="dashboard__heading">
       <h1 class="dashboard__title">Dashboard</h1>
-      <p class="dashboard__subtitle">
-        Visão geral do sistema
-      </p>
+      <p class="dashboard__subtitle">Visão geral do sistema</p>
     </div>
 
     <div class="dashboard__actions">
@@ -21,124 +19,181 @@
   </header>
 
   <div class="dashboard__grid">
-    <mat-card class="kpi" appearance="outlined">
-      <div class="kpi__icon">
-        <mat-icon>groups</mat-icon>
+    @if (isLoading()) {
+      <div class="loading-container" style="grid-column: 1 / -1">
+        <mat-spinner diameter="40"></mat-spinner>
+        <p>Carregando estatísticas...</p>
       </div>
+    } @else if (errorMessage()) {
+      <div class="error-container" style="grid-column: 1 / -1">
+        <mat-icon color="warn">error</mat-icon>
+        <p>{{ errorMessage() }}</p>
+        <button mat-stroked-button (click)="loadStats()">
+          <mat-icon>refresh</mat-icon>
+          Tentar novamente
+        </button>
+      </div>
+    } @else {
+      <mat-card class="kpi" appearance="outlined">
+        <div class="kpi__icon">
+          <mat-icon>groups</mat-icon>
+        </div>
 
-      <div class="kpi__body">
-        <div class="kpi__top">
-          <div>
-            <div class="kpi__title">Membros</div>
-            <div class="kpi__subtitle">Cadastro e listagem</div>
+        <div class="kpi__body">
+          <div class="kpi__top">
+            <div>
+              <div class="kpi__title">Membros</div>
+              <div class="kpi__subtitle">Total cadastrados</div>
+            </div>
+            <div class="kpi__value">{{ stats()?.totalMembers || 0 }}</div>
           </div>
-          <div class="kpi__value">—</div>
-        </div>
 
-        <mat-divider></mat-divider>
+          <mat-divider></mat-divider>
 
-        <div class="kpi__bottom">
-          <div class="kpi__hint">Em breve: cadastro, filtros e relatórios.</div>
-          <button mat-button disabled class="kpi__action">
-            Abrir <mat-icon>chevron_right</mat-icon>
-          </button>
-
-        </div>
-      </div>
-    </mat-card>
-
-    <mat-card class="kpi" appearance="outlined">
-      <div class="kpi__icon">
-        <mat-icon>event</mat-icon>
-      </div>
-
-      <div class="kpi__body">
-        <div class="kpi__top">
-          <div>
-            <div class="kpi__title">Eventos</div>
-            <div class="kpi__subtitle">Calendário e cultos</div>
+          <div class="kpi__bottom">
+            <div class="kpi__hint">
+              {{ stats()?.recentMembersCount || 0 }} novos nos últimos 30 dias
+            </div>
+            <button
+              mat-button
+              class="kpi__action"
+              (click)="navigateTo('/app/members')"
+            >
+              Abrir <mat-icon>chevron_right</mat-icon>
+            </button>
           </div>
-          <div class="kpi__value">—</div>
+        </div>
+      </mat-card>
+
+      <mat-card class="kpi" appearance="outlined">
+        <div class="kpi__icon">
+          <mat-icon>church</mat-icon>
         </div>
 
-        <mat-divider></mat-divider>
-
-        <div class="kpi__bottom">
-          <div class="kpi__hint">Em breve: agenda, presença e histórico.</div>
-          <button mat-button disabled class="kpi__action">
-            Abrir <mat-icon>chevron_right</mat-icon>
-          </button>
-
-        </div>
-      </div>
-    </mat-card>
-
-    <mat-card class="kpi" appearance="outlined">
-      <div class="kpi__icon">
-        <mat-icon>admin_panel_settings</mat-icon>
-      </div>
-
-      <div class="kpi__body">
-        <div class="kpi__top">
-          <div>
-            <div class="kpi__title">Usuários</div>
-            <div class="kpi__subtitle">Perfis e permissões</div>
+        <div class="kpi__body">
+          <div class="kpi__top">
+            <div>
+              <div class="kpi__title">Organizações</div>
+              <div class="kpi__subtitle">Igrejas, setores e congregações</div>
+            </div>
+            <div class="kpi__value">{{ stats()?.totalOrganizations || 0 }}</div>
           </div>
-          <div class="kpi__value">—</div>
+
+          <mat-divider></mat-divider>
+
+          <div class="kpi__bottom">
+            <div class="kpi__hint">
+              {{ stats()?.activeOrganizations || 0 }} ativas
+            </div>
+            <button
+              mat-button
+              class="kpi__action"
+              (click)="navigateTo('/app/organizations')"
+            >
+              Abrir <mat-icon>chevron_right</mat-icon>
+            </button>
+          </div>
+        </div>
+      </mat-card>
+
+      <mat-card class="kpi" appearance="outlined">
+        <div class="kpi__icon">
+          <mat-icon>admin_panel_settings</mat-icon>
         </div>
 
-        <mat-divider></mat-divider>
+        <div class="kpi__body">
+          <div class="kpi__top">
+            <div>
+              <div class="kpi__title">Usuários</div>
+              <div class="kpi__subtitle">Perfis e permissões</div>
+            </div>
+            <div class="kpi__value">{{ stats()?.totalUsers || 0 }}</div>
+          </div>
 
-        <div class="kpi__bottom">
-          <div class="kpi__hint">Backend pronto. Falta UI de gestão.</div>
-          <button mat-button disabled class="kpi__action">
-            Abrir <mat-icon>chevron_right</mat-icon>
-          </button>
+          <mat-divider></mat-divider>
 
+          <div class="kpi__bottom">
+            <div class="kpi__hint">Gestão de acessos ao sistema</div>
+            <button
+              mat-button
+              class="kpi__action"
+              (click)="navigateTo('/app/users')"
+            >
+              Abrir <mat-icon>chevron_right</mat-icon>
+            </button>
+          </div>
         </div>
-      </div>
-    </mat-card>
+      </mat-card>
+    }
   </div>
 
-  <mat-card class="panel" appearance="outlined">
-    <div class="panel__header">
-      <div>
-        <div class="panel__title">Próximos passos</div>
-        <div class="panel__subtitle">Roadmap do Eclesys (curto prazo)</div>
-      </div>
+  <!-- Gráficos -->
+  @if (!isLoading() && !errorMessage() && stats()) {
+    <div class="charts-grid">
+      <!-- Status dos Membros -->
+      <mat-card class="chart-card" appearance="outlined">
+        <div class="chart-card__header">
+          <div>
+            <div class="chart-card__title">Status dos Membros</div>
+            <div class="chart-card__subtitle">Distribuição por categoria</div>
+          </div>
+        </div>
 
-      <button mat-stroked-button disabled>
-        <mat-icon>checklist</mat-icon>
-        Ver tarefas
-      </button>
+        <div class="chart-card__body">
+          <canvas #statusChart></canvas>
+        </div>
+      </mat-card>
+
+      <!-- Gênero -->
+      <mat-card class="chart-card" appearance="outlined">
+        <div class="chart-card__header">
+          <div>
+            <div class="chart-card__title">Distribuição por Gênero</div>
+            <div class="chart-card__subtitle">Membros ativos</div>
+          </div>
+        </div>
+
+        <div class="chart-card__body">
+          <canvas #genderChart></canvas>
+        </div>
+      </mat-card>
+
+      <!-- Transferências -->
+      <mat-card class="chart-card" appearance="outlined">
+        <div class="chart-card__header">
+          <div>
+            <div class="chart-card__title">Transferências</div>
+            <div class="chart-card__subtitle">Distribuição por status</div>
+          </div>
+        </div>
+
+        <div class="chart-card__body">
+          <canvas #transfersChart></canvas>
+        </div>
+      </mat-card>
+
+      <!-- Membros por Organização -->
+      <mat-card class="chart-card chart-card--full" appearance="outlined">
+        <div class="chart-card__header">
+          <div>
+            <div class="chart-card__title">Membros por Organização</div>
+            <div class="chart-card__subtitle">
+              @if (
+                stats()?.membersByOrganization &&
+                stats()!.membersByOrganization.length > 10
+              ) {
+                Top 10 congregações
+              } @else {
+                Todas as congregações
+              }
+            </div>
+          </div>
+        </div>
+
+        <div class="chart-card__body chart-card__body--bars">
+          <canvas #organizationsChart></canvas>
+        </div>
+      </mat-card>
     </div>
-
-    <div class="panel__list">
-      <div class="panel__item">
-        <div class="panel__item-icon">
-          <mat-icon>check_circle</mat-icon>
-        </div>
-        <div>
-          <div class="panel__item-title">Autenticação + JWT</div>
-          <div class="panel__item-subtitle">Login, roles, tenant no token</div>
-        </div>
-      </div>
-
-      <div class="panel__item">
-        <mat-icon>schedule</mat-icon>
-        <div>
-          <div class="panel__item-title">Membros</div>
-          <div class="panel__item-subtitle">CRUD + busca + paginação</div>
-        </div>
-      </div>
-
-      <div class="panel__item">
-        <mat-icon>schedule</mat-icon>
-        <div>
-          <div class="panel__item-title">Famílias</div>
-          <div class="panel__item-subtitle">Vínculos e composição familiar</div>
-        </div>
-      </div>
-    </div>
-  </mat-card>
+  }
 </section>

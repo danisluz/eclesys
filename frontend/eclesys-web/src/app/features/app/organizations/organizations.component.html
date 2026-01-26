@@ -4,10 +4,21 @@
       <h1 class="page-title">Organizações</h1>
       <p class="page-subtitle">Gerencie igrejas, setores e congregações</p>
     </div>
-    <button mat-flat-button color="primary" (click)="openCreateDialog()">
-      <mat-icon>add</mat-icon>
-      Nova Unidade
-    </button>
+    <div class="page-actions">
+      <button
+        mat-stroked-button
+        color="primary"
+        (click)="openViewHierarchyDialog()"
+        matTooltip="Visualizar toda a hierarquia com cargos"
+      >
+        <mat-icon>visibility</mat-icon>
+        Visualizar Hierarquia
+      </button>
+      <button mat-flat-button color="primary" (click)="openCreateDialog()">
+        <mat-icon>add</mat-icon>
+        Nova Unidade
+      </button>
+    </div>
   </div>
 
   <mat-card appearance="outlined">
@@ -60,6 +71,40 @@
               </button>
             }
           </mat-form-field>
+
+          <mat-form-field appearance="outline" class="filter-field">
+            <mat-label>Tipo</mat-label>
+            <mat-select [(ngModel)]="typeFilter">
+              <mat-option value="ALL">Todos</mat-option>
+              <mat-option [value]="OrganizationUnitType.CHURCH"
+                >Igreja (Sede Principal)</mat-option
+              >
+              <mat-option [value]="OrganizationUnitType.SECTOR">{{
+                getSectorLabel()
+              }}</mat-option>
+              <mat-option [value]="OrganizationUnitType.CONGREGATION">{{
+                getCongregationLabel()
+              }}</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <mat-form-field appearance="outline" class="filter-field">
+            <mat-label>Sede</mat-label>
+            <mat-select [(ngModel)]="headquartersFilter">
+              <mat-option value="ALL">Todas</mat-option>
+              <mat-option value="HEADQUARTERS">Apenas Sedes</mat-option>
+              <mat-option value="NOT_HEADQUARTERS">Não-Sedes</mat-option>
+            </mat-select>
+          </mat-form-field>
+
+          <button
+            mat-stroked-button
+            (click)="clearFilters()"
+            class="clear-filters-btn"
+          >
+            <mat-icon>filter_alt_off</mat-icon>
+            Limpar Filtros
+          </button>
         </div>
 
         <table class="organizations-table">
@@ -69,7 +114,6 @@
               <th>Código</th>
               <th>Tipo</th>
               <th>Organização Pai</th>
-              <th>Responsável</th>
               <th>Cargos</th>
               <th class="col-actions">Ações</th>
             </tr>
@@ -100,16 +144,28 @@
                   <span class="text-secondary">{{ getParentName(unit) }}</span>
                 </td>
                 <td>
-                  <span class="text-secondary">—</span>
-                </td>
-                <td>
-                  <span class="text-secondary">—</span>
+                  @if (unit.assignmentsCount && unit.assignmentsCount > 0) {
+                    <span>{{ unit.assignmentsCount }} cargo(s)</span>
+                  } @else {
+                    <span class="text-secondary">—</span>
+                  }
                 </td>
                 <td class="col-actions">
                   <button mat-icon-button [matMenuTriggerFor]="menu">
                     <mat-icon>more_vert</mat-icon>
                   </button>
                   <mat-menu #menu="matMenu">
+                    <button
+                      mat-menu-item
+                      (click)="openViewHierarchyDialog(unit.id)"
+                    >
+                      <mat-icon>visibility</mat-icon>
+                      Visualizar Hierarquia
+                    </button>
+                    <button mat-menu-item (click)="openManageRolesDialog(unit)">
+                      <mat-icon>badge</mat-icon>
+                      Gerenciar Cargos
+                    </button>
                     <button mat-menu-item (click)="openEditDialog(unit)">
                       <mat-icon>edit</mat-icon>
                       Editar

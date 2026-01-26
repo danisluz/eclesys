@@ -23,6 +23,10 @@ public interface OrganizationUnitRepository extends JpaRepository<OrganizationUn
 
   boolean existsByTenantAndType(TenantEntity tenant, OrganizationUnitType type);
 
+  long countByTenant(TenantEntity tenant);
+
+  long countByTenantAndStatus(TenantEntity tenant, OrganizationUnitStatus status);
+
   @Query("SELECT ou FROM OrganizationUnit ou WHERE ou.tenant = :tenant AND ou.parent.id = :parentId")
   List<OrganizationUnit> findAllByTenantAndParentId(@Param("tenant") TenantEntity tenant, @Param("parentId") UUID parentId);
 

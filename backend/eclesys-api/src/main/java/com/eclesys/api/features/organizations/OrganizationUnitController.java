@@ -1,8 +1,6 @@
 package com.eclesys.api.features.organizations;
 
-import com.eclesys.api.features.organizations.dto.CreateOrganizationUnitRequest;
-import com.eclesys.api.features.organizations.dto.OrganizationUnitResponse;
-import com.eclesys.api.features.organizations.dto.UpdateOrganizationUnitRequest;
+import com.eclesys.api.features.organizations.dto.*;
 import com.eclesys.api.shared.api.ApiResponse;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
@@ -19,9 +17,14 @@ import java.util.UUID;
 public class OrganizationUnitController {
 
   private final OrganizationUnitService service;
+  private final OrganizationRoleService roleService;
 
-  public OrganizationUnitController(OrganizationUnitService service) {
+  public OrganizationUnitController(
+      OrganizationUnitService service,
+      OrganizationRoleService roleService
+  ) {
     this.service = service;
+    this.roleService = roleService;
   }
 
   @PostMapping
@@ -80,9 +83,69 @@ public class OrganizationUnitController {
     return ResponseEntity.ok(ApiResponse.success(null));
   }
 
+  // ===== ENDPOINTS DE CARGOS ADMINISTRATIVOS =====
+
+  @PostMapping("/{organizationUnitId}/roles")
+  public ResponseEntity<ApiResponse<RoleAssignmentResponse>> assignRole(
+      @PathVariable UUID organizationUnitId,
+      @Valid @RequestBody AssignRoleRequest request,
+      Authentication authentication
+  ) {
+    System.out.println("[assignRole] organizationUnitId: " + organizationUnitId);
+    System.out.println("[assignRole] request: " + request);
+    System.out.println("[assignRole] authentication: " + authentication);
+    System.out.println("[assignRole] principal: " + authentication.getPrincipal());
+    
+    UUID tenantId = getTenantId(authentication);
+    System.out.println("[assignRole] tenantId: " + tenantId);
+    
+    UUID requestingUserId = getUserId(authentication);
+    System.out.println("[assignRole] requestingUserId: " + requestingUserId);
+    
+    RoleAssignmentResponse response = roleService.assignRole(tenantId, requestingUserId, organizationUnitId, request);
+    return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success(response));
+  }
+
+  @DeleteMapping("/{organizationUnitId}/roles/{userId}/{functionRoleId}")
+  public ResponseEntity<ApiResponse<Void>> removeRole(
+      @PathVariable UUID organizationUnitId,
+      @PathVariable UUID userId,
+      @PathVariable UUID functionRoleId,
+      Authentication authentication
+  ) {
+    UUID tenantId = getTenantId(authentication);
+    UUID requestingUserId = getUserId(authentication);
+    roleService.removeRole(tenantId, requestingUserId, organizationUnitId, userId, functionRoleId);
+    return ResponseEntity.ok(ApiResponse.success(null));
+  }
+
+  @GetMapping("/{organizationUnitId}/roles")
+  public ResponseEntity<ApiResponse<List<RoleAssignmentResponse>>> listRoles(
+      @PathVariable UUID organizationUnitId,
+      Authentication authentication
+  ) {
+    UUID tenantId = getTenantId(authentication);
+    List<RoleAssignmentResponse> response = roleService.listRolesByOrganizationUnit(tenantId, organizationUnitId);
+    return ResponseEntity.ok(ApiResponse.success(response));
+  }
+
+  // ===== MÉTODOS AUXILIARES =====
+
   @SuppressWarnings("unchecked")
   private UUID getTenantId(Authentication authentication) {
     Map<String, Object> claims = (Map<String, Object>) authentication.getPrincipal();
-    return UUID.fromString(String.valueOf(claims.get("tenantId")));
+    System.out.println("[getTenantId] claims: " + claims);
+    String tenantIdStr = String.valueOf(claims.get("tenantId"));
+    System.out.println("[getTenantId] tenantIdStr: " + tenantIdStr);
+    return UUID.fromString(tenantIdStr);
+  }
+
+  @SuppressWarnings("unchecked")
+  private UUID getUserId(Authentication authentication) {
+    Map<String, Object> claims = (Map<String, Object>) authentication.getPrincipal();
+    System.out.println("[getUserId] claims: " + claims);
+    String userIdStr = String.valueOf(claims.get("userId"));
+    System.out.println("[getUserId] userIdStr: " + userIdStr);
+    return UUID.fromString(userIdStr);
   }
 }

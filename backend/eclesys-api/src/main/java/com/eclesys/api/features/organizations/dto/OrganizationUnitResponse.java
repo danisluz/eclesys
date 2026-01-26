@@ -20,5 +20,7 @@ public record OrganizationUnitResponse(
     String congregationLabel,
     LocalDateTime createdAt,
     LocalDateTime updatedAt,
-    List<OrganizationUnitResponse> children
+    List<OrganizationUnitResponse> children,
+    String leaderName,        // Nome do líder principal
+    Integer assignmentsCount  // Quantidade de cargos preenchidos
 ) {}

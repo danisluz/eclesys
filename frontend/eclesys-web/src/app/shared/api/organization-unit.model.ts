@@ -23,6 +23,9 @@ export interface OrganizationUnit {
   createdAt: string;
   updatedAt: string;
   children?: OrganizationUnit[];
+  // Atribuições administrativas (ainda não implementado no backend)
+  leaderName?: string; // Nome do líder principal
+  assignmentsCount?: number; // Quantidade de cargos preenchidos
 }
 
 export interface CreateOrganizationUnitRequest {
