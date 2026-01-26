@@ -11,6 +11,7 @@ import { MatTabsModule } from '@angular/material/tabs';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatTableModule } from '@angular/material/table';
 import { Member, MemberTransfer } from '../../../shared/models/member.model';
 import { MembersService } from '../../../shared/api/members.service';
 import { OrganizationsService } from '../../../shared/api/organizations.service';
@@ -28,6 +29,7 @@ import { OrganizationUnit } from '../../../shared/api/organization-unit.model';
     MatChipsModule,
     MatDividerModule,
     MatProgressSpinnerModule,
+    MatTableModule,
   ],
   template: `
     <div class="dialog-header">
@@ -233,101 +235,94 @@ import { OrganizationUnit } from '../../../shared/api/organization-unit.model';
                 <p>Nenhuma transferência registrada</p>
               </div>
             } @else {
-              <div class="transfers-list">
-                <p
-                  style="font-size: 0.75rem; color: #666; margin-bottom: 1rem;"
-                >
-                  Total de transferências: {{ transfers().length }}
-                </p>
-                @for (transfer of transfers(); track transfer.id) {
-                  <div class="transfer-card">
-                    <div class="transfer-header">
-                      <mat-icon>swap_horiz</mat-icon>
-                      <span class="transfer-date">{{
-                        formatDateTime(transfer.createdAt)
+              <table
+                mat-table
+                [dataSource]="transfers()"
+                class="transfers-table"
+              >
+                <ng-container matColumnDef="date">
+                  <th mat-header-cell *matHeaderCellDef>Data</th>
+                  <td mat-cell *matCellDef="let transfer">
+                    <span class="transfer-date">{{
+                      formatDateTime(transfer.createdAt)
+                    }}</span>
+                  </td>
+                </ng-container>
+
+                <ng-container matColumnDef="from">
+                  <th mat-header-cell *matHeaderCellDef>De</th>
+                  <td mat-cell *matCellDef="let transfer">
+                    <span class="text-secondary">{{
+                      transfer.fromCongregationName || 'N/A'
+                    }}</span>
+                  </td>
+                </ng-container>
+
+                <ng-container matColumnDef="to">
+                  <th mat-header-cell *matHeaderCellDef>Para</th>
+                  <td mat-cell *matCellDef="let transfer">
+                    @if (transfer.toCongregationName) {
+                      <span class="text-secondary">{{
+                        transfer.toCongregationName
                       }}</span>
-                      @if (transfer.status) {
+                    } @else {
+                      <span class="external-transfer"
+                        >Transferência Externa</span
+                      >
+                    }
+                  </td>
+                </ng-container>
+
+                <ng-container matColumnDef="reason">
+                  <th mat-header-cell *matHeaderCellDef>Motivo</th>
+                  <td mat-cell *matCellDef="let transfer">
+                    <span class="text-secondary">{{
+                      transfer.reason || '—'
+                    }}</span>
+                  </td>
+                </ng-container>
+
+                <ng-container matColumnDef="status">
+                  <th mat-header-cell *matHeaderCellDef>Status</th>
+                  <td mat-cell *matCellDef="let transfer">
+                    @if (transfer.status) {
+                      <mat-chip-set>
                         <mat-chip
-                          [class]="
-                            'status-chip status-' +
-                            transfer.status.toLowerCase()
-                          "
+                          [class]="'status-' + transfer.status.toLowerCase()"
                         >
                           {{ getStatusLabel(transfer.status) }}
                         </mat-chip>
+                      </mat-chip-set>
+                    }
+                  </td>
+                </ng-container>
+
+                <ng-container matColumnDef="processedBy">
+                  <th mat-header-cell *matHeaderCellDef>Processado por</th>
+                  <td mat-cell *matCellDef="let transfer">
+                    <div class="user-info-cell">
+                      @if (transfer.approvedByUserName) {
+                        <span class="text-secondary">{{
+                          transfer.approvedByUserName
+                        }}</span>
+                      } @else if (transfer.requestedByUserName) {
+                        <span class="text-secondary">{{
+                          transfer.requestedByUserName
+                        }}</span>
+                      } @else {
+                        <span class="text-secondary">—</span>
                       }
                     </div>
+                  </td>
+                </ng-container>
 
-                    <div class="transfer-body">
-                      <div class="transfer-route">
-                        <div class="route-point">
-                          <span class="route-label">De:</span>
-                          <span class="route-value">{{
-                            transfer.fromCongregationName || 'N/A'
-                          }}</span>
-                        </div>
-                        <mat-icon class="route-arrow">arrow_forward</mat-icon>
-                        <div class="route-point">
-                          <span class="route-label">Para:</span>
-                          <span class="route-value">
-                            @if (transfer.toCongregationName) {
-                              {{ transfer.toCongregationName }}
-                            } @else {
-                              <span class="external-transfer">
-                                Transferência Externa
-                              </span>
-                            }
-                          </span>
-                        </div>
-                      </div>
-
-                      @if (transfer.reason) {
-                        <div class="transfer-reason">
-                          <strong>Motivo:</strong>
-                          {{ transfer.reason }}
-                        </div>
-                      }
-
-                      @if (transfer.rejectionReason) {
-                        <div class="rejection-reason">
-                          <strong>Motivo da rejeição:</strong>
-                          {{ transfer.rejectionReason }}
-                        </div>
-                      }
-
-                      <div class="transfer-footer">
-                        <div class="transfer-users">
-                          @if (transfer.requestedByUserName) {
-                            <span class="user-info">
-                              <strong>Solicitado por:</strong>
-                              {{ transfer.requestedByUserName }}
-                            </span>
-                          }
-                          @if (transfer.approvedByUserName) {
-                            <span class="user-info">
-                              <strong
-                                >{{
-                                  transfer.status === 'REJECTED'
-                                    ? 'Rejeitado'
-                                    : 'Aprovado'
-                                }}
-                                por:</strong
-                              >
-                              {{ transfer.approvedByUserName }}
-                            </span>
-                          }
-                          @if (transfer.approvedAt) {
-                            <span class="user-info">
-                              <strong>em:</strong>
-                              {{ formatDateTime(transfer.approvedAt) }}
-                            </span>
-                          }
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                }
-              </div>
+                <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+                <tr
+                  mat-row
+                  *matRowDef="let row; columns: displayedColumns"
+                  class="table-row"
+                ></tr>
+              </table>
             }
           </div>
         </mat-tab>
@@ -441,61 +436,70 @@ import { OrganizationUnit } from '../../../shared/api/organization-unit.model';
         height: 48px;
       }
 
-      .transfers-list {
-        display: flex;
-        flex-direction: column;
-        gap: 1rem;
+      .transfers-table {
+        width: 100%;
       }
 
-      .transfer-card {
-        border: 1px solid rgba(0, 0, 0, 0.12);
-        border-radius: 8px;
-        overflow: hidden;
+      .transfers-table th {
+        font-weight: 600;
+        color: rgba(0, 0, 0, 0.87);
+        background-color: #fafafa;
+        padding: 1rem 1.5rem;
       }
 
-      .transfer-header {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        background-color: rgba(0, 0, 0, 0.04);
-        padding: 0.75rem 1rem;
-        border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+      .transfers-table td {
+        padding: 1rem 1.5rem;
       }
 
-      .transfer-header mat-icon {
-        font-size: 20px;
-        width: 20px;
-        height: 20px;
-        color: rgba(0, 0, 0, 0.6);
+      .table-row {
+        transition: background-color 0.2s;
+      }
+
+      .table-row:hover {
+        background-color: #f5f5f5;
       }
 
       .transfer-date {
+        font-weight: 500;
+        color: rgba(0, 0, 0, 0.87);
         font-size: 0.875rem;
+      }
+
+      .text-secondary {
         color: rgba(0, 0, 0, 0.6);
-        font-weight: 500;
-        flex: 1;
+        font-size: 0.9375rem;
       }
 
-      .status-chip {
-        font-size: 0.75rem;
-        padding: 4px 8px;
-        border-radius: 12px;
-        font-weight: 500;
+      .external-transfer {
+        color: #1565c0;
+        font-style: italic;
+        font-size: 0.9375rem;
       }
 
-      .status-chip.status-pending {
-        background-color: #fff3cd;
-        color: #856404;
+      .user-info-cell {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
       }
 
-      .status-chip.status-approved {
-        background-color: #d4edda;
-        color: #155724;
+      .status-pending {
+        background-color: #fff3e0 !important;
+        color: #e65100 !important;
       }
 
-      .status-chip.status-rejected {
-        background-color: #f8d7da;
-        color: #721c24;
+      .status-approved {
+        background-color: #e8f5e9 !important;
+        color: #2e7d32 !important;
+      }
+
+      .status-rejected {
+        background-color: #ffebee !important;
+        color: #c62828 !important;
+      }
+
+      .status-cancelled {
+        background-color: #f5f5f5 !important;
+        color: #616161 !important;
       }
 
       .status-chip.status-cancelled {
@@ -594,6 +598,8 @@ export class MemberViewDialogComponent implements OnInit {
   transfers = signal<MemberTransfer[]>([]);
   loadingTransfers = signal(true);
   rootChurch = signal<OrganizationUnit | null>(null);
+
+  displayedColumns = ['date', 'from', 'to', 'reason', 'status', 'processedBy'];
 
   constructor(
     @Inject(MAT_DIALOG_DATA) public data: { member: Member },

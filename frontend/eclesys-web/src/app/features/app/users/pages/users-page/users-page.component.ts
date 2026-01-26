@@ -8,6 +8,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { MatTableModule } from '@angular/material/table';
 
 import { UsersStore } from '../../data/users.store';
 import { UserFormDialogComponent } from '../../components/user-form-dialog/user-form-dialog.component';
@@ -35,6 +36,7 @@ import { MatSlideToggleChange } from '@angular/material/slide-toggle';
     MatMenuModule,
     MatSnackBarModule,
     MatTooltipModule,
+    MatTableModule,
   ],
   templateUrl: './users-page.component.html',
   styleUrls: ['./users-page.component.scss'],
@@ -44,6 +46,8 @@ export class UsersPageComponent {
   matDialog = inject(MatDialog);
   authStore = inject(AuthStore);
   snackBar = inject(MatSnackBar);
+
+  displayedColumns = ['user', 'role', 'status', 'actions'];
 
   constructor() {
     afterNextRender(() => {

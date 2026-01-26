@@ -190,52 +190,52 @@ import { ChurchRole } from '../../../shared/models/church-role.model';
             </div>
           } @else {
             <div class="table-container">
-              <table mat-table [dataSource]="members()" class="w-full">
+              <table mat-table [dataSource]="members()" class="members-table">
                 <ng-container matColumnDef="fullName">
                   <th mat-header-cell *matHeaderCellDef>Nome</th>
                   <td mat-cell *matCellDef="let member">
-                    <div>
-                      <div class="member-name">{{ member.fullName }}</div>
-                      @if (member.organizationUnitName) {
-                        <div class="member-detail">
-                          <mat-icon class="detail-icon">location_on</mat-icon>
-                          {{ member.organizationUnitName }}
-                        </div>
-                      }
-                      @if (member.churchRoleName) {
-                        <div class="member-detail">
-                          <mat-icon class="detail-icon"
-                            >business_center</mat-icon
-                          >
-                          {{ member.churchRoleName }}
-                        </div>
-                      }
-                    </div>
+                    <span class="member-name">{{ member.fullName }}</span>
                   </td>
                 </ng-container>
 
-                <ng-container matColumnDef="contact">
-                  <th mat-header-cell *matHeaderCellDef>Contato</th>
+                <ng-container matColumnDef="email">
+                  <th mat-header-cell *matHeaderCellDef>E-mail</th>
                   <td mat-cell *matCellDef="let member">
-                    <div class="contact-info">
-                      @if (member.email) {
-                        <div class="contact-item">
-                          <mat-icon class="contact-icon">email</mat-icon>
-                          {{ member.email }}
-                        </div>
-                      }
-                      @if (member.phone) {
-                        <div class="contact-item">
-                          <mat-icon class="contact-icon">phone</mat-icon>
-                          {{ member.phone }}
-                        </div>
-                      }
-                    </div>
+                    <span class="text-secondary">{{
+                      member.email || '—'
+                    }}</span>
+                  </td>
+                </ng-container>
+
+                <ng-container matColumnDef="phone">
+                  <th mat-header-cell *matHeaderCellDef>Telefone</th>
+                  <td mat-cell *matCellDef="let member">
+                    <span class="text-secondary">{{
+                      member.phone || '—'
+                    }}</span>
+                  </td>
+                </ng-container>
+
+                <ng-container matColumnDef="congregation">
+                  <th mat-header-cell *matHeaderCellDef>Congregação</th>
+                  <td mat-cell *matCellDef="let member">
+                    <span class="text-secondary">{{
+                      member.organizationUnitName || '—'
+                    }}</span>
+                  </td>
+                </ng-container>
+
+                <ng-container matColumnDef="churchRole">
+                  <th mat-header-cell *matHeaderCellDef>Cargo</th>
+                  <td mat-cell *matCellDef="let member">
+                    <span class="text-secondary">{{
+                      member.churchRoleName || '—'
+                    }}</span>
                   </td>
                 </ng-container>
 
                 <ng-container matColumnDef="status">
-                  <th mat-header-cell *matHeaderCellDef class="w-32">Status</th>
+                  <th mat-header-cell *matHeaderCellDef>Status</th>
                   <td mat-cell *matCellDef="let member">
                     <mat-chip-set>
                       <mat-chip
@@ -248,29 +248,31 @@ import { ChurchRole } from '../../../shared/models/church-role.model';
                 </ng-container>
 
                 <ng-container matColumnDef="actions">
-                  <th mat-header-cell *matHeaderCellDef class="w-48">Ações</th>
+                  <th mat-header-cell *matHeaderCellDef>Ações</th>
                   <td mat-cell *matCellDef="let member">
-                    <button
-                      mat-icon-button
-                      (click)="openViewDialog(member)"
-                      matTooltip="Visualizar"
-                    >
-                      <mat-icon>visibility</mat-icon>
-                    </button>
-                    <button
-                      mat-icon-button
-                      (click)="openTransferDialog(member)"
-                      matTooltip="Transferir"
-                    >
-                      <mat-icon>swap_horiz</mat-icon>
-                    </button>
-                    <button
-                      mat-icon-button
-                      (click)="openEditDialog(member)"
-                      matTooltip="Editar"
-                    >
-                      <mat-icon>edit</mat-icon>
-                    </button>
+                    <div class="action-buttons">
+                      <button
+                        mat-icon-button
+                        (click)="openViewDialog(member)"
+                        matTooltip="Visualizar"
+                      >
+                        <mat-icon>visibility</mat-icon>
+                      </button>
+                      <button
+                        mat-icon-button
+                        (click)="openTransferDialog(member)"
+                        matTooltip="Transferir"
+                      >
+                        <mat-icon>swap_horiz</mat-icon>
+                      </button>
+                      <button
+                        mat-icon-button
+                        (click)="openEditDialog(member)"
+                        matTooltip="Editar"
+                      >
+                        <mat-icon>edit</mat-icon>
+                      </button>
+                    </div>
                   </td>
                 </ng-container>
 
@@ -278,6 +280,7 @@ import { ChurchRole } from '../../../shared/models/church-role.model';
                 <tr
                   mat-row
                   *matRowDef="let row; columns: displayedColumns"
+                  class="table-row"
                 ></tr>
               </table>
             </div>
@@ -381,49 +384,45 @@ import { ChurchRole } from '../../../shared/models/church-role.model';
         flex: 1;
         overflow: auto;
       }
-      .w-32 {
-        width: 8rem;
-      }
-      .w-48 {
-        width: 12rem;
-      }
-      .w-full {
+
+      .members-table {
         width: 100%;
       }
+
+      .members-table th {
+        font-weight: 600;
+        color: rgba(0, 0, 0, 0.87);
+        background-color: #fafafa;
+        padding: 1rem 1.5rem;
+      }
+
+      .members-table td {
+        padding: 1rem 1.5rem;
+      }
+
+      .table-row {
+        transition: background-color 0.2s;
+      }
+
+      .table-row:hover {
+        background-color: #f5f5f5;
+      }
+
       .member-name {
         font-weight: 500;
-        margin-bottom: 0.25rem;
+        color: rgba(0, 0, 0, 0.87);
       }
-      .member-detail {
-        display: flex;
-        align-items: center;
-        gap: 0.25rem;
-        font-size: 0.8125rem;
+
+      .text-secondary {
         color: rgba(0, 0, 0, 0.6);
-        margin-top: 0.125rem;
+        font-size: 0.9375rem;
       }
-      .detail-icon {
-        font-size: 0.875rem;
-        width: 0.875rem;
-        height: 0.875rem;
-      }
-      .contact-info {
+
+      .action-buttons {
         display: flex;
-        flex-direction: column;
         gap: 0.25rem;
-        font-size: 0.875rem;
       }
-      .contact-item {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-      }
-      .contact-icon {
-        font-size: 1rem;
-        width: 1rem;
-        height: 1rem;
-        color: rgba(0, 0, 0, 0.4);
-      }
+
       .status-active {
         background-color: #e8f5e9 !important;
         color: #2e7d32 !important;
@@ -492,7 +491,15 @@ export class MembersComponent implements OnInit {
   selectedChurchRole: string | null = null;
   private searchTimeout: any;
 
-  displayedColumns = ['fullName', 'contact', 'status', 'actions'];
+  displayedColumns = [
+    'fullName',
+    'email',
+    'phone',
+    'congregation',
+    'churchRole',
+    'status',
+    'actions',
+  ];
 
   @ViewChild('congregationInput')
   congregationInput?: ElementRef<HTMLInputElement>;

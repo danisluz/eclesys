@@ -23,7 +23,7 @@ import { ChurchRoleFormDialogComponent } from './church-role-form-dialog.compone
     MatSlideToggleModule,
   ],
   template: `
-    <div class="page">
+    <div class="page-fullscreen">
       <div class="page-header">
         <div>
           <h1 class="page-title">Cargos Eclesiásticos</h1>
@@ -82,12 +82,39 @@ import { ChurchRoleFormDialogComponent } from './church-role-form-dialog.compone
   `,
   styles: [
     `
-      .w-32 {
-        width: 8rem;
-      }
-      .w-full {
+      .roles-table {
         width: 100%;
       }
+
+      .roles-table th {
+        font-weight: 600;
+        color: rgba(0, 0, 0, 0.87);
+        background-color: #fafafa;
+        padding: 1rem 1.5rem;
+      }
+
+      .roles-table td {
+        padding: 1rem 1.5rem;
+      }
+
+      .table-row {
+        transition: background-color 0.2s;
+      }
+
+      .table-row:hover {
+        background-color: #f5f5f5;
+      }
+
+      .role-name {
+        font-weight: 500;
+        color: rgba(0, 0, 0, 0.87);
+      }
+
+      .text-secondary {
+        color: rgba(0, 0, 0, 0.6);
+        font-size: 0.9375rem;
+      }
+
       .text-muted {
         color: rgba(0, 0, 0, 0.6);
         padding: 2rem;
