@@ -1,0 +1,22 @@
+<section style="padding:16px; max-width: 900px">
+  <h2>Status do Sistema</h2>
+
+  <button (click)="reload()">Recarregar</button>
+
+  <div style="display:grid; gap:12px; margin-top:12px">
+    <div style="border:1px solid #ddd; padding:12px; border-radius:8px">
+      <h3>Health</h3>
+      <pre>{{ healthText() }}</pre>
+    </div>
+
+    <div style="border:1px solid #ddd; padding:12px; border-radius:8px">
+      <h3>Ping</h3>
+      <pre>{{ pingText() }}</pre>
+    </div>
+
+    <div style="border:1px solid #ddd; padding:12px; border-radius:8px">
+      <h3>Version</h3>
+      <pre>{{ versionText() }}</pre>
+    </div>
+  </div>
+</section>

@@ -1,0 +1,37 @@
+mat-dialog-content {
+  max-height: 70vh;
+  overflow-y: auto;
+}
+.form-row {
+  margin-bottom: 1rem;
+}
+.two-cols {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+.three-cols {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  gap: 1rem;
+}
+.w-full {
+  width: 100%;
+}
+.form-label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+  color: rgba(0, 0, 0, 0.87);
+}
+.radio-group {
+  display: flex;
+  gap: 1.5rem;
+}
+.section-title {
+  font-size: 1rem;
+  font-weight: 500;
+  margin: 1.5rem 0 1rem;
+  color: rgba(0, 0, 0, 0.87);
+}

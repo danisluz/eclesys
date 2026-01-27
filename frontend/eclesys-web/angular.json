@@ -11,6 +11,8 @@
       "projectType": "application",
       "schematics": {
         "@schematics/angular:component": {
+          "inlineStyle": false,
+          "inlineTemplate": false,
           "style": "scss"
         }
       },

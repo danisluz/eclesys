@@ -36,87 +36,9 @@ interface DialogData {
     MatCheckboxModule,
     MatSelectModule,
   ],
-  template: `
-    <h2 mat-dialog-title>
-      {{ data.mode === 'create' ? 'Nova Função' : 'Editar Função' }}
-    </h2>
+  templateUrl: './function-role-form-dialog.component.html',
+  styleUrls: ['./function-role-form-dialog.component.scss'],
 
-    <mat-dialog-content>
-      <form [formGroup]="form">
-        <mat-form-field appearance="outline" class="w-full">
-          <mat-label>Nome da Função</mat-label>
-          <input
-            matInput
-            formControlName="name"
-            placeholder="Ex: Líder, Secretário, Tesoureiro"
-          />
-          @if (form.controls.name.hasError('required')) {
-            <mat-error>Nome é obrigatório</mat-error>
-          }
-          @if (form.controls.name.hasError('maxlength')) {
-            <mat-error>Máximo 60 caracteres</mat-error>
-          }
-        </mat-form-field>
-
-        <mat-form-field appearance="outline" class="w-full">
-          <mat-label>Escopo</mat-label>
-          <mat-select formControlName="scopeType">
-            <mat-option value="UNIT">Unidade Organizacional</mat-option>
-            <mat-option value="MINISTRY">Ministério</mat-option>
-            <mat-option value="BOTH">Ambos</mat-option>
-          </mat-select>
-          @if (form.controls.scopeType.hasError('required')) {
-            <mat-error>Escopo é obrigatório</mat-error>
-          }
-          <mat-hint>Define onde a função pode ser exercida</mat-hint>
-        </mat-form-field>
-
-        <mat-form-field appearance="outline" class="w-full">
-          <mat-label>Limite de Pessoas (opcional)</mat-label>
-          <input
-            matInput
-            type="number"
-            formControlName="maxHolders"
-            placeholder="Ex: 1 para Tesoureiro"
-          />
-          <mat-hint>Deixe vazio para ilimitado</mat-hint>
-        </mat-form-field>
-
-        <mat-form-field appearance="outline" class="w-full">
-          <mat-label>Ordem de Exibição</mat-label>
-          <input matInput type="number" formControlName="sortOrder" />
-          @if (form.controls.sortOrder.hasError('required')) {
-            <mat-error>Ordem é obrigatória</mat-error>
-          }
-          <mat-hint>Define a ordem de exibição na lista</mat-hint>
-        </mat-form-field>
-
-        <mat-checkbox formControlName="isActive"> Função ativa </mat-checkbox>
-      </form>
-    </mat-dialog-content>
-
-    <mat-dialog-actions align="end">
-      <button mat-button (click)="cancel()">Cancelar</button>
-      <button
-        mat-flat-button
-        color="primary"
-        [disabled]="form.invalid || saving()"
-        (click)="save()"
-      >
-        {{ saving() ? 'Salvando...' : 'Salvar' }}
-      </button>
-    </mat-dialog-actions>
-  `,
-  styles: [
-    `
-      mat-form-field {
-        margin-bottom: 1rem;
-      }
-      .w-full {
-        width: 100%;
-      }
-    `,
-  ],
 })
 export class FunctionRoleFormDialogComponent {
   private fb = inject(FormBuilder);
