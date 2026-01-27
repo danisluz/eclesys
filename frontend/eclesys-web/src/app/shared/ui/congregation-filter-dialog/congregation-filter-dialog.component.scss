@@ -1,0 +1,42 @@
+.dialog-title {
+  margin: 0;
+}
+
+.dialog-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: min(720px, 92vw);
+  max-height: 70vh;
+}
+
+.list {
+  overflow: auto;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 12px;
+  padding: 0.5rem;
+}
+
+.row {
+  padding: 0.25rem 0.5rem;
+}
+
+.label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.name {
+  font-weight: 500;
+}
+
+.parent {
+  font-size: 0.75rem;
+  color: rgba(0, 0, 0, 0.55);
+}
+
+.empty {
+  padding: 1rem;
+  color: rgba(0, 0, 0, 0.6);
+}

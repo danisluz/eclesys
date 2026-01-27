@@ -52,3 +52,27 @@ button mat-spinner {
   display: inline-block;
   margin-right: 0.5rem;
 }
+
+.congregation-trigger {
+  height: 56px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.congregation-summary {
+  margin-left: auto;
+  display: inline-flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.muted {
+  color: rgba(0, 0, 0, 0.6);
+}
+
+.count {
+  font-weight: 500;
+}

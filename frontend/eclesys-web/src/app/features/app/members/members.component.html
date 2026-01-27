@@ -33,52 +33,6 @@
           }
         </mat-form-field>
 
-        <mat-form-field appearance="outline" class="congregation-field">
-          <mat-label>{{ getCongregationFilterLabel() }}</mat-label>
-          <mat-chip-grid #chipGrid>
-            @for (id of selectedCongregations(); track id) {
-              <mat-chip-row (removed)="removeCongregation(id)">
-                {{ getCongregationLabel(id) }}
-                <button matChipRemove>
-                  <mat-icon>cancel</mat-icon>
-                </button>
-              </mat-chip-row>
-            }
-          </mat-chip-grid>
-          <input
-            #congregationInput
-            matInput
-            [(ngModel)]="congregationSearch"
-            (input)="onCongregationInput($event)"
-            [matAutocomplete]="autoCongregation"
-            [matChipInputFor]="chipGrid"
-            placeholder="Busque e selecione..."
-          />
-          <mat-autocomplete
-            #autoCongregation="matAutocomplete"
-            [autoActiveFirstOption]="true"
-            (optionSelected)="selectCongregation($event)"
-          >
-            @if (filteredCongregations().length === 0) {
-              <mat-option disabled
-                >Nenhuma congregação encontrada</mat-option
-              >
-            }
-            @for (org of filteredCongregations(); track org.id) {
-              <mat-option [value]="org.id">
-                <div class="congregation-option">
-                  <span class="congregation-name">{{ org.name }}</span>
-                  @if (org.parentName) {
-                    <span class="congregation-parent">{{
-                      org.parentName
-                    }}</span>
-                  }
-                </div>
-              </mat-option>
-            }
-          </mat-autocomplete>
-        </mat-form-field>
-
         <mat-form-field appearance="outline">
           <mat-label>Cargo Eclesiástico</mat-label>
           <mat-select
@@ -105,6 +59,31 @@
             <mat-option value="DECEASED">Falecido</mat-option>
           </mat-select>
         </mat-form-field>
+
+        <div class="congregation-field">
+          <button
+            mat-stroked-button
+            type="button"
+            class="congregation-trigger"
+            (click)="openCongregationFilterDialog()"
+          >
+            <mat-icon>account_tree</mat-icon>
+            {{ getCongregationFilterLabel() }}
+
+            <span class="congregation-summary">
+              @if (selectedCongregations().length === 0) {
+                <span class="muted">Todas</span>
+              } @else {
+                <span class="count">
+                  {{ selectedCongregations().length }} selecionada(s)
+                </span>
+                @if (selectedCongregations().length > 2) {
+                  <span class="muted">(mostrando 2)</span>
+                }
+              }
+            </span>
+          </button>
+        </div>
 
         <button
           mat-stroked-button
@@ -146,18 +125,14 @@
             <ng-container matColumnDef="email">
               <th mat-header-cell *matHeaderCellDef>E-mail</th>
               <td mat-cell *matCellDef="let member">
-                <span class="text-secondary">{{
-                  member.email || '—'
-                }}</span>
+                <span class="text-secondary">{{ member.email || "—" }}</span>
               </td>
             </ng-container>
 
             <ng-container matColumnDef="phone">
               <th mat-header-cell *matHeaderCellDef>Telefone</th>
               <td mat-cell *matCellDef="let member">
-                <span class="text-secondary">{{
-                  member.phone || '—'
-                }}</span>
+                <span class="text-secondary">{{ member.phone || "—" }}</span>
               </td>
             </ng-container>
 
@@ -165,7 +140,7 @@
               <th mat-header-cell *matHeaderCellDef>Congregação</th>
               <td mat-cell *matCellDef="let member">
                 <span class="text-secondary">{{
-                  member.organizationUnitName || '—'
+                  member.organizationUnitName || "—"
                 }}</span>
               </td>
             </ng-container>
@@ -174,7 +149,7 @@
               <th mat-header-cell *matHeaderCellDef>Cargo</th>
               <td mat-cell *matCellDef="let member">
                 <span class="text-secondary">{{
-                  member.churchRoleName || '—'
+                  member.churchRoleName || "—"
                 }}</span>
               </td>
             </ng-container>
@@ -183,9 +158,7 @@
               <th mat-header-cell *matHeaderCellDef>Status</th>
               <td mat-cell *matCellDef="let member">
                 <mat-chip-set>
-                  <mat-chip
-                    [class]="'status-' + member.status.toLowerCase()"
-                  >
+                  <mat-chip [class]="'status-' + member.status.toLowerCase()">
                     {{ getStatusLabel(member.status) }}
                   </mat-chip>
                 </mat-chip-set>

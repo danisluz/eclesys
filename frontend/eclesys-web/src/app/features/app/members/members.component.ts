@@ -21,7 +21,10 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatAutocompleteModule } from '@angular/material/autocomplete';
+import {
+  MatAutocompleteModule,
+  MatAutocompleteSelectedEvent,
+} from '@angular/material/autocomplete';
 import { MembersService } from '../../../shared/api/members.service';
 import { Member, MemberStatus } from '../../../shared/models/member.model';
 import { MemberFormDialogComponent } from './member-form-dialog.component';
@@ -31,6 +34,7 @@ import { OrganizationsService } from '../../../shared/api/organizations.service'
 import { OrganizationUnit } from '../../../shared/api/organization-unit.model';
 import { ChurchRolesService } from '../../../shared/api/church-roles.service';
 import { ChurchRole } from '../../../shared/models/church-role.model';
+import { CongregationFilterDialogComponent } from '../../../shared/ui/congregation-filter-dialog/congregation-filter-dialog.component';
 
 @Component({
   selector: 'app-members',
@@ -53,7 +57,6 @@ import { ChurchRole } from '../../../shared/models/church-role.model';
   ],
   templateUrl: './members.component.html',
   styleUrls: ['./members.component.scss'],
-
 })
 export class MembersComponent implements OnInit {
   private service = inject(MembersService);
@@ -252,16 +255,22 @@ export class MembersComponent implements OnInit {
     this.filteredCongregations.set(filtered);
   }
 
-  selectCongregation(event: any) {
-    const congregationId = event.option.value;
+  selectCongregation(event: MatAutocompleteSelectedEvent) {
+    const value = event.option.value as OrganizationUnit | string;
+    const congregationId =
+      typeof value === 'string' ? value : (value?.id ?? '');
     const current = this.selectedCongregations();
-    if (!current.includes(congregationId)) {
+    if (congregationId && !current.includes(congregationId)) {
       this.selectedCongregations.set([...current, congregationId]);
       this.pageIndex.set(0);
       this.loadMembers();
     }
     this.congregationSearch = '';
     this.filteredCongregations.set(this.congregations());
+    if (this.congregationInput) {
+      this.congregationInput.nativeElement.value = '';
+      this.congregationInput.nativeElement.focus();
+    }
   }
 
   removeCongregation(id: string) {
@@ -281,6 +290,13 @@ export class MembersComponent implements OnInit {
     const church = this.rootChurch();
     return church?.congregationLabel ?? 'Congregações';
   }
+
+  displayCongregation = (value: OrganizationUnit | string | null): string => {
+    if (!value) return '';
+    const id = typeof value === 'string' ? value : value.id;
+    const org = this.congregations().find((c) => c.id === id);
+    return org ? this.getCongregationLabel(org.id) : '';
+  };
 
   getStatusLabel(status: MemberStatus): string {
     const labels: Record<MemberStatus, string> = {
@@ -351,6 +367,26 @@ export class MembersComponent implements OnInit {
           duration: 3000,
         });
       }
+    });
+  }
+
+  openCongregationFilterDialog() {
+    const dialogRef = this.dialog.open(CongregationFilterDialogComponent, {
+      width: '720px',
+      maxWidth: '92vw',
+      data: {
+        title: this.getCongregationFilterLabel(),
+        congregations: this.congregations(),
+        selectedIds: this.selectedCongregations(),
+      },
+    });
+
+    dialogRef.afterClosed().subscribe((selectedIds: string[] | null) => {
+      if (selectedIds === null) return; // cancelou
+
+      this.selectedCongregations.set(selectedIds);
+      this.pageIndex.set(0);
+      this.loadMembers();
     });
   }
 }

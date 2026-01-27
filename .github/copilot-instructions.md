@@ -1,107 +1,123 @@
-# ECLESYS — Copilot Instructions
+# ECLESYS — Copilot Instructions (PT-BR)
 
-You are assisting in the ECLESYS monorepo. Treat this as a real product (not a tutorial). Prefer professional, secure, maintainable solutions.
+Você está auxiliando no desenvolvimento do **ECLESYS**, um sistema real em produção contínua.  
+Este projeto **não é um tutorial**, **não é uma POC** e **não aceita gambiarras**.
 
-## Repository structure
-- backend/eclesys-api  -> Spring Boot REST API
-- frontend/eclesys-web -> Angular Web App (standalone, SSR)
-- infra/               -> Docker, compose, configs
+Todas as decisões devem priorizar **segurança, clareza, manutenção e evolução futura**.
 
-## General rules
-- Keep changes small and surgical; avoid large refactors unless explicitly requested.
-- Follow existing patterns and naming conventions in the codebase.
-- Prefer clarity over cleverness. Avoid abbreviations in variable/method names.
-- Do not introduce insecure shortcuts (no hardcoded secrets, no bypassing auth).
-- Do not invent files/endpoints that don’t exist; when adding something new, do it cleanly and consistently.
-- Prefer explicit, typed DTOs and clear boundaries (controller/service/repository).
+---
 
-## API response standard (MUST)
-All API responses must follow this envelope:
+## Idioma e Padrões
 
-Success:
+### Comunicação
+- **Toda a conversa, explicações e respostas devem ser em português**
+
+### Código
+- **Classes, métodos, variáveis, pacotes, arquivos e commits devem estar em inglês**
+- Usar padrões internacionais de nomenclatura
+- Evitar abreviações pouco claras
+- Preferir nomes explícitos e autoexplicativos
+
+---
+
+## Estrutura do Repositório (Monorepo)
+
+```
+eclesys/
+├─ backend/eclesys-api
+├─ frontend/eclesys-web
+└─ infra/
+```
+
+---
+
+## Princípios Gerais
+
+- Produto real de produção
+- Mudanças pequenas e cirúrgicas
+- Sem atalhos inseguros
+- Clareza > esperteza
+- Pensar sempre na evolução futura
+
+---
+
+## Backend — Spring Boot
+
+- Java 21
+- Spring Web
+- Spring Security (JWT)
+- JPA / Hibernate
+- Flyway
+- PostgreSQL
+- UUID como identificador
+
+### Organização
+Monólito modular preparado para extração futura de APIs externas.
+
+Estrutura por feature:
+
+```
+features/
+└─ members/
+   ├─ controller/
+   ├─ service/
+   ├─ repository/
+   ├─ dto/
+   └─ entity/
+```
+
+---
+
+## Padrão de Resposta da API
+
+### Sucesso
+```json
 {
   "status": "success",
   "data": ...
 }
+```
 
-Error:
+### Erro
+```json
 {
   "status": "error",
-  "message": "Clear message"
+  "message": "Mensagem clara"
 }
+```
 
-Do not return raw objects directly from controllers.
+---
 
-## Backend (Spring Boot)
-- Java 21
-- Spring Web + Spring Security (JWT)
-- JPA/Hibernate
-- Flyway migrations
-- PostgreSQL
-- Use UUID as identifiers
-- Use DTOs for request/response (never expose entities directly)
-- Validate inputs (Bean Validation) and return clear error messages
-- Keep controllers thin; business logic in services
-- Prefer constructor injection
-- Write readable, maintainable code
+## Frontend — Angular
 
-### Security
-- JWT-based auth
-- Protect endpoints under /api/**
-- Principle of least privilege
-- Never log passwords or JWT tokens
-- Passwords must be hashed (BCrypt)
-
-### Multi-tenancy
-- Tenant ID must be present in all domain entities
-- Filter by tenant in all queries (prevent data leaks)
-- Tenant comes from authenticated user's JWT
-- Never allow cross-tenant access
-
-### Environment Variables
-- Use UPPER_SNAKE_CASE
-- Never commit .env files
-- Document required vars in README
-- Fail fast on missing required vars
-
-### Logging
-- Use SLF4J with appropriate levels
-- Log errors with context (user/tenant info when safe)
-- Never log: passwords, tokens, PII sensitive data
-- Include request IDs for traceability
-
-## Frontend (Angular)
-- Angular standalone components
-- SSR enabled
+- Angular Standalone + SSR
 - Angular Material (M3)
-- Use Signals for state
-- Prefer modern Angular patterns (signals/computed/effect)
-- Avoid heavy lifecycle-hook patterns where possible (prefer reactive setup)
-- Layout standard for authenticated pages:
-  - page container (.page)
-  - header with title/subtitle and actions
-  - outlined cards
-  - consistent spacing and clean UX
+- Uso de Signals
 
-### UX rules
-- Snackbar only on success, with clear messages
-- Confirm destructive actions with dialog (not snackbar)
-- On cancel: immediately revert optimistic UI changes (e.g., toggle states)
-- Keep accessibility in mind (labels, aria, tooltips)
+### Componentes
+Todo componente deve ter:
 
-## Git / commits
-Use Conventional Commits with clear scope:
+```
+component-name/
+├─ component-name.component.ts
+├─ component-name.component.html
+└─ component-name.component.scss
+```
 
-- feat(api): ...
-- fix(api): ...
-- chore(api): ...
-- feat(web): ...
-- fix(web): ...
-- chore(infra): ...
+---
 
-Write short imperative subject + concise body when needed.
+## Git / Commits
 
-## Tooling
-- Prefer commands runnable from repo root when possible
-- Keep dev experience smooth (simple scripts, predictable environment)
-- Do not add heavy dependencies without clear justification
+Conventional Commits:
+
+- feat(api):
+- fix(api):
+- feat(web):
+- fix(web):
+- chore(infra):
+
+---
+
+## Regra Final
+
+Sempre escolher o **correto, seguro e sustentável**.
