@@ -1,5 +1,11 @@
-.tab-content {
-  padding: 24px 0;
+.approval-tabs {
+  margin-top: 16px;
+
+  ::ng-deep {
+    .mat-mdc-tab-body-content {
+      padding: 16px 0 0;
+    }
+  }
 }
 
 .tab-icon {
@@ -16,90 +22,120 @@
   font-weight: 500;
 }
 
-.empty-state {
-  text-align: center;
-  padding: 48px 24px;
-  color: var(--md-sys-color-on-surface-variant);
-}
-
-.transfers-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
-  gap: 16px;
-}
-
-.transfer-card {
-  mat-card-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 16px;
-
-    mat-card-title {
-      font-size: 18px;
-      font-weight: 500;
-      margin: 0;
-    }
-  }
-
-  .type-chip {
-    font-size: 12px;
-  }
-
+.table-card {
   mat-card-content {
     padding: 0;
   }
+}
 
-  .transfer-info {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
+.loading-container,
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 60px 20px;
+  text-align: center;
+
+  mat-icon {
+    font-size: 64px;
+    width: 64px;
+    height: 64px;
+    color: var(--md-sys-color-on-surface-variant);
+    opacity: 0.5;
   }
 
-  .info-row {
-    display: flex;
-    align-items: flex-start;
-    gap: 12px;
-
-    .info-icon {
-      color: var(--md-sys-color-on-surface-variant);
-      font-size: 20px;
-      width: 20px;
-      height: 20px;
-      margin-top: 2px;
-    }
-
-    .info-content {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-
-      .info-label {
-        font-size: 12px;
-        color: var(--md-sys-color-on-surface-variant);
-        font-weight: 500;
-      }
-
-      .info-value {
-        font-size: 14px;
-        color: var(--md-sys-color-on-surface);
-      }
-    }
-  }
-
-  mat-card-actions {
-    display: flex;
-    gap: 8px;
-    padding: 16px 0 0;
+  p {
     margin: 0;
+    color: var(--md-sys-color-on-surface);
+    font-size: 16px;
+    font-weight: 500;
+  }
 
-    button {
-      flex: 1;
+  .empty-subtitle {
+    color: var(--md-sys-color-on-surface-variant);
+    font-size: 14px;
+    font-weight: 400;
+  }
+}
 
-      mat-icon {
-        margin-right: 4px;
-      }
+.table-container {
+  overflow-x: auto;
+}
+
+.approvals-table {
+  width: 100%;
+
+  th {
+    font-weight: 600;
+    font-size: 13px;
+    color: rgba(0, 0, 0, 0.6);
+  }
+
+  td {
+    padding: 16px 12px;
+  }
+
+  .member-name {
+    font-weight: 500;
+    color: rgba(0, 0, 0, 0.87);
+  }
+
+  .transfer-route {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+
+    .route-origin {
+      color: rgba(0, 0, 0, 0.6);
     }
+
+    .route-arrow {
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+      color: rgba(0, 0, 0, 0.38);
+    }
+
+    .route-destination {
+      font-weight: 500;
+      color: rgba(0, 0, 0, 0.87);
+    }
+  }
+
+  .transfer-reason {
+    display: block;
+    max-width: 300px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: rgba(0, 0, 0, 0.6);
+    font-size: 13px;
+  }
+
+  .requested-by {
+    font-size: 13px;
+    color: rgba(0, 0, 0, 0.6);
+  }
+
+  .transfer-date {
+    font-size: 13px;
+    color: rgba(0, 0, 0, 0.6);
+    white-space: nowrap;
+  }
+
+  .actions-column {
+    text-align: right;
+    padding-right: 8px;
+  }
+
+  tr.mat-mdc-row:hover {
+    background-color: rgba(0, 0, 0, 0.02);
+  }
+
+  button[mat-icon-button] {
+    margin: 0 4px;
   }
 }

@@ -5,6 +5,9 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatTabsModule } from '@angular/material/tabs';
+import { MatTableModule } from '@angular/material/table';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { TransferApprovalsService } from '../../../shared/api/transfer-approvals.service';
@@ -21,6 +24,9 @@ import { RejectDialogComponent } from './reject-dialog/reject-dialog.component';
     MatIconModule,
     MatChipsModule,
     MatTabsModule,
+    MatTableModule,
+    MatTooltipModule,
+    MatProgressSpinnerModule,
     MatSnackBarModule,
     MatDialogModule,
   ],
@@ -28,13 +34,30 @@ import { RejectDialogComponent } from './reject-dialog/reject-dialog.component';
   styleUrls: ['./pending-approvals.component.scss'],
 })
 export class PendingApprovalsComponent implements OnInit {
-  private approvalsService = inject(TransferApprovalsService);
-  private snackBar = inject(MatSnackBar);
-  private dialog = inject(MatDialog);
+  private readonly approvalsService = inject(TransferApprovalsService);
+  private readonly snackBar = inject(MatSnackBar);
+  private readonly dialog = inject(MatDialog);
 
   forApproval = signal<MemberTransfer[]>([]);
   myRequests = signal<MemberTransfer[]>([]);
   loading = signal(false);
+
+  displayedColumnsForApproval: string[] = [
+    'memberName',
+    'fromTo',
+    'reason',
+    'requestedBy',
+    'createdAt',
+    'actions',
+  ];
+
+  displayedColumnsMyRequests: string[] = [
+    'memberName',
+    'fromTo',
+    'reason',
+    'createdAt',
+    'actions',
+  ];
 
   ngOnInit(): void {
     this.loadPendingTransfers();
@@ -141,11 +164,15 @@ export class PendingApprovalsComponent implements OnInit {
     }
   }
 
-  getTransferTypeLabel(transfer: MemberTransfer): string {
-    if (!transfer.toCongregationId) {
-      return 'Externa';
+  getTransferDestination(transfer: MemberTransfer): string {
+    if (transfer.toCongregationName) {
+      return transfer.toCongregationName;
     }
-    return 'Interna';
+    return 'Externa';
+  }
+
+  getTransferOrigin(transfer: MemberTransfer): string {
+    return transfer.fromCongregationName || 'N/A';
   }
 
   formatDate(dateString: string): string {
