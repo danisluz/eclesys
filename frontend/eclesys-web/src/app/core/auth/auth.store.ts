@@ -1,5 +1,13 @@
-import { Injectable, inject, signal, computed } from '@angular/core';
+import {
+  Injectable,
+  inject,
+  signal,
+  computed,
+  PLATFORM_ID,
+} from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { Router } from '@angular/router';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { AuthService } from './auth.service';
 import { TokenStorage } from './token.storage';
 import { AuthUser, LoginRequest } from './models';
@@ -11,20 +19,35 @@ export class AuthStore {
   private authService = inject(AuthService);
   private meService = inject(MeService);
   private tokenStorage = inject(TokenStorage);
+  private platformId = inject(PLATFORM_ID);
+  private snackBar = inject(MatSnackBar);
 
-  private tokenSignal = signal<string | null>(this.tokenStorage.getToken());
-  private meSignal = signal<AuthUser | null>(
-    this.tokenStorage.getUser<AuthUser>(),
-  );
+  private tokenSignal = signal<string | null>(null);
+  private meSignal = signal<AuthUser | null>(null);
   private isMeLoadingSignal = signal(false);
 
   constructor() {
-    const storedToken = this.tokenStorage.getToken();
-    console.log(
-      '[AuthStore] Constructor - Token from storage:',
-      storedToken ? 'EXISTS' : 'NULL',
-    );
-    console.log('[AuthStore] Token length:', storedToken?.length);
+    // Carregar do storage apenas no browser (não no SSR)
+    if (isPlatformBrowser(this.platformId)) {
+      const storedToken = this.tokenStorage.getToken();
+      const storedUser = this.tokenStorage.getUser<AuthUser>();
+
+      console.log(
+        '[AuthStore] Browser init - Token from storage:',
+        storedToken ? 'EXISTS' : 'NULL',
+      );
+      console.log('[AuthStore] Token length:', storedToken?.length);
+
+      if (storedToken) {
+        this.tokenSignal.set(storedToken);
+      }
+
+      if (storedUser) {
+        this.meSignal.set(storedUser);
+      }
+    } else {
+      console.log('[AuthStore] Running on server, skipping storage load');
+    }
   }
 
   isAuthenticated = computed(() => !!this.tokenSignal());
@@ -47,8 +70,7 @@ export class AuthStore {
   }
 
   loadMe() {
-    if (!this.tokenSignal() || this.isMeLoadingSignal() || this.meSignal())
-      return;
+    if (!this.tokenSignal() || this.isMeLoadingSignal()) return;
 
     this.isMeLoadingSignal.set(true);
 
@@ -66,15 +88,52 @@ export class AuthStore {
   }
 
   async ensureMeLoaded(): Promise<boolean> {
-    if (!this.isAuthenticated()) return false;
-    if (this.me()) return true;
-
-    try {
-      await this.loadMe();
-      return true;
-    } catch {
+    if (!this.isAuthenticated()) {
+      console.log('[AuthStore] Not authenticated');
       return false;
     }
+
+    if (this.me()) {
+      console.log('[AuthStore] Me already loaded');
+      return true;
+    }
+
+    console.log('[AuthStore] Loading me from API...');
+
+    return new Promise<boolean>((resolve) => {
+      if (this.isMeLoadingSignal()) {
+        // Já está carregando, aguardar
+        const checkInterval = setInterval(() => {
+          if (!this.isMeLoadingSignal()) {
+            clearInterval(checkInterval);
+            resolve(!!this.me());
+          }
+        }, 50);
+        return;
+      }
+
+      this.isMeLoadingSignal.set(true);
+
+      this.meService.getMe().subscribe({
+        next: (response: any) => {
+          console.log('[AuthStore] /me API success:', response);
+          this.meSignal.set(response.data);
+          this.tokenStorage.setUser(response.data);
+          this.isMeLoadingSignal.set(false);
+          resolve(true);
+        },
+        error: (err) => {
+          console.error('[AuthStore] /me API error:', err);
+          console.log(
+            '[AuthStore] Token was:',
+            this.tokenSignal()?.substring(0, 20) + '...',
+          );
+          this.isMeLoadingSignal.set(false);
+          this.logout();
+          resolve(false);
+        },
+      });
+    });
   }
 
   updateMe(updatedUser: Partial<AuthUser>) {
@@ -132,9 +191,27 @@ export class AuthStore {
     this.router.navigateByUrl('/login');
   }
 
-  logoutWithMessage(message: string = 'Sessão expirada') {
-    this.logout();
-    // Opcional: exibir mensagem via snackbar se injetado
+  logoutWithMessage(
+    message: string = 'Sessão expirada. Faça login novamente.',
+  ) {
     console.warn('[AuthStore]', message);
+
+    // Limpar estado
+    this.tokenStorage.clearAll();
+    this.tokenSignal.set(null);
+    this.meSignal.set(null);
+
+    // Mostrar mensagem apenas no browser
+    if (isPlatformBrowser(this.platformId)) {
+      this.snackBar.open(message, 'Fechar', {
+        duration: 5000,
+        horizontalPosition: 'center',
+        verticalPosition: 'top',
+        panelClass: ['snackbar-warning'],
+      });
+    }
+
+    // Redirecionar
+    this.router.navigateByUrl('/login');
   }
 }

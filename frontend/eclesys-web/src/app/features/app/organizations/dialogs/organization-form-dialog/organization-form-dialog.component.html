@@ -1,0 +1,173 @@
+<h2 mat-dialog-title>
+  {{ data.mode === 'create' ? 'Nova Unidade' : 'Editar Unidade' }}
+</h2>
+
+<mat-dialog-content>
+  <form #form="ngForm">
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Nome</mat-label>
+      <input
+        matInput
+        [(ngModel)]="name"
+        name="name"
+        required
+        minlength="3"
+        #nameInput="ngModel"
+        [class.input-error]="nameInput.invalid && nameInput.touched"
+      />
+      @if (nameInput.invalid && nameInput.touched) {
+        <mat-error>Nome é obrigatório (mínimo 3 caracteres)</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="full-width">
+      <mat-label>Código</mat-label>
+      <input
+        matInput
+        [(ngModel)]="code"
+        name="code"
+        required
+        minlength="2"
+        #codeInput="ngModel"
+        [class.input-error]="codeInput.invalid && codeInput.touched"
+      />
+      @if (codeInput.invalid && codeInput.touched) {
+        <mat-error>Código é obrigatório (mínimo 2 caracteres)</mat-error>
+      }
+    </mat-form-field>
+
+    @if (data.mode === 'create') {
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Tipo</mat-label>
+        <mat-select
+          [(ngModel)]="type"
+          name="type"
+          required
+          (selectionChange)="onTypeChange()"
+        >
+          @for (option of availableTypes(); track option.value) {
+            <mat-option [value]="option.value">
+              {{ option.label }}
+            </mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+
+      @if (type !== OrganizationUnitType.CHURCH) {
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Unidade Pai</mat-label>
+          <mat-select
+            [(ngModel)]="parentId"
+            name="parentId"
+            [required]="availableParents().length > 0"
+          >
+            @if (availableParents().length === 0) {
+              <mat-option disabled>
+                Nenhuma unidade pai disponível. Crie uma "Sede Central"
+                primeiro.
+              </mat-option>
+            }
+            @for (parent of availableParents(); track parent.id) {
+              <mat-option [value]="parent.id">
+                {{ parent.name }} ({{ parent.code }})
+              </mat-option>
+            }
+          </mat-select>
+          @if (availableParents().length === 0) {
+            <mat-hint style="color: #f44336">
+              ⚠️ Você precisa criar uma "Sede Central" antes de criar
+              {{
+                type === OrganizationUnitType.SECTOR
+                  ? 'um Setor'
+                  : 'uma Congregação'
+              }}.
+            </mat-hint>
+          }
+        </mat-form-field>
+      }
+
+      @if (type === OrganizationUnitType.CHURCH) {
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Nome do segundo nível</mat-label>
+          <input
+            matInput
+            [(ngModel)]="sectorLabel"
+            name="sectorLabel"
+            placeholder="Ex: Setor, Distrito, Região"
+            required
+            minlength="3"
+            #sectorLabelInput="ngModel"
+            [class.input-error]="
+              sectorLabelInput.invalid && sectorLabelInput.touched
+            "
+          />
+          @if (sectorLabelInput.invalid && sectorLabelInput.touched) {
+            <mat-error>Nome do segundo nível é obrigatório</mat-error>
+          }
+          <mat-hint>Como sua denominação chama o segundo nível?</mat-hint>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Nome do terceiro nível</mat-label>
+          <input
+            matInput
+            [(ngModel)]="congregationLabel"
+            name="congregationLabel"
+            placeholder="Ex: Congregação, Ponto de Pregação, Missão"
+            required
+            minlength="3"
+            #congregationLabelInput="ngModel"
+            [class.input-error]="
+              congregationLabelInput.invalid &&
+              congregationLabelInput.touched
+            "
+          />
+          @if (
+            congregationLabelInput.invalid && congregationLabelInput.touched
+          ) {
+            <mat-error>Nome do terceiro nível é obrigatório</mat-error>
+          }
+          <mat-hint>Como sua denominação chama o terceiro nível?</mat-hint>
+        </mat-form-field>
+      }
+    }
+
+    @if (type === OrganizationUnitType.CONGREGATION) {
+      <div class="checkbox-field">
+        <mat-checkbox [(ngModel)]="isHeadquarters" name="isHeadquarters">
+          É sede do setor
+        </mat-checkbox>
+      </div>
+    }
+
+    @if (data.mode === 'edit') {
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Status</mat-label>
+        <mat-select [(ngModel)]="status" name="status" required>
+          <mat-option [value]="OrganizationUnitStatus.ACTIVE">
+            Ativa
+          </mat-option>
+          <mat-option [value]="OrganizationUnitStatus.INACTIVE">
+            Inativa
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+    }
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button (click)="cancel()">Cancelar</button>
+  <button
+    mat-raised-button
+    color="primary"
+    [disabled]="!isFormValid() || isSaving()"
+    (click)="save()"
+  >
+    @if (isSaving()) {
+      <mat-spinner diameter="20"></mat-spinner>
+    } @else {
+      {{ data.mode === 'create' ? 'Criar' : 'Salvar' }}
+    }
+  </button>
+</mat-dialog-actions>

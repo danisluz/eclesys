@@ -1,0 +1,26 @@
+mat-dialog-content {
+  min-width: 400px;
+  padding: 1rem 0;
+}
+
+.full-width {
+  width: 100%;
+  margin-bottom: 1rem;
+}
+
+.checkbox-field {
+  margin-bottom: 1rem;
+}
+
+.input-error {
+  border-color: #f44336 !important;
+}
+
+mat-dialog-actions {
+  padding: 1rem 0 0;
+}
+
+mat-spinner {
+  display: inline-block;
+  margin: 0;
+}

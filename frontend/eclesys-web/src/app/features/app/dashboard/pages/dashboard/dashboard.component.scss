@@ -1,0 +1,381 @@
+.dashboard {
+  display: grid;
+  gap: 18px;
+}
+
+/* HEADER */
+.dashboard__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.dashboard__heading {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.dashboard__title {
+  margin: 0;
+  font-size: 26px;
+  font-weight: 900;
+  letter-spacing: 0.2px;
+  color: rgba(15, 23, 42, 0.92);
+}
+
+@media (max-width: 768px) {
+  .dashboard__title {
+    font-size: 22px;
+  }
+}
+
+.dashboard__subtitle {
+  margin: 6px 0 0;
+  color: rgba(15, 23, 42, 0.62);
+  font-size: 13px;
+}
+
+.dashboard__actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+@media (max-width: 768px) {
+  .dashboard__actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+}
+
+:host ::ng-deep .dashboard__actions .mat-mdc-button-base {
+  border-radius: 999px;
+}
+
+/* GRID */
+.dashboard__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+/* Tablets e laptops médios */
+@media (max-width: 1200px) {
+  .dashboard__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* Tablets pequenos */
+@media (max-width: 768px) {
+  .dashboard__grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* KPI CARD */
+.kpi {
+  display: grid;
+  grid-template-columns: 56px 1fr;
+  gap: 14px;
+
+  padding: 16px;
+  border-radius: 18px;
+
+  background: #ffffff;
+  border: 1px solid rgba(15, 23, 42, 0.1);
+}
+
+.kpi__icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+
+  background: rgba(15, 42, 68, 0.08);
+
+  display: grid;
+  place-items: center;
+}
+
+.kpi__icon mat-icon {
+  color: rgba(15, 42, 68, 0.92);
+}
+
+.kpi__body {
+  min-width: 0;
+}
+
+.kpi__top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.kpi__title {
+  font-weight: 900;
+  font-size: 15px;
+  color: rgba(15, 23, 42, 0.92);
+}
+
+.kpi__subtitle {
+  color: rgba(15, 23, 42, 0.6);
+  font-size: 12px;
+  margin-top: 3px;
+}
+
+.kpi__value {
+  font-size: 22px;
+  font-weight: 900;
+  color: rgba(15, 23, 42, 0.35);
+}
+
+:host ::ng-deep .kpi mat-divider {
+  margin: 10px 0 0;
+  opacity: 0.7;
+}
+
+.kpi__bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-top: 10px;
+}
+
+.kpi__hint {
+  color: rgba(15, 23, 42, 0.62);
+  font-size: 13px;
+  min-width: 0;
+}
+
+/* botão do card com cara “link” */
+:host ::ng-deep .kpi .mat-mdc-button {
+  border-radius: 999px;
+}
+
+/* (se tu adicionou class="kpi__action") */
+:host ::ng-deep .kpi__action .mat-icon {
+  margin-left: 6px;
+}
+
+/* PANEL */
+.panel {
+  border-radius: 18px;
+  background: #ffffff;
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  padding: 16px;
+}
+
+.panel__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 12px;
+}
+
+:host ::ng-deep .panel__header .mat-mdc-button-base {
+  border-radius: 999px;
+}
+
+.panel__title {
+  font-weight: 900;
+  font-size: 16px;
+  color: rgba(15, 23, 42, 0.92);
+}
+
+.panel__subtitle {
+  color: rgba(15, 23, 42, 0.62);
+  font-size: 12px;
+  margin-top: 3px;
+}
+
+.panel__list {
+  display: grid;
+  gap: 12px;
+}
+
+/* ITEM */
+.panel__item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  padding: 12px;
+  border-radius: 14px;
+
+  background: rgba(15, 23, 42, 0.03);
+  border: 1px solid rgba(15, 23, 42, 0.06);
+}
+
+/* se tu não quiser mexer no HTML, esse estilo ainda funciona */
+.panel__item mat-icon {
+  color: rgba(15, 42, 68, 0.78);
+}
+
+/* se tu adicionou o wrapper panel__item-icon */
+.panel__item-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 12px;
+  background: rgba(15, 42, 68, 0.08);
+  display: grid;
+  place-items: center;
+}
+
+.panel__item-title {
+  font-weight: 900;
+  color: rgba(15, 23, 42, 0.92);
+}
+
+.panel__item-subtitle {
+  color: rgba(15, 23, 42, 0.62);
+  font-size: 12px;
+  margin-top: 3px;
+}
+
+/* CHART CARD */
+.charts-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  margin-top: 14px;
+}
+
+/* Desktop médio / Laptop */
+@media (max-width: 1400px) {
+  .charts-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .chart-card:nth-child(3) {
+    grid-column: 1 / -1;
+  }
+}
+
+/* Tablets grandes */
+@media (max-width: 1024px) {
+  .charts-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Tablets pequenos */
+@media (max-width: 768px) {
+  .charts-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .chart-card:nth-child(3) {
+    grid-column: 1;
+  }
+}
+
+.chart-card {
+  border-radius: 18px;
+  background: #ffffff;
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  padding: 16px;
+}
+
+@media (max-width: 768px) {
+  .chart-card {
+    padding: 14px;
+  }
+}
+
+.chart-card--full {
+  grid-column: 1 / -1;
+}
+
+.chart-card__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.chart-card__title {
+  font-weight: 900;
+  font-size: 16px;
+  color: rgba(15, 23, 42, 0.92);
+}
+
+@media (max-width: 768px) {
+  .chart-card__title {
+    font-size: 14px;
+  }
+}
+
+.chart-card__subtitle {
+  color: rgba(15, 23, 42, 0.62);
+  font-size: 12px;
+  margin-top: 3px;
+}
+
+@media (max-width: 768px) {
+  .chart-card__subtitle {
+    font-size: 11px;
+  }
+}
+
+.chart-card__body {
+  height: 280px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@media (max-width: 1400px) {
+  .chart-card__body {
+    height: 260px;
+  }
+}
+
+@media (max-width: 768px) {
+  .chart-card__body {
+    height: 240px;
+  }
+}
+
+.chart-card__body--bars {
+  height: 320px;
+}
+
+@media (max-width: 1400px) {
+  .chart-card__body--bars {
+    height: 300px;
+  }
+}
+
+@media (max-width: 768px) {
+  .chart-card__body--bars {
+    height: 280px;
+  }
+}
+
+/* LOADING E ERROR CONTAINERS */
+.loading-container,
+.error-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 40px 20px;
+  text-align: center;
+}
+
+@media (max-width: 768px) {
+  .loading-container,
+  .error-container {
+    padding: 30px 16px;
+  }
+}

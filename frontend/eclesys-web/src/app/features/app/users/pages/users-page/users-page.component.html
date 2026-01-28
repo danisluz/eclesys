@@ -1,4 +1,4 @@
-<section class="page">
+<section class="page-fullscreen">
   <header class="page__header">
     <div class="page__heading">
       <h1 class="page__title">Usuários</h1>
@@ -50,74 +50,89 @@
           </div>
         </div>
       } @else {
-        <div class="list">
-          @for (user of usersStore.users(); track user.id) {
-            <div class="row">
-              <div class="row__main">
+        <table mat-table [dataSource]="usersStore.users()" class="users-table">
+          <ng-container matColumnDef="user">
+            <th mat-header-cell *matHeaderCellDef>Usuário</th>
+            <td mat-cell *matCellDef="let user">
+              <div class="user-cell">
                 <app-user-avatar
                   [userNameSignal]="user.name"
                   [userEmailSignal]="user.email"
                   [sizeSignal]="32"
                   ariaLabelSignal="Avatar do usuário"
                 ></app-user-avatar>
-
                 <div>
-                  <div class="row__title">{{ user.name }}</div>
-                  <div class="row__subtitle">{{ user.email }}</div>
+                  <div class="user-name">{{ user.name }}</div>
+                  <div class="user-email">{{ user.email }}</div>
                 </div>
               </div>
+            </td>
+          </ng-container>
 
-              <div class="row__meta">
-                <mat-chip-set>
-                  <mat-chip>{{ user.role }}</mat-chip>
+          <ng-container matColumnDef="role">
+            <th mat-header-cell *matHeaderCellDef>Perfil</th>
+            <td mat-cell *matCellDef="let user">
+              <mat-chip-set>
+                <mat-chip>{{ user.role }}</mat-chip>
+                @if (isMasterUser(user)) {
+                  <mat-chip color="primary">MASTER</mat-chip>
+                }
+              </mat-chip-set>
+            </td>
+          </ng-container>
 
-                  @if (isMasterUser(user)) {
-                    <mat-chip color="primary">MASTER</mat-chip>
-                  }
-                </mat-chip-set>
-
-                <div class="status">
-                  <span
-                    class="status__label"
-                    [class.is-inactive]="!user.isActive"
-                  >
-                    {{ user.isActive ? "Ativo" : "Inativo" }}
-                  </span>
-
-                  <mat-slide-toggle
-                    [checked]="user.isActive"
-                    [disabled]="!isAdmin() || isMasterUser(user)"
-                    (change)="onToggleStatus(user, $event)"
-                    [matTooltip]="
-                      user.isActive
-                        ? 'Clique para desativar este usuário'
-                        : 'Clique para ativar este usuário'
-                    "
-                    matTooltipPosition="above"
-                    aria-label="Alterar status do usuário"
-                  ></mat-slide-toggle>
-                </div>
-
-                <button
-                  mat-icon-button
-                  type="button"
-                  [matMenuTriggerFor]="userActionsMenu"
+          <ng-container matColumnDef="status">
+            <th mat-header-cell *matHeaderCellDef>Status</th>
+            <td mat-cell *matCellDef="let user">
+              <div class="status-cell">
+                <span class="status-label" [class.is-inactive]="!user.isActive">
+                  {{ user.isActive ? "Ativo" : "Inativo" }}
+                </span>
+                <mat-slide-toggle
+                  [checked]="user.isActive"
                   [disabled]="!isAdmin() || isMasterUser(user)"
-                  aria-label="Ações do usuário"
-                >
-                  <mat-icon>more_vert</mat-icon>
-                </button>
-
-                <mat-menu #userActionsMenu="matMenu">
-                  <button mat-menu-item (click)="openResetPasswordDialog(user)">
-                    <mat-icon>lock_reset</mat-icon>
-                    Redefinir senha
-                  </button>
-                </mat-menu>
+                  (change)="onToggleStatus(user, $event)"
+                  [matTooltip]="
+                    user.isActive
+                      ? 'Clique para desativar este usuário'
+                      : 'Clique para ativar este usuário'
+                  "
+                  matTooltipPosition="above"
+                  aria-label="Alterar status do usuário"
+                ></mat-slide-toggle>
               </div>
-            </div>
-          }
-        </div>
+            </td>
+          </ng-container>
+
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef>Ações</th>
+            <td mat-cell *matCellDef="let user">
+              <button
+                mat-icon-button
+                type="button"
+                [matMenuTriggerFor]="userActionsMenu"
+                [disabled]="!isAdmin() || isMasterUser(user)"
+                aria-label="Ações do usuário"
+              >
+                <mat-icon>more_vert</mat-icon>
+              </button>
+
+              <mat-menu #userActionsMenu="matMenu">
+                <button mat-menu-item (click)="openResetPasswordDialog(user)">
+                  <mat-icon>lock_reset</mat-icon>
+                  Redefinir senha
+                </button>
+              </mat-menu>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr
+            mat-row
+            *matRowDef="let row; columns: displayedColumns"
+            class="table-row"
+          ></tr>
+        </table>
       }
     </mat-card-content>
   </mat-card>

@@ -1,0 +1,52 @@
+<h2 mat-dialog-title class="dialog-title">
+  {{ data.title }}
+</h2>
+
+<div mat-dialog-content class="dialog-content">
+  <mat-form-field appearance="outline" class="w-full">
+    <mat-label>Buscar</mat-label>
+    <input
+      matInput
+      [ngModel]="searchTerm()"
+      (ngModelChange)="searchTerm.set($event)"
+      placeholder="Digite o nome da congregação ou setor"
+    />
+
+    <mat-icon matPrefix>search</mat-icon>
+    @if (searchTerm()) {
+      <button matSuffix mat-icon-button (click)="searchTerm.set('')">
+        <mat-icon>close</mat-icon>
+      </button>
+    }
+  </mat-form-field>
+
+  <div class="list">
+    @if (filteredCongregations().length === 0) {
+      <div class="empty">Nenhuma congregação encontrada.</div>
+    } @else {
+      @for (org of filteredCongregations(); track org.id) {
+        <div class="row">
+          <mat-checkbox
+            [checked]="isSelected(org.id)"
+            (change)="toggleSelection(org.id, $event.checked)"
+          >
+            <div class="label">
+              <div class="name">{{ org.name }}</div>
+              @if (org.parentName) {
+                <div class="parent">{{ org.parentName }}</div>
+              }
+            </div>
+          </mat-checkbox>
+        </div>
+      }
+    }
+  </div>
+</div>
+
+<div mat-dialog-actions align="end" class="dialog-actions">
+  <button mat-button (click)="clear()">Limpar</button>
+  <button mat-button (click)="cancel()">Cancelar</button>
+  <button mat-flat-button color="primary" (click)="apply()">
+    Aplicar ({{ selectedIds().length }})
+  </button>
+</div>

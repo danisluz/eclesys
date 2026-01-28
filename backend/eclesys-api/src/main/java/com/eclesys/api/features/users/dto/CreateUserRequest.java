@@ -1,6 +1,6 @@
 package com.eclesys.api.features.users.dto;
 
-import com.eclesys.api.domain.user.UserRole;
+import com.eclesys.api.features.users.entity.UserRole;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

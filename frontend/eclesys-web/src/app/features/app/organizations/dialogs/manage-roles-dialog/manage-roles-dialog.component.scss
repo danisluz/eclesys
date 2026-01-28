@@ -1,0 +1,115 @@
+.loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2rem;
+  gap: 1rem;
+}
+
+.assign-section {
+  margin-bottom: 2rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+}
+
+.assign-section h3 {
+  margin: 0 0 1rem 0;
+  font-size: 1rem;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.87);
+}
+
+.assign-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: 1rem;
+  align-items: flex-start;
+
+  .member-field,
+  .role-field {
+    width: 100%;
+  }
+
+  .assign-btn {
+    margin-top: 0.5rem;
+  }
+}
+
+.member-option {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+
+  small {
+    color: rgba(0, 0, 0, 0.6);
+    font-size: 0.75rem;
+  }
+}
+
+.selected-member {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  padding: 0.75rem;
+  background-color: #e3f2fd;
+  border-radius: 4px;
+  color: #1976d2;
+
+  mat-icon {
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+  }
+
+  span {
+    flex: 1;
+  }
+}
+
+.max-holders {
+  color: rgba(0, 0, 0, 0.6);
+  font-size: 0.875rem;
+  margin-left: 0.5rem;
+}
+
+.assignments-section h3 {
+  margin: 0 0 1rem 0;
+  font-size: 1rem;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.87);
+}
+
+.empty-message {
+  color: rgba(0, 0, 0, 0.6);
+  font-style: italic;
+  padding: 1rem;
+  text-align: center;
+}
+
+table {
+  width: 100%;
+  background: white;
+}
+
+.actions-column {
+  width: 80px;
+  text-align: right;
+}
+
+mat-dialog-content {
+  min-width: 700px;
+  max-width: 900px;
+  min-height: 400px;
+}
+
+@media (max-width: 768px) {
+  .assign-form {
+    grid-template-columns: 1fr;
+  }
+
+  mat-dialog-content {
+    min-width: auto;
+    max-width: 100%;
+  }
+}

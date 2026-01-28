@@ -8,15 +8,16 @@ import { MatDialog } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
+import { MatTableModule } from '@angular/material/table';
 
 import { UsersStore } from '../../data/users.store';
-import { UserFormDialogComponent } from '../../components/user-form-dialog/user-form-dialog.component';
+import { UserFormDialogComponent } from '../../dialogs/user-form-dialog/user-form-dialog.component';
 import { UserAvatarComponent } from '../../../../../shared/ui/user-avatar/user-avatar.component';
 import { UserDto } from '../../models/user.models';
 import { AuthStore } from '../../../../../core/auth/auth.store';
 import { ConfirmDialogComponent } from '../../../../../shared/ui/confirm-dialog/confirm-dialog.component';
 import { MatMenuModule } from '@angular/material/menu';
-import { ResetPasswordDialogComponent } from '../../components/reset-password-dialog/reset-password-dialog.component';
+import { ResetPasswordDialogComponent } from '../../dialogs/reset-password-dialog/reset-password-dialog.component';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSlideToggleChange } from '@angular/material/slide-toggle';
@@ -35,6 +36,7 @@ import { MatSlideToggleChange } from '@angular/material/slide-toggle';
     MatMenuModule,
     MatSnackBarModule,
     MatTooltipModule,
+    MatTableModule,
   ],
   templateUrl: './users-page.component.html',
   styleUrls: ['./users-page.component.scss'],
@@ -44,6 +46,8 @@ export class UsersPageComponent {
   matDialog = inject(MatDialog);
   authStore = inject(AuthStore);
   snackBar = inject(MatSnackBar);
+
+  displayedColumns = ['user', 'role', 'status', 'actions'];
 
   constructor() {
     afterNextRender(() => {

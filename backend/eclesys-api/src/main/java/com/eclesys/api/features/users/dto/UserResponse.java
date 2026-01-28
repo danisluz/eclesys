@@ -1,6 +1,6 @@
 package com.eclesys.api.features.users.dto;
 
-import com.eclesys.api.domain.user.UserRole;
+import com.eclesys.api.features.users.entity.UserRole;
 import java.util.UUID;
 
 public record UserResponse(

@@ -1,8 +1,8 @@
 package com.eclesys.api.features.members.dto;
 
-import com.eclesys.api.domain.member.Gender;
-import com.eclesys.api.domain.member.MaritalStatus;
-import com.eclesys.api.domain.member.MemberStatus;
+import com.eclesys.api.features.members.entity.Gender;
+import com.eclesys.api.features.members.entity.MaritalStatus;
+import com.eclesys.api.features.members.entity.MemberStatus;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

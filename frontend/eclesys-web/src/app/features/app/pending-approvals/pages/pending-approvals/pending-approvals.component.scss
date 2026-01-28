@@ -1,0 +1,141 @@
+.approval-tabs {
+  margin-top: 16px;
+
+  ::ng-deep {
+    .mat-mdc-tab-body-content {
+      padding: 16px 0 0;
+    }
+  }
+}
+
+.tab-icon {
+  margin-right: 8px;
+}
+
+.tab-badge {
+  margin-left: 8px;
+  padding: 2px 8px;
+  border-radius: 12px;
+  background: var(--md-sys-color-primary);
+  color: var(--md-sys-color-on-primary);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.table-card {
+  mat-card-content {
+    padding: 0;
+  }
+}
+
+.loading-container,
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 60px 20px;
+  text-align: center;
+
+  mat-icon {
+    font-size: 64px;
+    width: 64px;
+    height: 64px;
+    color: var(--md-sys-color-on-surface-variant);
+    opacity: 0.5;
+  }
+
+  p {
+    margin: 0;
+    color: var(--md-sys-color-on-surface);
+    font-size: 16px;
+    font-weight: 500;
+  }
+
+  .empty-subtitle {
+    color: var(--md-sys-color-on-surface-variant);
+    font-size: 14px;
+    font-weight: 400;
+  }
+}
+
+.table-container {
+  overflow-x: auto;
+}
+
+.approvals-table {
+  width: 100%;
+
+  th {
+    font-weight: 600;
+    font-size: 13px;
+    color: rgba(0, 0, 0, 0.6);
+  }
+
+  td {
+    padding: 16px 12px;
+  }
+
+  .member-name {
+    font-weight: 500;
+    color: rgba(0, 0, 0, 0.87);
+  }
+
+  .transfer-route {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+
+    .route-origin {
+      color: rgba(0, 0, 0, 0.6);
+    }
+
+    .route-arrow {
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+      color: rgba(0, 0, 0, 0.38);
+    }
+
+    .route-destination {
+      font-weight: 500;
+      color: rgba(0, 0, 0, 0.87);
+    }
+  }
+
+  .transfer-reason {
+    display: block;
+    max-width: 300px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: rgba(0, 0, 0, 0.6);
+    font-size: 13px;
+  }
+
+  .requested-by {
+    font-size: 13px;
+    color: rgba(0, 0, 0, 0.6);
+  }
+
+  .transfer-date {
+    font-size: 13px;
+    color: rgba(0, 0, 0, 0.6);
+    white-space: nowrap;
+  }
+
+  .actions-column {
+    text-align: right;
+    padding-right: 8px;
+  }
+
+  tr.mat-mdc-row:hover {
+    background-color: rgba(0, 0, 0, 0.02);
+  }
+
+  button[mat-icon-button] {
+    margin: 0 4px;
+  }
+}

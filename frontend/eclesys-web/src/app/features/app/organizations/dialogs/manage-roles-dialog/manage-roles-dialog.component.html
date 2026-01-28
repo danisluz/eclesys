@@ -1,0 +1,166 @@
+<h2 mat-dialog-title>
+  <mat-icon>badge</mat-icon>
+  Gerenciar Cargos - {{ data.organizationUnitName }}
+</h2>
+
+<mat-dialog-content>
+  @if (isLoading()) {
+    <div class="loading">
+      <mat-spinner diameter="40"></mat-spinner>
+      <p>Carregando...</p>
+    </div>
+  } @else {
+    <!-- Formulário para atribuir novo cargo -->
+    <div class="assign-section">
+      <h3>Atribuir Cargo Administrativo</h3>
+      <div class="assign-form">
+        <mat-form-field appearance="outline" class="member-field">
+          <mat-label>Buscar Membro</mat-label>
+          <input
+            matInput
+            [(ngModel)]="selectedMember"
+            (input)="onInputChange($event)"
+            [matAutocomplete]="auto"
+            placeholder="Digite o nome do membro"
+          />
+          <mat-icon matPrefix>search</mat-icon>
+          @if (selectedMember) {
+            <button
+              matSuffix
+              mat-icon-button
+              (click)="clearMemberSearch()"
+              aria-label="Limpar"
+            >
+              <mat-icon>close</mat-icon>
+            </button>
+          }
+          <mat-autocomplete
+            #auto="matAutocomplete"
+            [displayWith]="displayMember"
+          >
+            @if (isSearchingMembers()) {
+              <mat-option disabled>
+                <mat-spinner diameter="20"></mat-spinner>
+                Buscando...
+              </mat-option>
+            } @else if (filteredMembers().length === 0) {
+              <mat-option disabled>
+                Digite para buscar membros...
+              </mat-option>
+            } @else {
+              @for (member of filteredMembers(); track member.id) {
+                <mat-option [value]="member">
+                  <div class="member-option">
+                    <strong>{{ member.fullName }}</strong>
+                    @if (member.document) {
+                      <small>{{ member.document }}</small>
+                    }
+                  </div>
+                </mat-option>
+              }
+            }
+          </mat-autocomplete>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="role-field">
+          <mat-label>Cargo Administrativo</mat-label>
+          <mat-select [(ngModel)]="selectedRole">
+            <mat-option value="">Selecione um cargo</mat-option>
+            @for (role of availableFunctionRoles(); track role.id) {
+              <mat-option [value]="role.id">
+                {{ role.name }}
+              </mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+
+        <button
+          mat-raised-button
+          color="primary"
+          (click)="assignRole()"
+          [disabled]="!selectedMember || !selectedRole || isAssigning()"
+          class="assign-btn"
+        >
+          <mat-icon>add</mat-icon>
+          Atribuir
+        </button>
+      </div>
+
+      @if (selectedMember) {
+        <div class="selected-member">
+          <mat-icon>person</mat-icon>
+          <span
+            ><strong>Membro selecionado:</strong>
+            {{ selectedMember.fullName }}</span
+          >
+          <button
+            mat-icon-button
+            (click)="clearSelectedMember()"
+            matTooltip="Remover seleção"
+          >
+            <mat-icon>close</mat-icon>
+          </button>
+        </div>
+      }
+    </div>
+
+    <!-- Lista de cargos atribuídos -->
+    <div class="assignments-section">
+      <h3>Cargos Atribuídos ({{ assignments().length }})</h3>
+      @if (assignments().length === 0) {
+        <p class="empty-message">Nenhum cargo atribuído nesta unidade.</p>
+      } @else {
+        <table
+          mat-table
+          [dataSource]="assignments()"
+          class="mat-elevation-z1"
+        >
+          <!-- Coluna Nome -->
+          <ng-container matColumnDef="name">
+            <th mat-header-cell *matHeaderCellDef>Membro</th>
+            <td mat-cell *matCellDef="let assignment">
+              {{ assignment.userName }}
+            </td>
+          </ng-container>
+
+          <!-- Coluna Cargo -->
+          <ng-container matColumnDef="role">
+            <th mat-header-cell *matHeaderCellDef>Cargo</th>
+            <td mat-cell *matCellDef="let assignment">
+              {{ assignment.functionRoleName }}
+            </td>
+          </ng-container>
+
+          <!-- Coluna Ações -->
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef class="actions-column">
+              Ações
+            </th>
+            <td
+              mat-cell
+              *matCellDef="let assignment"
+              class="actions-column"
+            >
+              <button
+                mat-icon-button
+                color="warn"
+                (click)="removeRole(assignment)"
+                [disabled]="isRemoving()"
+                matTooltip="Remover cargo"
+              >
+                <mat-icon>delete</mat-icon>
+              </button>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+        </table>
+      }
+    </div>
+  }
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-button [mat-dialog-close]>Fechar</button>
+</mat-dialog-actions>

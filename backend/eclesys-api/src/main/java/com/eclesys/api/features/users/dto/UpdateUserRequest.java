@@ -1,6 +1,6 @@
 package com.eclesys.api.features.users.dto;
 
-import com.eclesys.api.domain.user.UserRole;
+import com.eclesys.api.features.users.entity.UserRole;
 
 public record UpdateUserRequest(
     String name,

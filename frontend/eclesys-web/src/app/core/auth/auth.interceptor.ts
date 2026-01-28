@@ -1,14 +1,38 @@
 import { HttpInterceptorFn, HttpErrorResponse } from '@angular/common/http';
-import { inject } from '@angular/core';
-import { catchError, throwError } from 'rxjs';
+import { inject, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
+import { catchError, throwError, of } from 'rxjs';
 import { AuthStore } from './auth.store';
 
 export const authInterceptor: HttpInterceptorFn = (request, next) => {
   const authStore = inject(AuthStore);
+  const platformId = inject(PLATFORM_ID);
   const token = authStore.token();
+  const isBrowser = isPlatformBrowser(platformId);
+
+  // Se estamos no servidor e a requisição precisa de autenticação mas não tem token,
+  // não fazer a requisição (evita erros 401 no SSR)
+  if (!isBrowser && !token && !request.url.includes('/api/auth/login')) {
+    console.log(
+      '[authInterceptor] SSR: Skipping authenticated request:',
+      request.url,
+    );
+    // Retorna um observable vazio para não bloquear o SSR
+    return of({
+      body: null,
+      status: 200,
+      statusText: 'SSR Skip',
+      headers: request.headers,
+      url: request.url,
+      type: 4,
+      ok: true,
+      clone: () => ({}) as any,
+    } as any);
+  }
 
   console.log(
     '[authInterceptor]',
+    isBrowser ? 'Browser' : 'Server',
     request.method,
     request.url,
     token ? 'HAS_TOKEN' : 'NO_TOKEN',
@@ -39,7 +63,7 @@ export const authInterceptor: HttpInterceptorFn = (request, next) => {
         console.warn(
           '[authInterceptor] Token inválido ou expirado. Fazendo logout...',
         );
-        authStore.logout();
+        authStore.logoutWithMessage('Sessão expirada. Faça login novamente.');
       }
       return throwError(() => error);
     }),

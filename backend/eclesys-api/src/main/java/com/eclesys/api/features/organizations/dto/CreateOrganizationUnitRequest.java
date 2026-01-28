@@ -1,6 +1,6 @@
 package com.eclesys.api.features.organizations.dto;
 
-import com.eclesys.api.domain.organization.OrganizationUnitType;
+import com.eclesys.api.features.organizations.entity.OrganizationUnitType;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
