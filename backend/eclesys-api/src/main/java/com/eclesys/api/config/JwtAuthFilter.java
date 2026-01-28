@@ -1,6 +1,6 @@
 package com.eclesys.api.config;
 
-import com.eclesys.api.features.auth.JwtTokenService;
+import com.eclesys.api.features.auth.service.JwtTokenService;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

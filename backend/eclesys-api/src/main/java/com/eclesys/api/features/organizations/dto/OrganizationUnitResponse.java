@@ -1,7 +1,7 @@
 package com.eclesys.api.features.organizations.dto;
 
-import com.eclesys.api.domain.organization.OrganizationUnitStatus;
-import com.eclesys.api.domain.organization.OrganizationUnitType;
+import com.eclesys.api.features.organizations.entity.OrganizationUnitStatus;
+import com.eclesys.api.features.organizations.entity.OrganizationUnitType;
 
 import java.time.LocalDateTime;
 import java.util.List;

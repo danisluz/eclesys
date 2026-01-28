@@ -1,6 +1,6 @@
 package com.eclesys.api.features.functionroles.dto;
 
-import com.eclesys.api.domain.functionrole.ScopeType;
+import com.eclesys.api.features.functionroles.entity.ScopeType;
 
 import java.time.LocalDateTime;
 import java.util.UUID;

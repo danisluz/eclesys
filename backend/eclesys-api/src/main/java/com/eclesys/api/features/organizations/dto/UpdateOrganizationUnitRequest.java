@@ -1,6 +1,6 @@
 package com.eclesys.api.features.organizations.dto;
 
-import com.eclesys.api.domain.organization.OrganizationUnitStatus;
+import com.eclesys.api.features.organizations.entity.OrganizationUnitStatus;
 import jakarta.validation.constraints.Size;
 
 public record UpdateOrganizationUnitRequest(

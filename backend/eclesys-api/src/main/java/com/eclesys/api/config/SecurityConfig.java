@@ -1,7 +1,7 @@
 package com.eclesys.api.config;
 
-import com.eclesys.api.features.auth.JwtTokenService;
-import com.eclesys.api.features.auth.RateLimitLoginFilter;
+import com.eclesys.api.features.auth.service.JwtTokenService;
+import com.eclesys.api.features.auth.service.RateLimitLoginFilter;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

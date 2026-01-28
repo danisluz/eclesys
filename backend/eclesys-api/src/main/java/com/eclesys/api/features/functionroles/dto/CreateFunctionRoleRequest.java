@@ -1,6 +1,6 @@
 package com.eclesys.api.features.functionroles.dto;
 
-import com.eclesys.api.domain.functionrole.ScopeType;
+import com.eclesys.api.features.functionroles.entity.ScopeType;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
