@@ -12,7 +12,6 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { MatListModule } from '@angular/material/list';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatInputModule } from '@angular/material/input';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatTooltipModule } from '@angular/material/tooltip';
@@ -28,6 +27,7 @@ import { MembersService } from '../../../../../shared/api/members.service';
 import { Member } from '../../../../../shared/models/member.model';
 import { FunctionRolesService } from '../../../../../shared/api/function-roles.service';
 import { FunctionRole } from '../../../../../shared/models/function-role.model';
+import { NotificationService } from '../../../../../shared/services/notification.service';
 
 export interface ManageRolesDialogData {
   organizationUnitId: string;
@@ -63,7 +63,7 @@ export class ManageRolesDialogComponent implements OnInit {
   private readonly rolesService = inject(OrganizationRolesService);
   private readonly membersService = inject(MembersService);
   private readonly functionRolesService = inject(FunctionRolesService);
-  private readonly snackBar = inject(MatSnackBar);
+  private readonly notificationService = inject(NotificationService);
 
   isLoading = signal(true);
   isAssigning = signal(false);
@@ -160,9 +160,7 @@ export class ManageRolesDialogComponent implements OnInit {
       }
     } catch (error) {
       console.error('Erro ao carregar dados:', error);
-      this.snackBar.open('Erro ao carregar dados', 'Fechar', {
-        duration: 3000,
-      });
+      this.notificationService.error('Erro ao carregar dados');
     } finally {
       this.isLoading.set(false);
     }
@@ -204,9 +202,7 @@ export class ManageRolesDialogComponent implements OnInit {
         this.rolesService.assignRole(this.data.organizationUnitId, request),
       );
 
-      this.snackBar.open('Cargo atribuído com sucesso', 'Fechar', {
-        duration: 3000,
-      });
+      this.notificationService.success('Cargo atribuído com sucesso');
 
       await this.loadData();
 
@@ -214,7 +210,7 @@ export class ManageRolesDialogComponent implements OnInit {
       this.selectedRole = '';
     } catch (error: any) {
       const message = error?.error?.message || 'Erro ao atribuir cargo';
-      this.snackBar.open(message, 'Fechar', { duration: 5000 });
+      this.notificationService.error(message);
     } finally {
       this.isAssigning.set(false);
     }
@@ -231,14 +227,12 @@ export class ManageRolesDialogComponent implements OnInit {
         ),
       );
 
-      this.snackBar.open('Cargo removido com sucesso', 'Fechar', {
-        duration: 3000,
-      });
+      this.notificationService.success('Cargo removido com sucesso');
 
       await this.loadData();
     } catch (error: any) {
       const message = error?.error?.message || 'Erro ao remover cargo';
-      this.snackBar.open(message, 'Fechar', { duration: 5000 });
+      this.notificationService.error(message);
     } finally {
       this.isRemoving.set(false);
     }

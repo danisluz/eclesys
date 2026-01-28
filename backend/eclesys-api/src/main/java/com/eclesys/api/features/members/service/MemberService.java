@@ -154,9 +154,14 @@ public class MemberService {
 
     // Busca com filtros combinados
     if (search != null && !search.isBlank()) {
+      String searchDigits = search.replaceAll("[^0-9]", "");
+      if (searchDigits.isBlank()) {
+        searchDigits = null;
+      }
       members = repository.searchByTenantWithFilters(
           tenant, 
-          search, 
+          search,
+          searchDigits,
           status, 
           hasOrgFilter ? organizationUnitIds : null, 
           churchRoleId, 

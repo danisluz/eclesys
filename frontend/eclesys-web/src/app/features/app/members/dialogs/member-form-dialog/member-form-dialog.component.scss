@@ -35,3 +35,54 @@ mat-dialog-content {
   margin: 1.5rem 0 1rem;
   color: rgba(0, 0, 0, 0.87);
 }
+
+.two-cols--wide {
+  grid-template-columns: 3fr 1fr;
+  gap: 16px;
+}
+
+.form-row mat-form-field {
+  width: 100%;
+}
+
+.cep-row {
+  display: grid;
+  grid-template-columns: minmax(240px, 340px) auto;
+  gap: 12px;
+  align-items: center;
+}
+
+.cep-button {
+  height: 56px;
+  width: 240px;
+  align-self: stretch;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.family-grid {
+  grid-auto-flow: row;
+}
+
+:host ::ng-deep .field-disabled-soft .mdc-text-field--disabled {
+  opacity: 1;
+  background-color: rgba(0, 0, 0, 0.02);
+}
+
+:host
+  ::ng-deep
+  .field-disabled-soft
+  .mdc-text-field--disabled
+  .mdc-text-field__input {
+  color: rgba(0, 0, 0, 0.75);
+  -webkit-text-fill-color: rgba(0, 0, 0, 0.75);
+}
+
+:host
+  ::ng-deep
+  .field-disabled-soft
+  .mdc-text-field--disabled
+  .mdc-floating-label {
+  color: rgba(0, 0, 0, 0.55);
+}

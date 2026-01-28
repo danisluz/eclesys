@@ -1,18 +1,18 @@
 <h2 mat-dialog-title>
-  {{ data.mode === 'create' ? 'Novo Membro' : 'Editar Membro' }}
+  {{ data.mode === "create" ? "Novo Membro" : "Editar Membro" }}
 </h2>
 
 <mat-dialog-content>
   <form [formGroup]="form">
     <!-- Dados Básicos -->
     <div class="form-row">
-      <mat-form-field appearance="outline" class="w-full">
+      <mat-form-field appearance="outline" class="w-full mt-2">
         <mat-label>Nome Completo *</mat-label>
         <input matInput formControlName="fullName" />
-        @if (form.controls.fullName.hasError('required')) {
+        @if (form.controls.fullName.hasError("required")) {
           <mat-error>Nome é obrigatório</mat-error>
         }
-        @if (form.controls.fullName.hasError('maxlength')) {
+        @if (form.controls.fullName.hasError("maxlength")) {
           <mat-error>Máximo 180 caracteres</mat-error>
         }
       </mat-form-field>
@@ -21,18 +21,33 @@
     <div class="form-row">
       <mat-form-field appearance="outline" class="w-full">
         <mat-label>{{ getCongregationLabel() }} *</mat-label>
-        <mat-select formControlName="organizationUnitId">
+        <input
+          matInput
+          [formControl]="congregationSearchControl"
+          [matAutocomplete]="congregationAuto"
+          placeholder="Digite para buscar"
+        />
+        <mat-autocomplete
+          #congregationAuto="matAutocomplete"
+          [displayWith]="displayCongregation"
+          (optionSelected)="onCongregationSelected($event)"
+          [autoActiveFirstOption]="true"
+        >
           @if (congregations().length === 0) {
-            <mat-option disabled
-              >Nenhuma {{ getCongregationLabel() }} cadastrada. Cadastre em
-              Organizações.</mat-option
-            >
+            <mat-option disabled>
+              Nenhuma {{ getCongregationLabel() }} cadastrada. Cadastre em
+              Organizações.
+            </mat-option>
+          } @else {
+            @for (
+              org of filterCongregations(congregationSearchControl.value);
+              track org.id
+            ) {
+              <mat-option [value]="org">{{ org.name }}</mat-option>
+            }
           }
-          @for (org of congregations(); track org.id) {
-            <mat-option [value]="org.id">{{ org.name }}</mat-option>
-          }
-        </mat-select>
-        @if (form.controls.organizationUnitId.hasError('required')) {
+        </mat-autocomplete>
+        @if (form.controls.organizationUnitId.hasError("required")) {
           <mat-error>{{ getCongregationLabel() }} é obrigatória</mat-error>
         }
       </mat-form-field>
@@ -42,7 +57,7 @@
       <mat-form-field appearance="outline">
         <mat-label>Email</mat-label>
         <input matInput type="email" formControlName="email" />
-        @if (form.controls.email.hasError('email')) {
+        @if (form.controls.email.hasError("email")) {
           <mat-error>Email inválido</mat-error>
         }
       </mat-form-field>
@@ -66,10 +81,10 @@
           mask="000.000.000-00"
           [readonly]="data.mode === 'edit'"
         />
-        @if (form.controls.document.hasError('required')) {
+        @if (form.controls.document.hasError("required")) {
           <mat-error>CPF é obrigatório</mat-error>
         }
-        @if (form.controls.document.hasError('cpfInvalido')) {
+        @if (form.controls.document.hasError("cpfInvalido")) {
           <mat-error>CPF inválido</mat-error>
         }
       </mat-form-field>
@@ -115,6 +130,7 @@
           matInput
           [matDatepicker]="birthPicker"
           formControlName="birthDate"
+          appDateMask
         />
         <mat-datepicker-toggle
           matSuffix
@@ -129,6 +145,7 @@
           matInput
           [matDatepicker]="baptismPicker"
           formControlName="baptismDate"
+          appDateMask
         />
         <mat-datepicker-toggle
           matSuffix
@@ -152,13 +169,39 @@
 
     <!-- Endereço -->
     <h3 class="section-title">Endereço</h3>
-    <div class="form-row two-cols">
+
+    <div class="form-row cep-row">
       <mat-form-field appearance="outline">
+        <mat-label>CEP</mat-label>
+        <input matInput formControlName="addressZipCode" mask="00000-000" />
+        <mat-hint>Digite o CEP para preencher o endereço</mat-hint>
+      </mat-form-field>
+
+      <button
+        mat-stroked-button
+        type="button"
+        class="cep-button"
+        [disabled]="isCepLookupLoading()"
+        (click)="lookupCep()"
+      >
+        <mat-icon>
+          @if (isCepLookupLoading()) {
+            hourglass_top
+          } @else {
+            search
+          }
+        </mat-icon>
+        Buscar CEP
+      </button>
+    </div>
+
+    <div class="form-row two-cols two-cols--wide">
+      <mat-form-field appearance="outline" class="col-street field-disabled-soft">
         <mat-label>Rua/Avenida</mat-label>
         <input matInput formControlName="addressStreet" />
       </mat-form-field>
 
-      <mat-form-field appearance="outline">
+      <mat-form-field appearance="outline" class="col-number">
         <mat-label>Número</mat-label>
         <input matInput formControlName="addressNumber" />
       </mat-form-field>
@@ -170,72 +213,95 @@
         <input matInput formControlName="addressComplement" />
       </mat-form-field>
 
-      <mat-form-field appearance="outline">
+      <mat-form-field appearance="outline" class="field-disabled-soft">
         <mat-label>Bairro</mat-label>
         <input matInput formControlName="addressNeighborhood" />
       </mat-form-field>
     </div>
 
-    <div class="form-row three-cols">
-      <mat-form-field appearance="outline">
+    <div class="form-row two-cols two-cols--wide">
+      <mat-form-field appearance="outline" class="field-disabled-soft">
         <mat-label>Cidade</mat-label>
         <input matInput formControlName="addressCity" />
       </mat-form-field>
 
-      <mat-form-field appearance="outline">
+      <mat-form-field appearance="outline" class="field-disabled-soft">
         <mat-label>Estado</mat-label>
         <input matInput formControlName="addressState" maxlength="2" />
-      </mat-form-field>
-
-      <mat-form-field appearance="outline">
-        <mat-label>CEP</mat-label>
-        <input matInput formControlName="addressZipCode" />
       </mat-form-field>
     </div>
 
     <!-- Família -->
     <h3 class="section-title">Família</h3>
-    <div class="form-row">
-      <mat-form-field appearance="outline" class="w-full">
+    <div class="form-row two-cols family-grid">
+      <mat-form-field appearance="outline">
         <mat-label>Cônjuge</mat-label>
-        <mat-select formControlName="spouseId">
-          <mat-option [value]="null">Nenhum</mat-option>
-          @for (member of allMembers(); track member.id) {
-            <mat-option [value]="member.id">{{
-              member.fullName
-            }}</mat-option>
+        <input
+          matInput
+          [formControl]="spouseSearchControl"
+          [matAutocomplete]="spouseAuto"
+          placeholder="Digite para buscar"
+        />
+        <mat-autocomplete
+          #spouseAuto="matAutocomplete"
+          [displayWith]="displayMember"
+          (optionSelected)="onSpouseSelected($event)"
+        >
+          @for (
+            member of filterMembers(spouseSearchControl.value);
+            track member.id
+          ) {
+            <mat-option [value]="member">{{ member.fullName }}</mat-option>
           }
-        </mat-select>
+        </mat-autocomplete>
       </mat-form-field>
-    </div>
 
-    <div class="form-row two-cols">
       <mat-form-field appearance="outline">
         <mat-label>Pai</mat-label>
-        <mat-select formControlName="fatherId">
-          <mat-option [value]="null">Nenhum</mat-option>
-          @for (member of allMembers(); track member.id) {
-            <mat-option [value]="member.id">{{
-              member.fullName
-            }}</mat-option>
+        <input
+          matInput
+          [formControl]="fatherSearchControl"
+          [matAutocomplete]="fatherAuto"
+          placeholder="Digite para buscar"
+        />
+        <mat-autocomplete
+          #fatherAuto="matAutocomplete"
+          [displayWith]="displayMember"
+          (optionSelected)="onFatherSelected($event)"
+        >
+          @for (
+            member of filterMembers(fatherSearchControl.value);
+            track member.id
+          ) {
+            <mat-option [value]="member">{{ member.fullName }}</mat-option>
           }
-        </mat-select>
+        </mat-autocomplete>
       </mat-form-field>
 
       <mat-form-field appearance="outline">
         <mat-label>Mãe</mat-label>
-        <mat-select formControlName="motherId">
-          <mat-option [value]="null">Nenhum</mat-option>
-          @for (member of allMembers(); track member.id) {
-            <mat-option [value]="member.id">{{
-              member.fullName
-            }}</mat-option>
+        <input
+          matInput
+          [formControl]="motherSearchControl"
+          [matAutocomplete]="motherAuto"
+          placeholder="Digite para buscar"
+        />
+        <mat-autocomplete
+          #motherAuto="matAutocomplete"
+          [displayWith]="displayMember"
+          (optionSelected)="onMotherSelected($event)"
+        >
+          @for (
+            member of filterMembers(motherSearchControl.value);
+            track member.id
+          ) {
+            <mat-option [value]="member">{{ member.fullName }}</mat-option>
           }
-        </mat-select>
+        </mat-autocomplete>
       </mat-form-field>
     </div>
 
-    @if (data.mode === 'edit') {
+    @if (data.mode === "edit") {
       <div class="form-row">
         <mat-form-field appearance="outline" class="w-full">
           <mat-label>Status</mat-label>
@@ -258,6 +324,6 @@
     [disabled]="form.invalid || saving()"
     (click)="save()"
   >
-    {{ saving() ? 'Salvando...' : 'Salvar' }}
+    {{ saving() ? "Salvando..." : "Salvar" }}
   </button>
 </mat-dialog-actions>

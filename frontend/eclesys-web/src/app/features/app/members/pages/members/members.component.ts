@@ -17,7 +17,6 @@ import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { MatDialog } from '@angular/material/dialog';
-import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
@@ -35,6 +34,7 @@ import { OrganizationUnit } from '../../../../../shared/api/organization-unit.mo
 import { ChurchRolesService } from '../../../../../shared/api/church-roles.service';
 import { ChurchRole } from '../../../../../shared/models/church-role.model';
 import { CongregationFilterDialogComponent } from '../../../../../shared/ui/congregation-filter-dialog/congregation-filter-dialog.component';
+import { NotificationService } from '../../../../../shared/services/notification.service';
 
 @Component({
   selector: 'app-members',
@@ -63,7 +63,7 @@ export class MembersComponent implements OnInit {
   private organizationsService = inject(OrganizationsService);
   private churchRolesService = inject(ChurchRolesService);
   private dialog = inject(MatDialog);
-  private snackBar = inject(MatSnackBar);
+  private notificationService = inject(NotificationService);
 
   // Data signals
   members = signal<Member[]>([]);
@@ -198,6 +198,11 @@ export class MembersComponent implements OnInit {
     }, 400);
   }
 
+  onFilterChange() {
+    this.pageIndex.set(0);
+    this.loadMembers();
+  }
+
   onCongregationInput(event: Event) {
     const input = event.target as HTMLInputElement;
     this.congregationSearch = input.value;
@@ -320,9 +325,7 @@ export class MembersComponent implements OnInit {
     dialogRef.afterClosed().subscribe((result) => {
       if (result) {
         this.loadMembers();
-        this.snackBar.open('Membro criado com sucesso', 'Fechar', {
-          duration: 3000,
-        });
+        this.notificationService.success('Membro criado com sucesso');
       }
     });
   }
@@ -346,9 +349,7 @@ export class MembersComponent implements OnInit {
     dialogRef.afterClosed().subscribe((result) => {
       if (result) {
         this.loadMembers();
-        this.snackBar.open('Transferência realizada com sucesso', 'Fechar', {
-          duration: 3000,
-        });
+        this.notificationService.success('Transferência realizada com sucesso');
       }
     });
   }
@@ -364,9 +365,7 @@ export class MembersComponent implements OnInit {
     dialogRef.afterClosed().subscribe((result) => {
       if (result) {
         this.loadMembers();
-        this.snackBar.open('Membro atualizado com sucesso', 'Fechar', {
-          duration: 3000,
-        });
+        this.notificationService.success('Membro atualizado com sucesso');
       }
     });
   }

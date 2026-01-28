@@ -12,9 +12,9 @@ import { MatInputModule } from '@angular/material/input';
 
 import { UsersStore } from '../../data/users.store';
 import { UserDto } from '../../models/user.models';
-import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatIcon } from '@angular/material/icon';
 import { passwordMatchValidator } from '../../../../../shared/validators/password-match.validator';
+import { NotificationService } from '../../../../../shared/services/notification.service';
 
 export interface ResetPasswordDialogData {
   user: UserDto;
@@ -39,7 +39,7 @@ export class ResetPasswordDialogComponent {
   dialogRef = inject(MatDialogRef<ResetPasswordDialogComponent>);
   dialogData = inject<ResetPasswordDialogData>(MAT_DIALOG_DATA);
   formBuilder = inject(FormBuilder);
-  snackBar = inject(MatSnackBar);
+  notificationService = inject(NotificationService);
   wasSubmitted = signal(false);
 
   isSubmitting = signal(false);
@@ -101,10 +101,8 @@ export class ResetPasswordDialogComponent {
     this.isSubmitting.set(false);
 
     if (success) {
-      this.snackBar.open(
+      this.notificationService.success(
         `Senha de ${this.dialogData.user.name} redefinida com sucesso`,
-        'Fechar',
-        { duration: 3000 },
       );
 
       this.dialogRef.close(true);

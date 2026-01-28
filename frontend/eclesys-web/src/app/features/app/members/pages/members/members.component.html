@@ -37,7 +37,7 @@
           <mat-label>Cargo Eclesiástico</mat-label>
           <mat-select
             [(ngModel)]="selectedChurchRole"
-            (ngModelChange)="loadMembers()"
+            (ngModelChange)="onFilterChange()"
           >
             <mat-option [value]="null">Todos</mat-option>
             @for (role of churchRoles(); track role.id) {
@@ -50,7 +50,7 @@
           <mat-label>Status</mat-label>
           <mat-select
             [(ngModel)]="selectedStatus"
-            (ngModelChange)="loadMembers()"
+            (ngModelChange)="onFilterChange()"
           >
             <mat-option [value]="null">Todos</mat-option>
             <mat-option value="ACTIVE">Ativo</mat-option>

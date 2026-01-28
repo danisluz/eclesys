@@ -12,7 +12,7 @@ import { MatDividerModule } from '@angular/material/divider';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
+import { NotificationService } from '../../../../../shared/services/notification.service';
 import { UserAvatarComponent } from '../../../../../shared/ui/user-avatar/user-avatar.component';
 import { ErrorStateMatcher } from '@angular/material/core';
 
@@ -28,7 +28,6 @@ import { ErrorStateMatcher } from '@angular/material/core';
     MatProgressSpinnerModule,
     MatFormFieldModule,
     MatInputModule,
-    MatSnackBarModule,
     UserAvatarComponent,
   ],
   templateUrl: './profile.component.html',
@@ -38,7 +37,7 @@ export class ProfileComponent {
   authStore = inject(AuthStore);
   private usersService = inject(UsersService);
   private tenantLogosService = inject(TenantLogosService);
-  private snackBar = inject(MatSnackBar);
+  private notificationService = inject(NotificationService);
 
   isEditingProfileSignal = signal(false);
   isSavingProfileSignal = signal(false);
@@ -142,9 +141,7 @@ export class ProfileComponent {
             this.authStore.loadMe();
           }
 
-          this.snackBar.open('Nome atualizado com sucesso.', 'OK', {
-            duration: 2500,
-          });
+          this.notificationService.success('Nome atualizado com sucesso.');
         },
         error: (error) => {
           const message =
@@ -215,9 +212,7 @@ export class ProfileComponent {
           this.newPassword.set('');
           this.confirmNewPassword.set('');
 
-          this.snackBar.open('Senha alterada com sucesso.', 'OK', {
-            duration: 2500,
-          });
+          this.notificationService.success('Senha alterada com sucesso.');
         },
         error: (error) => {
           const message =
@@ -293,9 +288,7 @@ export class ProfileComponent {
           this.logoInput.nativeElement.value = '';
         }
 
-        this.snackBar.open('Logo atualizado com sucesso.', 'OK', {
-          duration: 2500,
-        });
+        this.notificationService.success('Logo atualizado com sucesso.');
       },
       error: (error) => {
         const message =
@@ -323,9 +316,7 @@ export class ProfileComponent {
           this.logoInput.nativeElement.value = '';
         }
 
-        this.snackBar.open('Logo removido com sucesso.', 'OK', {
-          duration: 2500,
-        });
+        this.notificationService.success('Logo removido com sucesso.');
       },
       error: (error) => {
         const message =

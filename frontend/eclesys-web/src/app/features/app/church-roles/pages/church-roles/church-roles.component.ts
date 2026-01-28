@@ -6,10 +6,10 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatTableModule } from '@angular/material/table';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatDialog } from '@angular/material/dialog';
-import { MatSnackBar } from '@angular/material/snack-bar';
 import { ChurchRolesService } from '../../../../../shared/api/church-roles.service';
 import { ChurchRole } from '../../../../../shared/models/church-role.model';
 import { ChurchRoleFormDialogComponent } from '../../dialogs/church-role-form-dialog/church-role-form-dialog.component';
+import { NotificationService } from '../../../../../shared/services/notification.service';
 
 @Component({
   selector: 'app-church-roles',
@@ -29,7 +29,7 @@ import { ChurchRoleFormDialogComponent } from '../../dialogs/church-role-form-di
 export class ChurchRolesComponent implements OnInit {
   private service = inject(ChurchRolesService);
   private dialog = inject(MatDialog);
-  private snackBar = inject(MatSnackBar);
+  private notificationService = inject(NotificationService);
 
   roles = signal<ChurchRole[]>([]);
   loading = signal(true);
@@ -62,9 +62,7 @@ export class ChurchRolesComponent implements OnInit {
     dialogRef.afterClosed().subscribe((result) => {
       if (result) {
         this.loadRoles();
-        this.snackBar.open('Cargo criado com sucesso', 'Fechar', {
-          duration: 3000,
-        });
+        this.notificationService.success('Cargo criado com sucesso');
       }
     });
   }
@@ -78,9 +76,7 @@ export class ChurchRolesComponent implements OnInit {
     dialogRef.afterClosed().subscribe((result) => {
       if (result) {
         this.loadRoles();
-        this.snackBar.open('Cargo atualizado com sucesso', 'Fechar', {
-          duration: 3000,
-        });
+        this.notificationService.success('Cargo atualizado com sucesso');
       }
     });
   }
@@ -91,17 +87,13 @@ export class ChurchRolesComponent implements OnInit {
 
     this.service.update(role.id, { isActive }).subscribe({
       next: () => {
-        this.snackBar.open(
+        this.notificationService.success(
           isActive ? 'Cargo ativado' : 'Cargo desativado',
-          'Fechar',
-          { duration: 3000 },
         );
       },
       error: () => {
         role.isActive = originalValue;
-        this.snackBar.open('Erro ao atualizar status', 'Fechar', {
-          duration: 3000,
-        });
+        this.notificationService.error('Erro ao atualizar status');
       },
     });
   }

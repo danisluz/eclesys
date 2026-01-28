@@ -26,9 +26,15 @@ public interface MemberRepository extends JpaRepository<Member, UUID> {
   @Query("SELECT m FROM Member m WHERE m.tenant = :tenant AND " +
          "(LOWER(m.fullName) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
          "LOWER(m.email) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
-         "LOWER(m.phone) LIKE LOWER(CONCAT('%', :search, '%'))) " +
+         "LOWER(m.phone) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
+         "(:searchDigits IS NOT NULL AND " +
+         "CAST(FUNCTION('regexp_replace', m.document, '[^0-9]', '', 'g') AS string) LIKE CONCAT('%', :searchDigits, '%'))) " +
          "ORDER BY m.fullName ASC")
-  List<Member> searchByTenant(@Param("tenant") TenantEntity tenant, @Param("search") String search);
+  List<Member> searchByTenant(
+      @Param("tenant") TenantEntity tenant,
+      @Param("search") String search,
+      @Param("searchDigits") String searchDigits
+  );
 
   long countByTenantAndStatus(TenantEntity tenant, MemberStatus status);
 
@@ -60,13 +66,16 @@ public interface MemberRepository extends JpaRepository<Member, UUID> {
   @Query("SELECT m FROM Member m WHERE m.tenant = :tenant AND " +
          "(LOWER(m.fullName) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
          "LOWER(m.email) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
-         "LOWER(m.phone) LIKE LOWER(CONCAT('%', :search, '%'))) " +
+         "LOWER(m.phone) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
+         "(:searchDigits IS NOT NULL AND " +
+         "CAST(FUNCTION('regexp_replace', m.document, '[^0-9]', '', 'g') AS string) LIKE CONCAT('%', :searchDigits, '%'))) " +
          "AND (:status IS NULL OR m.status = :status) " +
          "AND (:organizationUnitIds IS NULL OR m.organizationUnit.id IN :organizationUnitIds) " +
          "AND (:churchRoleId IS NULL OR m.churchRole.id = :churchRoleId)")
   Page<Member> searchByTenantWithFilters(
       @Param("tenant") TenantEntity tenant,
       @Param("search") String search,
+      @Param("searchDigits") String searchDigits,
       @Param("status") MemberStatus status,
       @Param("organizationUnitIds") List<UUID> organizationUnitIds,
       @Param("churchRoleId") UUID churchRoleId,

@@ -7,11 +7,11 @@ import {
 } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { Router } from '@angular/router';
-import { MatSnackBar } from '@angular/material/snack-bar';
 import { AuthService } from './auth.service';
 import { TokenStorage } from './token.storage';
 import { AuthUser, LoginRequest } from './models';
 import { MeService } from './me.service';
+import { NotificationService } from '../../shared/services/notification.service';
 
 @Injectable({ providedIn: 'root' })
 export class AuthStore {
@@ -20,7 +20,7 @@ export class AuthStore {
   private meService = inject(MeService);
   private tokenStorage = inject(TokenStorage);
   private platformId = inject(PLATFORM_ID);
-  private snackBar = inject(MatSnackBar);
+  private notificationService = inject(NotificationService);
 
   private tokenSignal = signal<string | null>(null);
   private meSignal = signal<AuthUser | null>(null);
@@ -203,12 +203,7 @@ export class AuthStore {
 
     // Mostrar mensagem apenas no browser
     if (isPlatformBrowser(this.platformId)) {
-      this.snackBar.open(message, 'Fechar', {
-        duration: 5000,
-        horizontalPosition: 'center',
-        verticalPosition: 'top',
-        panelClass: ['snackbar-warning'],
-      });
+      this.notificationService.warn(message, 'Fechar', { duration: 5000 });
     }
 
     // Redirecionar

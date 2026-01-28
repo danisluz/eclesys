@@ -1,6 +1,6 @@
-import { Component, inject, signal, OnInit } from '@angular/core';
+import { Component, inject, signal, OnInit, DestroyRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, ReactiveFormsModule, Validators, FormControl } from '@angular/forms';
 import {
   MatDialogModule,
   MAT_DIALOG_DATA,
@@ -13,6 +13,9 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core';
 import { MatRadioModule } from '@angular/material/radio';
+import { MatIconModule } from '@angular/material/icon';
+import { MatAutocompleteModule, MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
+import { NotificationService } from '../../../../../shared/services/notification.service';
 import { NgxMaskDirective } from 'ngx-mask';
 import {
   Member,
@@ -26,6 +29,11 @@ import { ChurchRole } from '../../../../../shared/models/church-role.model';
 import { OrganizationsService } from '../../../../../shared/api/organizations.service';
 import { OrganizationUnit } from '../../../../../shared/api/organization-unit.model';
 import { cpfValidator } from '../../../../../shared/validators/cpf.validator';
+import { DateMaskDirective } from '../../../../../shared/directives/date-mask.directive';
+import { CepLookupService } from '../../../../../shared/services/cep-lookup.service';
+import { CepLookupResult } from '../../../../../shared/models/cep-lookup.models';
+import { finalize, take } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 interface DialogData {
   mode: 'create' | 'edit';
@@ -46,18 +54,23 @@ interface DialogData {
     MatDatepickerModule,
     MatNativeDateModule,
     MatRadioModule,
+    MatIconModule,
+    MatAutocompleteModule,
     NgxMaskDirective,
+    DateMaskDirective,
   ],
   templateUrl: './member-form-dialog.component.html',
   styleUrls: ['./member-form-dialog.component.scss'],
-
 })
 export class MemberFormDialogComponent implements OnInit {
-  private fb = inject(FormBuilder);
-  private service = inject(MembersService);
-  private churchRolesService = inject(ChurchRolesService);
-  private organizationsService = inject(OrganizationsService);
-  private dialogRef = inject(MatDialogRef<MemberFormDialogComponent>);
+  private readonly fb = inject(FormBuilder);
+  private readonly service = inject(MembersService);
+  private readonly churchRolesService = inject(ChurchRolesService);
+  private readonly organizationsService = inject(OrganizationsService);
+  private readonly cepLookupService = inject(CepLookupService);
+  private readonly dialogRef = inject(MatDialogRef<MemberFormDialogComponent>);
+  private readonly notificationService = inject(NotificationService);
+  private readonly destroyRef = inject(DestroyRef);
   data = inject<DialogData>(MAT_DIALOG_DATA);
 
   saving = signal(false);
@@ -65,6 +78,12 @@ export class MemberFormDialogComponent implements OnInit {
   congregations = signal<OrganizationUnit[]>([]);
   rootChurch = signal<OrganizationUnit | null>(null);
   allMembers = signal<Member[]>([]);
+  isCepLookupLoading = signal(false);
+
+  spouseSearchControl = new FormControl<string | Member | null>('');
+  fatherSearchControl = new FormControl<string | Member | null>('');
+  motherSearchControl = new FormControl<string | Member | null>('');
+  congregationSearchControl = new FormControl<string | OrganizationUnit | null>('');
 
   form = this.fb.group({
     fullName: ['', [Validators.required, Validators.maxLength(180)]],
@@ -79,12 +98,12 @@ export class MemberFormDialogComponent implements OnInit {
     baptismChurch: [''],
     baptismLocation: [''],
     churchRoleId: [null as string | null],
-    addressStreet: [''],
+    addressStreet: [{ value: '', disabled: true }],
     addressNumber: [''],
     addressComplement: [''],
-    addressNeighborhood: [''],
-    addressCity: [''],
-    addressState: [''],
+    addressNeighborhood: [{ value: '', disabled: true }],
+    addressCity: [{ value: '', disabled: true }],
+    addressState: [{ value: '', disabled: true }],
     addressZipCode: [''],
     spouseId: [null as string | null],
     fatherId: [null as string | null],
@@ -124,7 +143,151 @@ export class MemberFormDialogComponent implements OnInit {
         motherId: member.family?.motherId,
         status: member.status,
       });
+
+      this.spouseSearchControl.setValue(member.family?.spouseName ?? '');
+      this.fatherSearchControl.setValue(member.family?.fatherName ?? '');
+      this.motherSearchControl.setValue(member.family?.motherName ?? '');
     }
+
+    this.handleMemberSearchChanges();
+  }
+
+  private handleMemberSearchChanges() {
+    this.spouseSearchControl.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((value) => {
+      if (typeof value === 'string') {
+        this.form.controls.spouseId.setValue(null);
+      }
+    });
+    this.fatherSearchControl.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((value) => {
+      if (typeof value === 'string') {
+        this.form.controls.fatherId.setValue(null);
+      }
+    });
+    this.motherSearchControl.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((value) => {
+        if (typeof value === 'string') {
+          this.form.controls.motherId.setValue(null);
+        }
+      });
+
+    this.congregationSearchControl.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((value) => {
+        if (typeof value === 'string') {
+          this.form.controls.organizationUnitId.setValue('');
+        }
+      });
+  }
+
+  displayMember(option: Member | string | null): string {
+    if (!option) return '';
+    return typeof option === 'string' ? option : option.fullName;
+  }
+
+  filterMembers(search: Member | string | null): Member[] {
+    const value = typeof search === 'string' ? search : search?.fullName ?? '';
+    const term = value.trim().toLowerCase();
+
+    if (term.length < 2) {
+      return [];
+    }
+
+    return this.allMembers()
+      .filter((member) =>
+        member.fullName.toLowerCase().includes(term),
+      )
+      .slice(0, 20);
+  }
+
+  displayCongregation(option: OrganizationUnit | string | null): string {
+    if (!option) return '';
+    return typeof option === 'string' ? option : option.name;
+  }
+
+  filterCongregations(
+    search: OrganizationUnit | string | null,
+  ): OrganizationUnit[] {
+    const value = typeof search === 'string' ? search : search?.name ?? '';
+    const term = value.trim().toLowerCase();
+
+    const source = this.congregations();
+
+    if (term.length < 2) {
+      return source.slice(0, 20);
+    }
+
+    return source
+      .filter((org) => org.name.toLowerCase().includes(term))
+      .slice(0, 20);
+  }
+
+  onCongregationSelected(event: MatAutocompleteSelectedEvent) {
+    const org = event.option.value as OrganizationUnit;
+    this.form.controls.organizationUnitId.setValue(org.id);
+  }
+
+  onSpouseSelected(event: MatAutocompleteSelectedEvent) {
+    const member = event.option.value as Member;
+    this.form.controls.spouseId.setValue(member.id);
+  }
+
+  onFatherSelected(event: MatAutocompleteSelectedEvent) {
+    const member = event.option.value as Member;
+    this.form.controls.fatherId.setValue(member.id);
+  }
+
+  onMotherSelected(event: MatAutocompleteSelectedEvent) {
+    const member = event.option.value as Member;
+    this.form.controls.motherId.setValue(member.id);
+  }
+
+  private applyCepResult(result: CepLookupResult) {
+    if (result.street) {
+      this.form.controls.addressStreet.setValue(result.street);
+    }
+    if (result.neighborhood) {
+      this.form.controls.addressNeighborhood.setValue(result.neighborhood);
+    }
+    if (result.city) {
+      this.form.controls.addressCity.setValue(result.city);
+    }
+    if (result.state) {
+      this.form.controls.addressState.setValue(result.state);
+    }
+  }
+
+  lookupCep() {
+    const cepValue = this.form.controls.addressZipCode.value ?? '';
+
+    if (!this.cepLookupService.isValidCep(cepValue)) {
+      this.notificationService.warn('Informe um CEP válido para buscar o endereço.');
+      return;
+    }
+
+    if (this.isCepLookupLoading()) return;
+
+    this.isCepLookupLoading.set(true);
+
+    this.cepLookupService
+      .lookup(cepValue)
+      .pipe(
+        take(1),
+        finalize(() => this.isCepLookupLoading.set(false)),
+      )
+      .subscribe((result) => {
+        if (!result) {
+          this.notificationService.warn('CEP não encontrado.');
+          return;
+        }
+
+        this.applyCepResult(result);
+        this.notificationService.success('Endereço preenchido com sucesso.');
+      });
   }
 
   loadChurchRoles() {
@@ -173,6 +336,15 @@ export class MemberFormDialogComponent implements OnInit {
         );
         console.log('[DEBUG] Congregações filtradas:', congregations);
         this.congregations.set(congregations);
+
+        if (this.data.mode === 'edit' && this.data.member) {
+          const currentCongregation = congregations.find(
+            (org) => org.id === this.data.member?.organizationUnitId,
+          );
+          if (currentCongregation) {
+            this.congregationSearchControl.setValue(currentCongregation);
+          }
+        }
       },
       error: (err) => {
         console.error('[MemberForm] Error loading organizations:', err);
@@ -206,7 +378,7 @@ export class MemberFormDialogComponent implements OnInit {
 
     this.saving.set(true);
 
-    const formValue = this.form.value;
+    const formValue = this.form.getRawValue();
 
     const address =
       formValue.addressStreet ||
@@ -256,7 +428,10 @@ export class MemberFormDialogComponent implements OnInit {
       next: () => {
         this.dialogRef.close(true);
       },
-      error: () => {
+      error: (error) => {
+        const message =
+          error?.error?.message ?? 'Não foi possível salvar o membro.';
+        this.notificationService.error(message);
         this.saving.set(false);
       },
     });

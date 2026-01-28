@@ -211,6 +211,11 @@ body {
    Snackbar Custom Styles
 ========================= */
 
+.mat-mdc-snack-bar-container.snackbar-base .mdc-snackbar__surface {
+  border-left: 6px solid transparent;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.18);
+}
+
 .snackbar-warning {
   --mdc-snackbar-container-color: #f59e0b !important;
   --mat-snack-bar-button-color: #ffffff !important;
@@ -219,4 +224,50 @@ body {
   .mat-mdc-snack-bar-label {
     font-weight: 500;
   }
+}
+
+.mat-mdc-snack-bar-container.snackbar-warning .mdc-snackbar__surface {
+  border-left-color: #b45309;
+}
+
+.snackbar-success {
+  --mdc-snackbar-container-color: #16a34a !important;
+  --mat-snack-bar-button-color: #ffffff !important;
+  --mdc-snackbar-supporting-text-color: #ffffff !important;
+
+  .mat-mdc-snack-bar-label {
+    font-weight: 500;
+  }
+}
+
+.mat-mdc-snack-bar-container.snackbar-success .mdc-snackbar__surface {
+  border-left-color: #166534;
+}
+
+.snackbar-error {
+  --mdc-snackbar-container-color: #ef4444 !important;
+  --mat-snack-bar-button-color: #ffffff !important;
+  --mdc-snackbar-supporting-text-color: #ffffff !important;
+
+  .mat-mdc-snack-bar-label {
+    font-weight: 500;
+  }
+}
+
+.mat-mdc-snack-bar-container.snackbar-error .mdc-snackbar__surface {
+  border-left-color: #991b1b;
+}
+
+.snackbar-info {
+  --mdc-snackbar-container-color: #0ea5e9 !important;
+  --mat-snack-bar-button-color: #ffffff !important;
+  --mdc-snackbar-supporting-text-color: #ffffff !important;
+
+  .mat-mdc-snack-bar-label {
+    font-weight: 500;
+  }
+}
+
+.mat-mdc-snack-bar-container.snackbar-info .mdc-snackbar__surface {
+  border-left-color: #0369a1;
 }

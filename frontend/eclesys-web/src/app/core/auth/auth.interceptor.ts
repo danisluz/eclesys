@@ -40,6 +40,13 @@ export const authInterceptor: HttpInterceptorFn = (request, next) => {
 
   if (!token) return next(request);
 
+  const isApiRequest =
+    request.url.startsWith('/api') || request.url.includes('/api/');
+
+  if (!isApiRequest) {
+    return next(request);
+  }
+
   const clonedRequest = request.clone({
     setHeaders: { Authorization: `Bearer ${token}` },
   });

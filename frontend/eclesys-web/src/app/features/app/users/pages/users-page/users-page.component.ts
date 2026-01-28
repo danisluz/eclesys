@@ -18,9 +18,9 @@ import { AuthStore } from '../../../../../core/auth/auth.store';
 import { ConfirmDialogComponent } from '../../../../../shared/ui/confirm-dialog/confirm-dialog.component';
 import { MatMenuModule } from '@angular/material/menu';
 import { ResetPasswordDialogComponent } from '../../dialogs/reset-password-dialog/reset-password-dialog.component';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatSlideToggleChange } from '@angular/material/slide-toggle';
+import { NotificationService } from '../../../../../shared/services/notification.service';
 
 @Component({
   standalone: true,
@@ -34,7 +34,6 @@ import { MatSlideToggleChange } from '@angular/material/slide-toggle';
     UserAvatarComponent,
     MatSlideToggleModule,
     MatMenuModule,
-    MatSnackBarModule,
     MatTooltipModule,
     MatTableModule,
   ],
@@ -45,7 +44,7 @@ export class UsersPageComponent {
   usersStore = inject(UsersStore);
   matDialog = inject(MatDialog);
   authStore = inject(AuthStore);
-  snackBar = inject(MatSnackBar);
+  notificationService = inject(NotificationService);
 
   displayedColumns = ['user', 'role', 'status', 'actions'];
 
@@ -102,12 +101,10 @@ export class UsersPageComponent {
           return;
         }
 
-        this.snackBar.open(
+        this.notificationService.success(
           newValue
             ? `Usuário ${user.name} ativado com sucesso`
             : `Usuário ${user.name} desativado com sucesso`,
-          'Fechar',
-          { duration: 3000 },
         );
       });
   }

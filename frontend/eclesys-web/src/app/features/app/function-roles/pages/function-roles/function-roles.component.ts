@@ -7,13 +7,13 @@ import { MatTableModule } from '@angular/material/table';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatDialog } from '@angular/material/dialog';
-import { MatSnackBar } from '@angular/material/snack-bar';
 import { FunctionRolesService } from '../../../../../shared/api/function-roles.service';
 import {
   FunctionRole,
   ScopeType,
 } from '../../../../../shared/models/function-role.model';
 import { FunctionRoleFormDialogComponent } from '../../dialogs/function-role-form-dialog/function-role-form-dialog.component';
+import { NotificationService } from '../../../../../shared/services/notification.service';
 
 @Component({
   selector: 'app-function-roles',
@@ -34,7 +34,7 @@ import { FunctionRoleFormDialogComponent } from '../../dialogs/function-role-for
 export class FunctionRolesComponent implements OnInit {
   private service = inject(FunctionRolesService);
   private dialog = inject(MatDialog);
-  private snackBar = inject(MatSnackBar);
+  private notificationService = inject(NotificationService);
 
   roles = signal<FunctionRole[]>([]);
   loading = signal(true);
@@ -83,9 +83,7 @@ export class FunctionRolesComponent implements OnInit {
     dialogRef.afterClosed().subscribe((result) => {
       if (result) {
         this.loadRoles();
-        this.snackBar.open('Função criada com sucesso', 'Fechar', {
-          duration: 3000,
-        });
+        this.notificationService.success('Função criada com sucesso');
       }
     });
   }
@@ -99,9 +97,7 @@ export class FunctionRolesComponent implements OnInit {
     dialogRef.afterClosed().subscribe((result) => {
       if (result) {
         this.loadRoles();
-        this.snackBar.open('Função atualizada com sucesso', 'Fechar', {
-          duration: 3000,
-        });
+        this.notificationService.success('Função atualizada com sucesso');
       }
     });
   }
@@ -112,17 +108,13 @@ export class FunctionRolesComponent implements OnInit {
 
     this.service.update(role.id, { isActive }).subscribe({
       next: () => {
-        this.snackBar.open(
+        this.notificationService.success(
           isActive ? 'Função ativada' : 'Função desativada',
-          'Fechar',
-          { duration: 3000 },
         );
       },
       error: () => {
         role.isActive = originalValue;
-        this.snackBar.open('Erro ao atualizar status', 'Fechar', {
-          duration: 3000,
-        });
+        this.notificationService.error('Erro ao atualizar status');
       },
     });
   }

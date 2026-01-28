@@ -5,7 +5,6 @@ import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatChipsModule } from '@angular/material/chips';
 import { MatMenuModule } from '@angular/material/menu';
@@ -34,6 +33,7 @@ import {
   ViewHierarchyDialogComponent,
   ViewHierarchyDialogData,
 } from '../../dialogs/view-hierarchy-dialog/view-hierarchy-dialog.component';
+import { NotificationService } from '../../../../../shared/services/notification.service';
 
 @Component({
   standalone: true,
@@ -59,7 +59,7 @@ import {
 })
 export class OrganizationsComponent implements OnInit {
   private organizationsService = inject(OrganizationsService);
-  private snackBar = inject(MatSnackBar);
+  private notificationService = inject(NotificationService);
   private dialog = inject(MatDialog);
 
   organizations = signal<OrganizationUnit[]>([]);
@@ -254,14 +254,12 @@ export class OrganizationsComponent implements OnInit {
 
         this.organizationsService.create(request).subscribe({
           next: () => {
-            this.snackBar.open('Unidade criada com sucesso', 'OK', {
-              duration: 3000,
-            });
+            this.notificationService.success('Unidade criada com sucesso');
             this.loadOrganizations();
           },
           error: (error) => {
             const message = error?.error?.message ?? 'Erro ao criar unidade';
-            this.snackBar.open(message, 'OK', { duration: 5000 });
+            this.notificationService.error(message, 'OK', { duration: 5000 });
           },
         });
       });
@@ -285,15 +283,13 @@ export class OrganizationsComponent implements OnInit {
 
         this.organizationsService.update(unit.id, request).subscribe({
           next: () => {
-            this.snackBar.open('Unidade atualizada com sucesso', 'OK', {
-              duration: 3000,
-            });
+            this.notificationService.success('Unidade atualizada com sucesso');
             this.loadOrganizations();
           },
           error: (error) => {
             const message =
               error?.error?.message ?? 'Erro ao atualizar unidade';
-            this.snackBar.open(message, 'OK', { duration: 5000 });
+            this.notificationService.error(message, 'OK', { duration: 5000 });
           },
         });
       });
@@ -306,14 +302,12 @@ export class OrganizationsComponent implements OnInit {
 
     this.organizationsService.delete(unit.id).subscribe({
       next: () => {
-        this.snackBar.open('Unidade excluída com sucesso', 'OK', {
-          duration: 3000,
-        });
+        this.notificationService.success('Unidade excluída com sucesso');
         this.loadOrganizations();
       },
       error: (error) => {
         const message = error?.error?.message ?? 'Erro ao excluir unidade';
-        this.snackBar.open(message, 'OK', { duration: 5000 });
+        this.notificationService.error(message, 'OK', { duration: 5000 });
       },
     });
   }

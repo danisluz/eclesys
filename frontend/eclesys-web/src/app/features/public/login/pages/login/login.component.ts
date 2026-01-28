@@ -10,9 +10,9 @@ import {
 } from '@angular/core';
 import { FormsModule, NgForm } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { MatSnackBar } from '@angular/material/snack-bar';
 import { AuthStore } from '../../../../../core/auth/auth.store';
 import { environment } from '../../../../../../environments/environment';
+import { NotificationService } from '../../../../../shared/services/notification.service';
 
 @Component({
   standalone: true,
@@ -22,7 +22,7 @@ import { environment } from '../../../../../../environments/environment';
 })
 export class LoginComponent {
   authStore = inject(AuthStore);
-  private readonly snackBar = inject(MatSnackBar);
+  private readonly notificationService = inject(NotificationService);
 
   @ViewChild('turnstileContainer')
   turnstileContainer!: ElementRef<HTMLDivElement>;
@@ -93,7 +93,7 @@ export class LoginComponent {
       Object.values(form.controls).forEach((control) =>
         control.markAsTouched(),
       );
-      this.snackBar.open('Preencha todos os campos obrigatórios.', 'OK', {
+      this.notificationService.warn('Preencha todos os campos obrigatórios.', 'OK', {
         duration: 4000,
       });
       return;
@@ -103,7 +103,7 @@ export class LoginComponent {
 
     if (!token) {
       this.errorMessage.set('Confirme a verificação anti-bot para continuar.');
-      this.snackBar.open(
+      this.notificationService.warn(
         'Confirme a verificação anti-bot para continuar.',
         'OK',
         {

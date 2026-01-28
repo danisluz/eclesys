@@ -1,0 +1,41 @@
+:host {
+  display: block;
+  color: #ffffff;
+}
+
+.snackbar-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 240px;
+}
+
+.snackbar-icon {
+  font-size: 22px;
+  height: 22px;
+  width: 22px;
+}
+
+.snackbar-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+}
+
+.snackbar-title {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.snackbar-message {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.snackbar-action,
+.snackbar-close {
+  color: #ffffff;
+}

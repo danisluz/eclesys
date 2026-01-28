@@ -8,11 +8,11 @@ import { MatTabsModule } from '@angular/material/tabs';
 import { MatTableModule } from '@angular/material/table';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { TransferApprovalsService } from '../../../../../shared/api/transfer-approvals.service';
 import { MemberTransfer } from '../../../../../shared/models/member.model';
 import { RejectDialogComponent } from '../../dialogs/reject-dialog/reject-dialog.component';
+import { NotificationService } from '../../../../../shared/services/notification.service';
 
 @Component({
   selector: 'app-pending-approvals',
@@ -27,7 +27,6 @@ import { RejectDialogComponent } from '../../dialogs/reject-dialog/reject-dialog
     MatTableModule,
     MatTooltipModule,
     MatProgressSpinnerModule,
-    MatSnackBarModule,
     MatDialogModule,
   ],
   templateUrl: './pending-approvals.component.html',
@@ -35,7 +34,7 @@ import { RejectDialogComponent } from '../../dialogs/reject-dialog/reject-dialog
 })
 export class PendingApprovalsComponent implements OnInit {
   private readonly approvalsService = inject(TransferApprovalsService);
-  private readonly snackBar = inject(MatSnackBar);
+  private readonly notificationService = inject(NotificationService);
   private readonly dialog = inject(MatDialog);
 
   forApproval = signal<MemberTransfer[]>([]);
@@ -103,15 +102,13 @@ export class PendingApprovalsComponent implements OnInit {
     this.approvalsService.approveTransfer(transfer.id).subscribe({
       next: (response) => {
         if (response.status === 'success') {
-          this.snackBar.open('Transferência aprovada com sucesso', 'Fechar', {
-            duration: 3000,
-          });
+          this.notificationService.success('Transferência aprovada com sucesso');
           this.loadPendingTransfers();
         }
       },
       error: (err) => {
         const message = err.error?.message || 'Erro ao aprovar transferência';
-        this.snackBar.open(message, 'Fechar', { duration: 5000 });
+        this.notificationService.error(message);
       },
     });
   }
@@ -129,16 +126,14 @@ export class PendingApprovalsComponent implements OnInit {
           .subscribe({
             next: (response) => {
               if (response.status === 'success') {
-                this.snackBar.open('Transferência rejeitada', 'Fechar', {
-                  duration: 3000,
-                });
+                this.notificationService.success('Transferência rejeitada');
                 this.loadPendingTransfers();
               }
             },
             error: (err) => {
               const message =
                 err.error?.message || 'Erro ao rejeitar transferência';
-              this.snackBar.open(message, 'Fechar', { duration: 5000 });
+              this.notificationService.error(message);
             },
           });
       }
@@ -150,15 +145,13 @@ export class PendingApprovalsComponent implements OnInit {
       this.approvalsService.cancelTransfer(transfer.id).subscribe({
         next: (response) => {
           if (response.status === 'success') {
-            this.snackBar.open('Solicitação cancelada com sucesso', 'Fechar', {
-              duration: 3000,
-            });
+            this.notificationService.success('Solicitação cancelada com sucesso');
             this.loadPendingTransfers();
           }
         },
         error: (err) => {
           const message = err.error?.message || 'Erro ao cancelar solicitação';
-          this.snackBar.open(message, 'Fechar', { duration: 5000 });
+          this.notificationService.error(message);
         },
       });
     }
