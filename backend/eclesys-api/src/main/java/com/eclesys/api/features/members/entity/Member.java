@@ -40,6 +40,9 @@ public class Member {
   @Column(length = 20)
   private String document;
 
+  @Column(name = "registration_number", nullable = false)
+  private Integer registrationNumber;
+
   @Column(name = "birth_date")
   private LocalDate birthDate;
 

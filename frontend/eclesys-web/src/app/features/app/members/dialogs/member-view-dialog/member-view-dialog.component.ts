@@ -125,6 +125,13 @@ export class MemberViewDialogComponent implements OnInit {
     return labels[status] || status;
   }
 
+  formatRegistrationNumber(value: number | null | undefined): string {
+    if (!value) {
+      return '—';
+    }
+    return value.toString().padStart(6, '0');
+  }
+
   getStatusLabel(status: string): string {
     // Labels para status de membro
     const memberStatusLabels: Record<string, string> = {

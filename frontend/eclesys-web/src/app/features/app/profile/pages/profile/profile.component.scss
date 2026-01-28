@@ -96,3 +96,57 @@
   gap: 12px;
   opacity: 0.8;
 }
+
+.logo-uploader {
+  display: grid;
+  gap: 16px;
+  align-items: center;
+  grid-template-columns: minmax(140px, 200px) 1fr;
+}
+
+.logo-preview {
+  width: 100%;
+  min-height: 120px;
+  border-radius: 16px;
+  border: 1px dashed rgba(0, 0, 0, 0.18);
+  background: rgba(0, 0, 0, 0.02);
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+
+.logo-preview img {
+  max-width: 100%;
+  max-height: 140px;
+  object-fit: contain;
+}
+
+.logo-placeholder {
+  display: grid;
+  place-items: center;
+  gap: 6px;
+  font-size: 12px;
+  opacity: 0.75;
+}
+
+.logo-actions {
+  display: grid;
+  gap: 10px;
+}
+
+.logo-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.logo-hint {
+  font-size: 12px;
+  opacity: 0.7;
+}
+
+@media (max-width: 720px) {
+  .logo-uploader {
+    grid-template-columns: 1fr;
+  }
+}

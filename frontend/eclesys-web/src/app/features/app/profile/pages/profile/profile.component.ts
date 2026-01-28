@@ -1,8 +1,9 @@
-import { Component, inject, signal, computed } from '@angular/core';
+import { Component, inject, signal, computed, ElementRef, ViewChild } from '@angular/core';
 import { FormControl, FormsModule } from '@angular/forms';
 
 import { AuthStore } from '../../../../../core/auth/auth.store';
 import { UsersService } from '../../../../../core/auth/users.service';
+import { TenantLogosService } from '../../../../../shared/api/tenant-logos.service';
 
 import { MatCardModule } from '@angular/material/card';
 import { MatIconModule } from '@angular/material/icon';
@@ -36,6 +37,7 @@ import { ErrorStateMatcher } from '@angular/material/core';
 export class ProfileComponent {
   authStore = inject(AuthStore);
   private usersService = inject(UsersService);
+  private tenantLogosService = inject(TenantLogosService);
   private snackBar = inject(MatSnackBar);
 
   isEditingProfileSignal = signal(false);
@@ -54,9 +56,23 @@ export class ProfileComponent {
 
   isChangingPasswordSignal = signal(false);
   passwordErrorMessageSignal = signal<string | null>(null);
+  logoErrorMessageSignal = signal<string | null>(null);
+  logoFile = signal<File | null>(null);
+  logoPreviewUrl = signal<string | null>(null);
+  isUploadingLogoSignal = signal(false);
+
+  private currentLogoObjectUrl: string | null = null;
 
   meNameSignal = computed(() => this.authStore.me()?.name ?? null);
   meEmailSignal = computed(() => this.authStore.me()?.email ?? null);
+  isAdminSignal = computed(() => this.authStore.me()?.role === 'ADMIN');
+
+  canUploadLogo = computed(() => {
+    if (this.isUploadingLogoSignal()) return false;
+    return !!this.logoFile();
+  });
+
+  @ViewChild('logoInput') logoInput?: ElementRef<HTMLInputElement>;
 
   isProfileDirty = computed(() => {
     const me = this.authStore.me();
@@ -226,6 +242,113 @@ export class ProfileComponent {
 
     return newPasswordValue !== confirmPasswordValue;
   });
+
+  onLogoSelected(event: Event) {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+
+    this.logoErrorMessageSignal.set(null);
+
+    if (!file) {
+      this.logoFile.set(null);
+      this.clearLogoPreview();
+      return;
+    }
+
+    if (!file.type.startsWith('image/')) {
+      this.logoErrorMessageSignal.set('Selecione um arquivo de imagem válido.');
+      this.logoFile.set(null);
+      this.clearLogoPreview();
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      this.logoErrorMessageSignal.set('O logo deve ter no máximo 5MB.');
+      this.logoFile.set(null);
+      this.clearLogoPreview();
+      return;
+    }
+
+    this.logoFile.set(file);
+    this.setLogoPreview(file);
+  }
+
+  uploadLogo() {
+    const file = this.logoFile();
+    if (!file || this.isUploadingLogoSignal()) return;
+
+    this.isUploadingLogoSignal.set(true);
+    this.logoErrorMessageSignal.set(null);
+
+    this.tenantLogosService.uploadLogo(file).subscribe({
+      next: (response) => {
+        this.isUploadingLogoSignal.set(false);
+        this.logoFile.set(null);
+        this.clearLogoPreview();
+
+        const logoUrl = response.data?.logoUrl ?? null;
+        this.authStore.updateMe({ tenantLogoUrl: logoUrl ?? undefined });
+
+        if (this.logoInput?.nativeElement) {
+          this.logoInput.nativeElement.value = '';
+        }
+
+        this.snackBar.open('Logo atualizado com sucesso.', 'OK', {
+          duration: 2500,
+        });
+      },
+      error: (error) => {
+        const message =
+          error?.error?.message ?? 'Não foi possível atualizar o logo.';
+        this.logoErrorMessageSignal.set(message);
+        this.isUploadingLogoSignal.set(false);
+      },
+    });
+  }
+
+  removeLogo() {
+    if (this.isUploadingLogoSignal()) return;
+
+    this.isUploadingLogoSignal.set(true);
+    this.logoErrorMessageSignal.set(null);
+
+    this.tenantLogosService.removeLogo().subscribe({
+      next: () => {
+        this.isUploadingLogoSignal.set(false);
+        this.logoFile.set(null);
+        this.clearLogoPreview();
+        this.authStore.updateMe({ tenantLogoUrl: undefined });
+
+        if (this.logoInput?.nativeElement) {
+          this.logoInput.nativeElement.value = '';
+        }
+
+        this.snackBar.open('Logo removido com sucesso.', 'OK', {
+          duration: 2500,
+        });
+      },
+      error: (error) => {
+        const message =
+          error?.error?.message ?? 'Não foi possível remover o logo.';
+        this.logoErrorMessageSignal.set(message);
+        this.isUploadingLogoSignal.set(false);
+      },
+    });
+  }
+
+  private setLogoPreview(file: File) {
+    this.clearLogoPreview();
+    this.currentLogoObjectUrl = URL.createObjectURL(file);
+    this.logoPreviewUrl.set(this.currentLogoObjectUrl);
+  }
+
+  private clearLogoPreview() {
+    if (this.currentLogoObjectUrl) {
+      URL.revokeObjectURL(this.currentLogoObjectUrl);
+    }
+    this.currentLogoObjectUrl = null;
+    this.logoPreviewUrl.set(null);
+  }
 
   confirmPasswordErrorStateMatcher: ErrorStateMatcher = {
     isErrorState: (control: FormControl | null) => {

@@ -48,6 +48,17 @@
   display: block;
 }
 
+.topbar__brand-logo--tenant {
+  height: 28px;
+  max-width: 160px;
+}
+
+.topbar__brand-separator {
+  opacity: 0.7;
+  font-weight: 700;
+  font-size: 14px;
+}
+
 .topbar__brand-text {
   display: flex;
   flex-direction: column;

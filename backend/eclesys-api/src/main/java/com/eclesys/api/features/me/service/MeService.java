@@ -31,10 +31,12 @@ public class MeService {
     String role = String.valueOf(claims.get("role"));
     String tenantCode = String.valueOf(claims.get("tenantCode"));
 
-    String tenantName = tenantRepository
+    TenantEntity tenant = tenantRepository
         .findById(tenantId)
-        .map(TenantEntity::getName)
         .orElseThrow(() -> new RuntimeException("authenticated_tenant_not_found"));
+
+    String tenantName = tenant.getName();
+    String tenantLogoUrl = buildVersionedLogoUrl(tenant);
 
     return new MeResponse(
         userEntity.getId(),
@@ -43,12 +45,23 @@ public class MeService {
         role,
         tenantId,
         tenantCode,
-        tenantName
+        tenantName,
+        tenantLogoUrl
     );
   }
 
   public MeResponse getMe(Map<String, Object> claims) {
     return buildMeResponse(claims);
+  }
+
+  private String buildVersionedLogoUrl(TenantEntity tenant) {
+    String logoUrl = tenant.getLogoUrl();
+    if (logoUrl == null || logoUrl.isBlank()) {
+      return null;
+    }
+    long version = tenant.getUpdatedAt() != null ? tenant.getUpdatedAt().toEpochMilli() : System.currentTimeMillis();
+    String separator = logoUrl.contains("?") ? "&" : "?";
+    return logoUrl + separator + "v=" + version;
   }
 
 }

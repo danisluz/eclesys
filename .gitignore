@@ -31,3 +31,6 @@ target/
 .env
 *.local
 *.secret
+
+# Storage
+storage/

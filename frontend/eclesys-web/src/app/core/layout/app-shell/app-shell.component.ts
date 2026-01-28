@@ -40,6 +40,7 @@ export class AppShellComponent {
 
   meNameSignal = computed(() => this.authStore.me()?.name ?? null);
   meEmailSignal = computed(() => this.authStore.me()?.email ?? null);
+  tenantLogoUrl = computed(() => this.authStore.me()?.tenantLogoUrl ?? null);
 
   userInitials = computed(() => {
     const name = this.authStore.me()?.name ?? 'Usuário';

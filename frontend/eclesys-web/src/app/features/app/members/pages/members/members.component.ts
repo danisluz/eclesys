@@ -87,6 +87,7 @@ export class MembersComponent implements OnInit {
   private searchTimeout: any;
 
   displayedColumns = [
+    'registrationNumber',
     'fullName',
     'email',
     'phone',
@@ -388,5 +389,12 @@ export class MembersComponent implements OnInit {
       this.pageIndex.set(0);
       this.loadMembers();
     });
+  }
+
+  formatRegistrationNumber(value: number | null | undefined): string {
+    if (!value) {
+      return '—';
+    }
+    return value.toString().padStart(6, '0');
   }
 }

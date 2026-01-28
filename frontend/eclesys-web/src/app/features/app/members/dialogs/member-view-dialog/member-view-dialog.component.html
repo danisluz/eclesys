@@ -39,6 +39,11 @@
               </div>
             }
 
+            <div class="info-item">
+              <label>Matrícula</label>
+              <p>{{ formatRegistrationNumber(data.member.registrationNumber) }}</p>
+            </div>
+
             @if (data.member.birthDate) {
               <div class="info-item">
                 <label>Data de Nascimento</label>

@@ -49,6 +49,7 @@ public class SecurityConfig {
             .requestMatchers("/error").permitAll()
 
             .requestMatchers(HttpMethod.POST, "/api/public/onboarding").permitAll()
+            .requestMatchers(HttpMethod.GET, "/api/public/**").permitAll()
             .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
 
             .requestMatchers("/actuator/health", "/actuator/info").permitAll()

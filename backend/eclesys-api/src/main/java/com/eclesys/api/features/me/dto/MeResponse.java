@@ -9,5 +9,6 @@ public record MeResponse(
     String role,
     UUID tenantId,
     String tenantCode,
-    String tenantName
+    String tenantName,
+    String tenantLogoUrl
 ) {}

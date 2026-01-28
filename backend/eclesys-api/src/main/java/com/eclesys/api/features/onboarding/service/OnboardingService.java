@@ -5,6 +5,8 @@ import com.eclesys.api.features.tenants.repository.TenantRepository;
 import com.eclesys.api.features.users.entity.UserEntity;
 import com.eclesys.api.features.users.repository.UserRepository;
 import com.eclesys.api.features.users.entity.UserRole;
+import com.eclesys.api.features.members.entity.MemberRegistrationSequence;
+import com.eclesys.api.features.members.repository.MemberRegistrationSequenceRepository;
 import com.eclesys.api.features.onboarding.dto.OnboardingRequest;
 import com.eclesys.api.features.onboarding.dto.OnboardingResponse;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -19,11 +21,18 @@ public class OnboardingService {
 
   private TenantRepository tenantRepository;
   private UserRepository userRepository;
+  private MemberRegistrationSequenceRepository registrationSequenceRepository;
   private PasswordEncoder passwordEncoder;
 
-  public OnboardingService(TenantRepository tenantRepository, UserRepository userRepository, PasswordEncoder passwordEncoder) {
+  public OnboardingService(
+      TenantRepository tenantRepository,
+      UserRepository userRepository,
+      MemberRegistrationSequenceRepository registrationSequenceRepository,
+      PasswordEncoder passwordEncoder
+  ) {
     this.tenantRepository = tenantRepository;
     this.userRepository = userRepository;
+    this.registrationSequenceRepository = registrationSequenceRepository;
     this.passwordEncoder = passwordEncoder;
   }
 
@@ -42,6 +51,11 @@ public class OnboardingService {
     tenant.setActive(true);
 
     tenantRepository.save(tenant);
+
+    MemberRegistrationSequence sequence = new MemberRegistrationSequence();
+    sequence.setTenantId(tenant.getId());
+    sequence.setNextNumber(1);
+    registrationSequenceRepository.save(sequence);
 
     UserEntity admin = new UserEntity();
     admin.setId(UUID.randomUUID());

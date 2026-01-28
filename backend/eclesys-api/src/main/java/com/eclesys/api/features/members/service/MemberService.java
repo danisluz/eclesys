@@ -4,8 +4,10 @@ import com.eclesys.api.features.churchroles.entity.ChurchRole;
 import com.eclesys.api.features.churchroles.repository.ChurchRoleRepository;
 import com.eclesys.api.features.members.entity.Member;
 import com.eclesys.api.features.members.entity.MemberPositionHistory;
+import com.eclesys.api.features.members.entity.MemberRegistrationSequence;
 import com.eclesys.api.features.members.repository.MemberPositionHistoryRepository;
 import com.eclesys.api.features.members.repository.MemberRepository;
+import com.eclesys.api.features.members.repository.MemberRegistrationSequenceRepository;
 import com.eclesys.api.features.members.entity.MemberStatus;
 import com.eclesys.api.features.members.entity.MemberTransfer;
 import com.eclesys.api.features.members.repository.MemberTransferRepository;
@@ -19,6 +21,7 @@ import com.eclesys.api.features.users.entity.UserEntity;
 import com.eclesys.api.features.users.repository.UserRepository;
 import com.eclesys.api.features.members.dto.*;
 import com.eclesys.api.features.transfers.service.TransferApprovalService;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.data.domain.Page;
@@ -42,6 +45,7 @@ public class MemberService {
   private final UserRepository userRepository;
   private final TransferApprovalService approvalService;
   private final MemberPositionHistoryRepository positionHistoryRepository;
+  private final MemberRegistrationSequenceRepository registrationSequenceRepository;
 
   public MemberService(
       MemberRepository repository,
@@ -51,7 +55,8 @@ public class MemberService {
       MemberTransferRepository transferRepository,
       UserRepository userRepository,
       TransferApprovalService approvalService,
-      MemberPositionHistoryRepository positionHistoryRepository
+      MemberPositionHistoryRepository positionHistoryRepository,
+      MemberRegistrationSequenceRepository registrationSequenceRepository
   ) {
     this.repository = repository;
     this.tenantRepository = tenantRepository;
@@ -61,6 +66,7 @@ public class MemberService {
     this.userRepository = userRepository;
     this.approvalService = approvalService;
     this.positionHistoryRepository = positionHistoryRepository;
+    this.registrationSequenceRepository = registrationSequenceRepository;
   }
 
   @Transactional
@@ -124,6 +130,8 @@ public class MemberService {
           .orElseThrow(() -> new RuntimeException("Mãe não encontrada"));
       member.setMother(mother);
     }
+
+    member.setRegistrationNumber(nextRegistrationNumber(tenant.getId()));
 
     Member saved = repository.save(member);
     return toResponse(saved);
@@ -315,6 +323,7 @@ public class MemberService {
         member.getEmail(),
         member.getPhone(),
         member.getDocument(),
+        member.getRegistrationNumber(),
         member.getBirthDate(),
         member.getBaptismDate(),
         member.getBaptismChurch(),
@@ -331,6 +340,29 @@ public class MemberService {
         member.getCreatedAt(),
         member.getUpdatedAt()
     );
+  }
+
+  private int nextRegistrationNumber(UUID tenantId) {
+    try {
+      MemberRegistrationSequence sequence = registrationSequenceRepository.findByTenantIdForUpdate(tenantId)
+          .orElseGet(() -> createRegistrationSequence(tenantId));
+      int current = sequence.getNextNumber();
+      sequence.setNextNumber(current + 1);
+      return current;
+    } catch (DataIntegrityViolationException ex) {
+      MemberRegistrationSequence sequence = registrationSequenceRepository.findByTenantIdForUpdate(tenantId)
+          .orElseThrow(() -> new IllegalStateException("Sequência de matrícula não encontrada"));
+      int current = sequence.getNextNumber();
+      sequence.setNextNumber(current + 1);
+      return current;
+    }
+  }
+
+  private MemberRegistrationSequence createRegistrationSequence(UUID tenantId) {
+    MemberRegistrationSequence sequence = new MemberRegistrationSequence();
+    sequence.setTenantId(tenantId);
+    sequence.setNextNumber(1);
+    return registrationSequenceRepository.save(sequence);
   }
 
   private Map<String, Object> addressDtoToMap(AddressDto dto) {

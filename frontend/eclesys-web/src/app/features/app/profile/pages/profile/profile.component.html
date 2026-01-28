@@ -112,6 +112,92 @@
       </mat-card-content>
     </mat-card>
 
+    @if (isAdminSignal()) {
+      <mat-card appearance="outlined" class="card form-card">
+        <mat-card-header class="mb-4">
+          <mat-card-title>Logo da igreja</mat-card-title>
+          <mat-card-subtitle>
+            PNG até 5MB, largura máxima de 512px
+          </mat-card-subtitle>
+        </mat-card-header>
+
+        <mat-card-content class="form-card__content">
+          @if (logoErrorMessageSignal(); as errorMessage) {
+            <div class="form-error">
+              <mat-icon>error</mat-icon>
+              <div>{{ errorMessage }}</div>
+            </div>
+          }
+
+          <div class="logo-uploader">
+            <div class="logo-preview">
+              @if (logoPreviewUrl(); as previewUrl) {
+                <img [src]="previewUrl" alt="Pré-visualização do logo" />
+              } @else if (me.tenantLogoUrl) {
+                <img [src]="me.tenantLogoUrl" alt="Logo atual da igreja" />
+              } @else {
+                <div class="logo-placeholder">
+                  <mat-icon>image</mat-icon>
+                  <span>Nenhum logo cadastrado</span>
+                </div>
+              }
+            </div>
+
+            <div class="logo-actions">
+              <input
+                #logoInput
+                type="file"
+                accept="image/*"
+                (change)="onLogoSelected($event)"
+                hidden
+              />
+
+              <div class="logo-buttons">
+                <button
+                  mat-stroked-button
+                  type="button"
+                  (click)="logoInput.click()"
+                >
+                  <mat-icon>upload_file</mat-icon>
+                  Escolher arquivo
+                </button>
+
+                <button
+                  mat-flat-button
+                  color="primary"
+                  type="button"
+                  [disabled]="!canUploadLogo()"
+                  (click)="uploadLogo()"
+                >
+                  @if (isUploadingLogoSignal()) {
+                    <mat-progress-spinner diameter="18" mode="indeterminate" />
+                  } @else {
+                    <mat-icon>save</mat-icon>
+                  }
+                  Atualizar logo
+                </button>
+
+                <button
+                  mat-stroked-button
+                  color="warn"
+                  type="button"
+                  [disabled]="isUploadingLogoSignal() || !me.tenantLogoUrl"
+                  (click)="removeLogo()"
+                >
+                  <mat-icon>delete</mat-icon>
+                  Remover logo
+                </button>
+              </div>
+
+              <div class="logo-hint">
+                O sistema comprime o arquivo e salva em PNG.
+              </div>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    }
+
     <mat-card appearance="outlined" class="card form-card">
       <mat-card-header class="mb-4">
         <mat-card-title>Segurança</mat-card-title>

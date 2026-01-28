@@ -45,6 +45,7 @@ export interface Member {
   email: string | null;
   phone: string | null;
   document: string | null;
+  registrationNumber: number;
   birthDate: string | null;
   baptismDate: string | null;
   baptismChurch: string | null;

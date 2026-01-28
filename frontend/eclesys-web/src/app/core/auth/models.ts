@@ -8,6 +8,7 @@ export type AuthUser = {
   tenantId?: string;
   tenantCode?: string;
   tenantName?: string;
+  tenantLogoUrl?: string;
 };
 
 export type LoginRequest = {
@@ -34,4 +35,3 @@ export type ApiResponse<T> = {
   data: T;
   message?: string | null;
 };
-

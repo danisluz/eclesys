@@ -4,15 +4,29 @@
     <div class="topbar__left">
       <!-- BRAND -->
       <div class="topbar__brand">
-        <img
-          class="topbar__brand-logo"
-          src="assets/brand/eclesys-logo-white.svg"
-          alt="ECLESYS"
-        />
+        @if (tenantLogoUrl(); as logoUrl) {
+          <img
+            class="topbar__brand-logo topbar__brand-logo--tenant"
+            [src]="logoUrl"
+            alt="Logo da igreja"
+          />
+          <span class="topbar__brand-separator">|</span>
+          <img
+            class="topbar__brand-logo"
+            src="assets/brand/eclesys-logo-white.svg"
+            alt="ECLESYS"
+          />
+        } @else {
+          <img
+            class="topbar__brand-logo"
+            src="assets/brand/eclesys-logo-white.svg"
+            alt="ECLESYS"
+          />
 
-        <div class="topbar__brand-text">
-          <div class="topbar__brand-subtitle">administração</div>
-        </div>
+          <div class="topbar__brand-text">
+            <div class="topbar__brand-subtitle">administração</div>
+          </div>
+        }
       </div>
 
       <!-- NAV -->

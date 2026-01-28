@@ -15,6 +15,7 @@ public record MemberResponse(
     String email,
     String phone,
     String document,
+    Integer registrationNumber,
     LocalDate birthDate,
     LocalDate baptismDate,
     String baptismChurch,
