@@ -10,6 +10,7 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatTableModule } from '@angular/material/table';
+import { MatSortModule, Sort } from '@angular/material/sort';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
@@ -40,6 +41,7 @@ import {
     MatFormFieldModule,
     MatInputModule,
     MatTableModule,
+    MatSortModule,
     MatCheckboxModule,
     MatDialogModule,
     MatProgressSpinnerModule,
@@ -94,6 +96,12 @@ export class CommunionEventDetailPageComponent {
 
   getAttendanceStatus(member: CommunionMemberAttendance): AttendanceStatus {
     return member.status ?? (member.present ? 'PRESENT' : 'ABSENT');
+  }
+
+  onSortChange(sort: Sort): void {
+    const active = sort.active as 'registrationNumber' | 'fullName' | 'status';
+    if (!active) return;
+    this.detailStore.setSort(active, sort.direction);
   }
 
   private isAttendanceStatus(value: string): value is AttendanceStatus {

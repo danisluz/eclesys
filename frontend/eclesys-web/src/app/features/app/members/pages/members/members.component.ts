@@ -20,6 +20,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatSortModule, Sort } from '@angular/material/sort';
 import {
   MatAutocompleteModule,
   MatAutocompleteSelectedEvent,
@@ -53,6 +54,7 @@ import { NotificationService } from '../../../../../shared/services/notification
     MatTooltipModule,
     MatPaginatorModule,
     MatProgressSpinnerModule,
+    MatSortModule,
     MatAutocompleteModule,
   ],
   templateUrl: './members.component.html',
@@ -78,6 +80,10 @@ export class MembersComponent implements OnInit {
   pageSize = signal(50);
   pageIndex = signal(0);
   loading = signal(true);
+  sortBy = signal<
+    'registrationNumber' | 'fullName' | 'email' | 'phone' | 'status'
+  >('fullName');
+  sortDir = signal<'asc' | 'desc'>('asc');
 
   // Filter states
   searchTerm = '';
@@ -169,8 +175,8 @@ export class MembersComponent implements OnInit {
         this.selectedChurchRole ?? undefined,
         this.pageIndex(),
         this.pageSize(),
-        'fullName',
-        'asc',
+        this.sortBy(),
+        this.sortDir(),
       )
       .subscribe({
         next: (response) => {
@@ -187,6 +193,20 @@ export class MembersComponent implements OnInit {
   onPageChange(event: PageEvent) {
     this.pageIndex.set(event.pageIndex);
     this.pageSize.set(event.pageSize);
+    this.loadMembers();
+  }
+
+  onSortChange(sort: Sort) {
+    if (!sort.active) return;
+    const active = sort.active as
+      | 'registrationNumber'
+      | 'fullName'
+      | 'email'
+      | 'phone'
+      | 'status';
+    this.sortBy.set(active);
+    this.sortDir.set((sort.direction || 'asc') as 'asc' | 'desc');
+    this.pageIndex.set(0);
     this.loadMembers();
   }
 

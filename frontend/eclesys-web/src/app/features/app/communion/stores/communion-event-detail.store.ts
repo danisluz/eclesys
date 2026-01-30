@@ -40,6 +40,10 @@ export class CommunionEventDetailStore {
   private initialPresenceMapSignal = signal<Map<string, boolean>>(new Map());
   private initialNoteMapSignal = signal<Map<string, string | null>>(new Map());
   private initialStatusMapSignal = signal<Map<string, AttendanceStatus>>(new Map());
+  sortStateSignal = signal<{ active: 'registrationNumber' | 'fullName' | 'status'; direction: 'asc' | 'desc' }>({
+    active: 'fullName',
+    direction: 'asc',
+  });
 
   isEditingLockedSignal = computed(
     () => this.eventSignal()?.status !== 'OPEN',
@@ -54,9 +58,21 @@ export class CommunionEventDetailStore {
 
   membersSortedSignal = computed(() => {
     const members = [...this.membersSignal()];
-    members.sort((a, b) =>
-      a.fullName.localeCompare(b.fullName, 'pt-BR', { sensitivity: 'base' }),
-    );
+    const { active, direction } = this.sortStateSignal();
+    const multiplier = direction === 'desc' ? -1 : 1;
+    members.sort((a, b) => {
+      switch (active) {
+        case 'registrationNumber':
+          return multiplier * a.registrationNumber.localeCompare(b.registrationNumber);
+        case 'status': {
+          const order = this.getStatusOrder(this.getStatus(a)) - this.getStatusOrder(this.getStatus(b));
+          return multiplier * order;
+        }
+        case 'fullName':
+        default:
+          return multiplier * a.fullName.localeCompare(b.fullName, 'pt-BR', { sensitivity: 'base' });
+      }
+    });
     return members;
   });
 
@@ -172,6 +188,13 @@ export class CommunionEventDetailStore {
 
   setMemberSearchTerm(term: string): void {
     this.memberSearchTermSignal.set(term);
+  }
+
+  setSort(active: 'registrationNumber' | 'fullName' | 'status', direction: 'asc' | 'desc' | ''): void {
+    this.sortStateSignal.set({
+      active,
+      direction: direction === '' ? 'asc' : direction,
+    });
   }
 
   setShowOnlyPresent(onlyPresent: boolean): void {
@@ -445,6 +468,18 @@ export class CommunionEventDetailStore {
 
   private getStatus(member: CommunionMemberAttendance): AttendanceStatus {
     return member.status ?? (member.present ? 'PRESENT' : 'ABSENT');
+  }
+
+  private getStatusOrder(status: AttendanceStatus): number {
+    switch (status) {
+      case 'PRESENT':
+        return 0;
+      case 'JUSTIFIED':
+        return 1;
+      case 'ABSENT':
+      default:
+        return 2;
+    }
   }
 
   private normalizeMember(
