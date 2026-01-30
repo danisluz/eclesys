@@ -79,10 +79,20 @@
           </button>
         </mat-menu>
 
-        <button mat-button class="topbar__nav-btn" disabled>
+        <button
+          mat-button
+          class="topbar__nav-btn"
+          [matMenuTriggerFor]="menuEvents"
+        >
           Eventos
           <mat-icon>expand_more</mat-icon>
         </button>
+        <mat-menu #menuEvents="matMenu">
+          <button mat-menu-item routerLink="/app/santa-ceia">
+            <mat-icon>event_available</mat-icon>
+            Santa Ceia
+          </button>
+        </mat-menu>
       </nav>
     </div>
 

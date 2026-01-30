@@ -1,0 +1,78 @@
+<h2 mat-dialog-title>Novo evento de Santa Ceia</h2>
+
+<mat-dialog-content class="dialog-content">
+  <form class="form" [formGroup]="form">
+    <mat-form-field appearance="outline">
+      <mat-label>{{ data.congregationLabel }}</mat-label>
+      <input
+        matInput
+        [formControl]="congregationSearchControl"
+        [matAutocomplete]="congregationAuto"
+        placeholder="Digite para buscar"
+      />
+      <mat-autocomplete
+        #congregationAuto="matAutocomplete"
+        [displayWith]="displayCongregation"
+        (optionSelected)="onCongregationSelected($event)"
+        [autoActiveFirstOption]="true"
+      >
+        @if (data.congregations.length === 0) {
+          <mat-option disabled>
+            Nenhuma {{ data.congregationLabel }} cadastrada.
+          </mat-option>
+        } @else {
+          @for (
+            congregation of filterCongregations(congregationSearchControl.value);
+            track congregation.id
+          ) {
+            <mat-option [value]="congregation">
+              {{ congregation.name }}
+            </mat-option>
+          }
+        }
+      </mat-autocomplete>
+      @if (
+        form.controls.congregationId.hasError('required') &&
+        form.controls.congregationId.touched
+      ) {
+        <mat-error>Selecione uma {{ data.congregationLabel }}</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Data da Santa Ceia</mat-label>
+      <input
+        matInput
+        [matDatepicker]="eventPicker"
+        formControlName="eventDate"
+        placeholder="Escolha a data"
+      />
+      <mat-datepicker-toggle matIconSuffix [for]="eventPicker" />
+      <mat-datepicker #eventPicker />
+      <mat-error>Informe a data do evento</mat-error>
+    </mat-form-field>
+
+    @if (errorMessageSignal(); as message) {
+      <div class="error-message">{{ message }}</div>
+    }
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end">
+  <button mat-stroked-button type="button" (click)="cancel()">
+    Cancelar
+  </button>
+  <button
+    mat-flat-button
+    color="primary"
+    type="button"
+    (click)="save()"
+    [disabled]="isCreatingSignal()"
+  >
+    @if (isCreatingSignal()) {
+      Salvando...
+    } @else {
+      Criar evento
+    }
+  </button>
+</mat-dialog-actions>

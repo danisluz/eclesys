@@ -91,4 +91,33 @@ public interface MemberRepository extends JpaRepository<Member, UUID> {
          "GROUP BY o.id, o.name " +
          "ORDER BY COUNT(m) DESC")
   List<DashboardStatsDTO.OrganizationMemberCount> countMembersByOrganization(@Param("tenant") TenantEntity tenant, Pageable pageable);
+
+  List<Member> findAllByTenantAndOrganizationUnit_IdAndStatusOrderByFullNameAsc(
+      TenantEntity tenant,
+      UUID organizationUnitId,
+      MemberStatus status
+  );
+
+  Optional<Member> findByTenantAndOrganizationUnit_IdAndRegistrationNumber(
+      TenantEntity tenant,
+      UUID organizationUnitId,
+      Integer registrationNumber
+  );
+
+  boolean existsByTenantAndOrganizationUnit_IdAndId(
+      TenantEntity tenant,
+      UUID organizationUnitId,
+      UUID id
+  );
+
+  @Query("SELECT m.organizationUnit.id, COUNT(m) FROM Member m " +
+         "WHERE m.tenant = :tenant " +
+         "AND m.status = :status " +
+         "AND m.organizationUnit.id IN :organizationUnitIds " +
+         "GROUP BY m.organizationUnit.id")
+  List<Object[]> countByTenantAndOrganizationUnitIdsAndStatus(
+      @Param("tenant") TenantEntity tenant,
+      @Param("organizationUnitIds") List<UUID> organizationUnitIds,
+      @Param("status") MemberStatus status
+  );
 }

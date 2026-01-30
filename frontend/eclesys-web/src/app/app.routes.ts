@@ -45,6 +45,13 @@ export const routes: Routes = [
             (m) => m.USERS_ROUTES,
           ),
       },
+      {
+        path: 'santa-ceia',
+        loadChildren: () =>
+          import('./features/app/communion/communion.routes').then(
+            (m) => m.COMMUNION_ROUTES,
+          ),
+      },
     ],
   },
   { path: '**', redirectTo: '' },
