@@ -2,6 +2,7 @@ import { computed, inject, Injectable, signal } from '@angular/core';
 import { CommunionApiService } from '../api/communion-api.service';
 import {
   AttendanceRecordResponse,
+  AttendanceStatus,
   AttendanceUpdateItem,
   CommunionBlankListResponse,
   CommunionEvent,
@@ -38,6 +39,7 @@ export class CommunionEventDetailStore {
 
   private initialPresenceMapSignal = signal<Map<string, boolean>>(new Map());
   private initialNoteMapSignal = signal<Map<string, string | null>>(new Map());
+  private initialStatusMapSignal = signal<Map<string, AttendanceStatus>>(new Map());
 
   isEditingLockedSignal = computed(
     () => this.eventSignal()?.status !== 'OPEN',
@@ -77,14 +79,17 @@ export class CommunionEventDetailStore {
   });
 
   pendingChangesCountSignal = computed(() => {
-    const initial = this.initialPresenceMapSignal();
+    const initialPresence = this.initialPresenceMapSignal();
     const initialNotes = this.initialNoteMapSignal();
+    const initialStatus = this.initialStatusMapSignal();
     const notesEnabled = this.notesEnabledSignal();
     return this.membersSignal().reduce((count, member) => {
-      const initialValue = initial.get(member.memberId);
+      const initialValue = initialPresence.get(member.memberId);
       if (initialValue === undefined) return count;
+      const statusChanged =
+        initialStatus.get(member.memberId) !== this.getStatus(member);
       const presenceChanged = initialValue !== member.present;
-      if (presenceChanged) return count + 1;
+      if (statusChanged || presenceChanged) return count + 1;
 
       if (!notesEnabled) return count;
 
@@ -103,9 +108,9 @@ export class CommunionEventDetailStore {
     try {
       const response = await this.communionApi.getEvent(eventId);
       this.eventSignal.set(response.event);
-      const members = this.cloneMembers(response.members);
+      const members = response.members.map((member) => this.normalizeMember(member));
       this.membersSignal.set(members);
-      this.membersOriginalSignal.set(this.cloneMembers(response.members));
+      this.membersOriginalSignal.set(this.cloneMembers(members));
       this.congregationNameSignal.set(null);
       await Promise.all([
         this.loadCongregationName(response.event.congregationId),
@@ -113,12 +118,17 @@ export class CommunionEventDetailStore {
       ]);
       this.initialPresenceMapSignal.set(
         new Map(
-          response.members.map((member) => [member.memberId, member.present]),
+          members.map((member) => [member.memberId, member.present]),
         ),
       );
       this.initialNoteMapSignal.set(
         new Map(
-          response.members.map((member) => [member.memberId, member.note ?? null]),
+          members.map((member) => [member.memberId, member.note ?? null]),
+        ),
+      );
+      this.initialStatusMapSignal.set(
+        new Map(
+          members.map((member) => [member.memberId, this.getStatus(member)]),
         ),
       );
     } catch (error: any) {
@@ -169,9 +179,33 @@ export class CommunionEventDetailStore {
   }
 
   updatePresence(memberId: string, present: boolean): void {
+    const status: AttendanceStatus = present ? 'PRESENT' : 'ABSENT';
     this.membersSignal.update((members) =>
       members.map((member) =>
-        member.memberId === memberId ? { ...member, present } : member,
+        member.memberId === memberId
+          ? {
+              ...member,
+              present,
+              status,
+              note: null,
+            }
+          : member,
+      ),
+    );
+  }
+
+  updateAttendanceStatus(memberId: string, status: AttendanceStatus): void {
+    const present = status === 'PRESENT';
+    this.membersSignal.update((members) =>
+      members.map((member) =>
+        member.memberId === memberId
+          ? {
+              ...member,
+              status,
+              present,
+              note: status === 'JUSTIFIED' ? member.note ?? null : null,
+            }
+          : member,
       ),
     );
   }
@@ -275,22 +309,28 @@ export class CommunionEventDetailStore {
   }
 
   private collectPendingChanges(): AttendanceUpdateItem[] {
-    const initial = this.initialPresenceMapSignal();
+    const initialPresence = this.initialPresenceMapSignal();
     const initialNotes = this.initialNoteMapSignal();
+    const initialStatus = this.initialStatusMapSignal();
     const notesEnabled = this.notesEnabledSignal();
     return this.membersSignal()
       .filter((member) => {
-        const presenceChanged = initial.get(member.memberId) !== member.present;
-        if (presenceChanged) return true;
+        const statusChanged =
+          initialStatus.get(member.memberId) !== this.getStatus(member);
+        const presenceChanged =
+          initialPresence.get(member.memberId) !== member.present;
+        if (statusChanged || presenceChanged) return true;
         if (!notesEnabled) return false;
         const initialNote = initialNotes.get(member.memberId) ?? null;
         const currentNote = member.note ?? null;
         return initialNote !== currentNote;
       })
       .map((member) => {
+        const status = this.getStatus(member);
         const item: AttendanceUpdateItem = {
           memberId: member.memberId,
-          present: member.present,
+          present: status === 'PRESENT',
+          status,
         };
         if (notesEnabled) {
           const initialNote = initialNotes.get(member.memberId) ?? null;
@@ -306,12 +346,15 @@ export class CommunionEventDetailStore {
   private applyPresenceSnapshot(): void {
     const map = new Map<string, boolean>();
     const noteMap = new Map<string, string | null>();
+    const statusMap = new Map<string, AttendanceStatus>();
     for (const member of this.membersSignal()) {
       map.set(member.memberId, member.present);
       noteMap.set(member.memberId, member.note ?? null);
+      statusMap.set(member.memberId, this.getStatus(member));
     }
     this.initialPresenceMapSignal.set(map);
     this.initialNoteMapSignal.set(noteMap);
+    this.initialStatusMapSignal.set(statusMap);
     this.membersOriginalSignal.set(this.cloneMembers(this.membersSignal()));
   }
 
@@ -324,7 +367,13 @@ export class CommunionEventDetailStore {
           return member;
         }
         updated = true;
-        return { ...member, present: record.present, note: record.note ?? member.note ?? null };
+        const status = record.status ?? (record.present ? 'PRESENT' : 'ABSENT');
+        return {
+          ...member,
+          present: record.present,
+          status,
+          note: record.note ?? member.note ?? null,
+        };
       }),
     );
 
@@ -332,6 +381,11 @@ export class CommunionEventDetailStore {
       const initial = new Map(this.initialPresenceMapSignal());
       initial.set(record.memberId, record.present);
       this.initialPresenceMapSignal.set(initial);
+
+      const statusMap = new Map(this.initialStatusMapSignal());
+      const status = record.status ?? (record.present ? 'PRESENT' : 'ABSENT');
+      statusMap.set(record.memberId, status);
+      this.initialStatusMapSignal.set(statusMap);
 
       if (this.notesEnabledSignal()) {
         const initialNotes = new Map(this.initialNoteMapSignal());
@@ -387,5 +441,16 @@ export class CommunionEventDetailStore {
     members: CommunionMemberAttendance[],
   ): CommunionMemberAttendance[] {
     return members.map((member) => ({ ...member }));
+  }
+
+  private getStatus(member: CommunionMemberAttendance): AttendanceStatus {
+    return member.status ?? (member.present ? 'PRESENT' : 'ABSENT');
+  }
+
+  private normalizeMember(
+    member: CommunionMemberAttendance,
+  ): CommunionMemberAttendance {
+    const status = member.status ?? (member.present ? 'PRESENT' : 'ABSENT');
+    return { ...member, status };
   }
 }

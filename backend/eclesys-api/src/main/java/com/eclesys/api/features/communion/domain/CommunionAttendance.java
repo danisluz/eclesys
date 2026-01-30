@@ -36,6 +36,13 @@ public class CommunionAttendance {
   @Column(nullable = false)
   private Boolean present;
 
+  @Enumerated(EnumType.STRING)
+  @Column(name = "attendance_status", nullable = false, length = 12)
+  private AttendanceStatus attendanceStatus;
+
+  @Column(name = "note", length = 500)
+  private String note;
+
   @Column(name = "recorded_by_user_id", nullable = false)
   private UUID recordedByUserId;
 
@@ -51,6 +58,11 @@ public class CommunionAttendance {
     if (id == null) id = UUID.randomUUID();
     if (recordedAt == null) recordedAt = LocalDateTime.now();
     if (present == null) present = Boolean.TRUE;
+    if (attendanceStatus == null) {
+      attendanceStatus = Boolean.TRUE.equals(present)
+          ? AttendanceStatus.PRESENT
+          : AttendanceStatus.ABSENT;
+    }
   }
 
   @PreUpdate

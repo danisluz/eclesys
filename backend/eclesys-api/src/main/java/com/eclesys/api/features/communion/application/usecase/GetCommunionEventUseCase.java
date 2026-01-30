@@ -7,6 +7,7 @@ import com.eclesys.api.features.communion.application.port.CommunionAttendanceRe
 import com.eclesys.api.features.communion.application.port.CommunionEventRepository;
 import com.eclesys.api.features.communion.application.port.MemberQueryPort;
 import com.eclesys.api.features.communion.application.port.MemberSummary;
+import com.eclesys.api.features.communion.domain.AttendanceStatus;
 import com.eclesys.api.features.communion.domain.CommunionAttendance;
 import com.eclesys.api.features.communion.domain.CommunionEvent;
 import com.eclesys.api.features.users.entity.UserRole;
@@ -46,8 +47,14 @@ public class GetCommunionEventUseCase {
     List<CommunionAttendance> attendances = attendanceRepository.findByEventId(event.getId());
 
     Map<UUID, Boolean> presenceByMember = new HashMap<>();
+    Map<UUID, AttendanceStatus> statusByMember = new HashMap<>();
+    Map<UUID, String> noteByMember = new HashMap<>();
     for (CommunionAttendance attendance : attendances) {
-      presenceByMember.put(attendance.getMemberId(), Boolean.TRUE.equals(attendance.getPresent()));
+      UUID memberId = attendance.getMemberId();
+      presenceByMember.put(memberId, Boolean.TRUE.equals(attendance.getPresent()));
+      AttendanceStatus status = attendance.getAttendanceStatus();
+      statusByMember.put(memberId, status != null ? status : AttendanceStatus.ABSENT);
+      noteByMember.put(memberId, attendance.getNote());
     }
 
     List<MemberAttendanceView> attendanceViews = members.stream()
@@ -55,7 +62,9 @@ public class GetCommunionEventUseCase {
             member.id(),
             member.fullName(),
             member.registrationNumber(),
-            presenceByMember.getOrDefault(member.id(), false)
+            presenceByMember.getOrDefault(member.id(), false),
+            statusByMember.getOrDefault(member.id(), AttendanceStatus.ABSENT),
+            noteByMember.get(member.id())
         ))
         .toList();
 

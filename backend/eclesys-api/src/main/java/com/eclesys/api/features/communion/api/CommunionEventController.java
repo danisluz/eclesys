@@ -28,6 +28,7 @@ import com.eclesys.api.features.communion.application.usecase.MarkCommunionAtten
 import com.eclesys.api.features.communion.application.usecase.OpenCommunionEventUseCase;
 import com.eclesys.api.features.communion.application.usecase.UpdateCommunionAttendanceBatchUseCase;
 import com.eclesys.api.features.communion.domain.AttendanceSource;
+import com.eclesys.api.features.communion.domain.AttendanceStatus;
 import com.eclesys.api.features.communion.domain.CommunionEvent;
 import com.eclesys.api.features.communion.domain.CommunionEventStatus;
 import com.eclesys.api.features.users.service.CurrentUserService;
@@ -214,7 +215,13 @@ public class CommunionEventController {
     );
 
     return ResponseEntity.ok(ApiResponse.success(
-        new AttendanceRecordResponse(result.eventId(), result.memberId(), result.present())
+        new AttendanceRecordResponse(
+            result.eventId(),
+            result.memberId(),
+            result.present(),
+            result.status(),
+            result.note()
+        )
     ));
   }
 
@@ -267,7 +274,9 @@ public class CommunionEventController {
         member.memberId(),
         member.fullName(),
         member.registrationNumber(),
-        member.present()
+        member.present(),
+        member.status(),
+        member.note()
     );
   }
 
@@ -280,6 +289,10 @@ public class CommunionEventController {
   }
 
   private AttendanceUpdateItem toAttendanceUpdateItem(AttendanceItemRequest request) {
-    return new AttendanceUpdateItem(request.memberId(), request.present());
+    AttendanceStatus status = request.status();
+    boolean present = request.present() != null
+        ? request.present()
+        : status == AttendanceStatus.PRESENT;
+    return new AttendanceUpdateItem(request.memberId(), present, status, request.note());
   }
 }

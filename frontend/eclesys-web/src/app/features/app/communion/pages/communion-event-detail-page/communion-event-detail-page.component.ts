@@ -3,6 +3,7 @@ import { Component, computed, inject } from '@angular/core';
 import { afterNextRender } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatCardModule } from '@angular/material/card';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -14,7 +15,10 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { CommunionEventDetailStore } from '../../stores/communion-event-detail.store';
-import { CommunionMemberAttendance } from '../../models/communion.models';
+import {
+  AttendanceStatus,
+  CommunionMemberAttendance,
+} from '../../models/communion.models';
 import { CommunionStatusChipComponent } from '../../components/communion-status-chip/communion-status-chip.component';
 import { ConfirmDialogComponent } from '../../../../../shared/ui/confirm-dialog/confirm-dialog.component';
 import { NotificationService } from '../../../../../shared/services/notification.service';
@@ -31,6 +35,7 @@ import {
     RouterLink,
     MatCardModule,
     MatButtonModule,
+    MatButtonToggleModule,
     MatIconModule,
     MatFormFieldModule,
     MatInputModule,
@@ -41,7 +46,6 @@ import {
     MatSlideToggleModule,
     MatTooltipModule,
     CommunionStatusChipComponent,
-    AttendanceNoteDialogComponent,
   ],
   templateUrl: './communion-event-detail-page.component.html',
   styleUrl: './communion-event-detail-page.component.scss',
@@ -55,10 +59,8 @@ export class CommunionEventDetailPageComponent {
   detailStore = inject(CommunionEventDetailStore);
 
   displayedColumnsSignal = computed(() => {
-    const base = ['registrationNumber', 'fullName', 'present'];
-    return this.detailStore.notesEnabledSignal()
-      ? [...base, 'note']
-      : base;
+    const base = ['registrationNumber', 'fullName', 'status'];
+    return this.detailStore.notesEnabledSignal() ? [...base, 'note'] : base;
   });
 
   constructor() {
@@ -81,12 +83,26 @@ export class CommunionEventDetailPageComponent {
     this.router.navigate(['/app/santa-ceia']);
   }
 
-  updatePresence(member: CommunionMemberAttendance, present: boolean): void {
-    this.detailStore.updatePresence(member.memberId, present);
+  updateAttendanceStatus(
+    member: CommunionMemberAttendance,
+    status: AttendanceStatus | null,
+  ): void {
+    if (!status) return;
+    if (!this.isAttendanceStatus(status)) return;
+    this.detailStore.updateAttendanceStatus(member.memberId, status);
+  }
+
+  getAttendanceStatus(member: CommunionMemberAttendance): AttendanceStatus {
+    return member.status ?? (member.present ? 'PRESENT' : 'ABSENT');
+  }
+
+  private isAttendanceStatus(value: string): value is AttendanceStatus {
+    return value === 'PRESENT' || value === 'ABSENT' || value === 'JUSTIFIED';
   }
 
   openNoteDialog(member: CommunionMemberAttendance): void {
     if (!this.detailStore.notesEnabledSignal()) return;
+    if (this.getAttendanceStatus(member) !== 'JUSTIFIED') return;
 
     const canEdit = !this.detailStore.isEditingLockedSignal();
     const data: AttendanceNoteDialogData = {

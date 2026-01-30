@@ -7,6 +7,7 @@ import com.eclesys.api.features.communion.application.port.CommunionEventReposit
 import com.eclesys.api.features.communion.application.port.MemberQueryPort;
 import com.eclesys.api.features.communion.application.port.MemberSummary;
 import com.eclesys.api.features.communion.domain.AttendanceSource;
+import com.eclesys.api.features.communion.domain.AttendanceStatus;
 import com.eclesys.api.features.communion.domain.CommunionAttendance;
 import com.eclesys.api.features.communion.domain.CommunionEvent;
 import com.eclesys.api.features.communion.domain.CommunionEventStatus;
@@ -65,6 +66,7 @@ public class MarkCommunionAttendanceByRegistrationUseCase {
 
     attendance.setEventId(event.getId());
     attendance.setMemberId(member.id());
+    attendance.setAttendanceStatus(AttendanceStatus.PRESENT);
     attendance.setPresent(true);
     attendance.setRecordedByUserId(userId);
     attendance.setRecordedAt(LocalDateTime.now());
@@ -72,6 +74,12 @@ public class MarkCommunionAttendanceByRegistrationUseCase {
 
     attendanceRepository.save(attendance);
 
-    return new AttendanceRecordResult(event.getId(), member.id(), true);
+    return new AttendanceRecordResult(
+        event.getId(),
+        member.id(),
+        true,
+        AttendanceStatus.PRESENT,
+        attendance.getNote()
+    );
   }
 }

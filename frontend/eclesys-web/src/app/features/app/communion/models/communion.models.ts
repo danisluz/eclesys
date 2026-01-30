@@ -1,4 +1,5 @@
 export type CommunionEventStatus = 'DRAFT' | 'OPEN' | 'CLOSED';
+export type AttendanceStatus = 'PRESENT' | 'ABSENT' | 'JUSTIFIED';
 
 export interface CommunionEvent {
   id: string;
@@ -20,6 +21,7 @@ export interface CommunionMemberAttendance {
   registrationNumber: string;
   present: boolean;
   note?: string | null;
+  status?: AttendanceStatus;
 }
 
 export interface CommunionMemberSummary {
@@ -47,6 +49,7 @@ export interface AttendanceUpdateItem {
   memberId: string;
   present: boolean;
   note?: string | null;
+  status?: AttendanceStatus;
 }
 
 export interface AttendanceBatchResponse {
@@ -58,6 +61,7 @@ export interface AttendanceRecordResponse {
   memberId: string;
   present: boolean;
   note?: string | null;
+  status?: AttendanceStatus;
 }
 
 export interface CommunionEventsFilters {

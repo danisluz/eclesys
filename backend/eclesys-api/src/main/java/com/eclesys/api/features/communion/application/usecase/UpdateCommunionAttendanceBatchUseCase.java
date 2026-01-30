@@ -7,6 +7,7 @@ import com.eclesys.api.features.communion.application.port.CommunionAttendanceRe
 import com.eclesys.api.features.communion.application.port.CommunionEventRepository;
 import com.eclesys.api.features.communion.application.port.MemberQueryPort;
 import com.eclesys.api.features.communion.domain.AttendanceSource;
+import com.eclesys.api.features.communion.domain.AttendanceStatus;
 import com.eclesys.api.features.communion.domain.CommunionAttendance;
 import com.eclesys.api.features.communion.domain.CommunionEvent;
 import com.eclesys.api.features.communion.domain.CommunionEventStatus;
@@ -69,7 +70,13 @@ public class UpdateCommunionAttendanceBatchUseCase {
 
       attendance.setEventId(event.getId());
       attendance.setMemberId(item.memberId());
-      attendance.setPresent(item.present());
+      AttendanceStatus status = item.status();
+      if (status == null) {
+        status = item.present() ? AttendanceStatus.PRESENT : AttendanceStatus.ABSENT;
+      }
+      attendance.setAttendanceStatus(status);
+      attendance.setPresent(status == AttendanceStatus.PRESENT);
+      attendance.setNote(item.note());
       attendance.setRecordedByUserId(userId);
       attendance.setRecordedAt(LocalDateTime.now());
       attendance.setSource(source != null ? source : AttendanceSource.ONLINE);

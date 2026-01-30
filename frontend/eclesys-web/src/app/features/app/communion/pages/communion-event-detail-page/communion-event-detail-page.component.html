@@ -190,19 +190,31 @@
             </td>
           </ng-container>
 
-          <ng-container matColumnDef="present">
-            <th mat-header-cell *matHeaderCellDef>Presença</th>
+          <ng-container matColumnDef="status">
+            <th mat-header-cell *matHeaderCellDef>Status</th>
             <td mat-cell *matCellDef="let member">
-              <mat-checkbox
-                [checked]="member.present"
-                (change)="updatePresence(member, $event.checked)"
+              <mat-button-toggle-group
+                [value]="getAttendanceStatus(member)"
+                (change)="updateAttendanceStatus(member, $event.value)"
                 [disabled]="detailStore.isEditingLockedSignal()"
-              ></mat-checkbox>
+                class="status-toggle"
+                aria-label="Status de presença"
+              >
+                <mat-button-toggle value="PRESENT" matTooltip="Presente">
+                  P
+                </mat-button-toggle>
+                <mat-button-toggle value="ABSENT" matTooltip="Ausente">
+                  A
+                </mat-button-toggle>
+                <mat-button-toggle value="JUSTIFIED" matTooltip="Justificado">
+                  J
+                </mat-button-toggle>
+              </mat-button-toggle-group>
             </td>
           </ng-container>
 
           <ng-container matColumnDef="note">
-            <th mat-header-cell *matHeaderCellDef>Anotação</th>
+            <th mat-header-cell *matHeaderCellDef>Justificativa</th>
             <td mat-cell *matCellDef="let member">
               <button
                 mat-icon-button
@@ -210,6 +222,7 @@
                 class="note-button"
                 [matTooltip]="getNotePreview(member.note)"
                 [matTooltipDisabled]="!member.note"
+                [disabled]="getAttendanceStatus(member) !== 'JUSTIFIED'"
                 (click)="openNoteDialog(member)"
               >
                 <mat-icon>

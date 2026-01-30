@@ -1,16 +1,17 @@
-<h2 mat-dialog-title>Anotação do membro</h2>
+<h2 mat-dialog-title>Justificativa de ausência</h2>
 
 <mat-dialog-content class="dialog-content">
   <div class="member-name">{{ data.memberName }}</div>
 
   <mat-form-field appearance="outline">
-    <mat-label>Anotação</mat-label>
+    <mat-label>Justificativa</mat-label>
     <textarea
       matInput
       rows="5"
+      maxlength="500"
       [formControl]="noteControl"
       [readonly]="!data.canEdit"
-      placeholder="Digite uma anotação (opcional)"
+      placeholder="Descreva o motivo (opcional)"
     ></textarea>
     <mat-hint>Até 500 caracteres</mat-hint>
   </mat-form-field>

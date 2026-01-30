@@ -165,7 +165,7 @@
         <div class="table-container">
           <table
             mat-table
-            [dataSource]="eventsStore.eventsViewSignal()"
+            [dataSource]="pagedEventsSignal()"
             class="events-table"
           >
           <ng-container matColumnDef="eventDate">
@@ -261,6 +261,16 @@
             ></tr>
           </table>
         </div>
+
+        <mat-paginator
+          [length]="eventsTotalSignal()"
+          [pageSize]="pageSizeSignal()"
+          [pageIndex]="pageIndexSignal()"
+          [pageSizeOptions]="pageSizeOptions"
+          (page)="onPageChange($event)"
+          showFirstLastButtons
+        >
+        </mat-paginator>
       }
     </mat-card-content>
   </mat-card>

@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, computed, inject } from '@angular/core';
+import { Component, computed, effect, inject, signal } from '@angular/core';
 import { afterNextRender } from '@angular/core';
 import { Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
@@ -20,6 +20,7 @@ import { MatNativeDateModule } from '@angular/material/core';
 import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { CommunionEventsStore } from '../../stores/communion-events.store';
 import { CommunionEventListItem, CommunionEventStatus } from '../../models/communion.models';
@@ -49,6 +50,7 @@ import { OrganizationUnit } from '../../../../../shared/api/organization-unit.mo
     MatInputModule,
     MatProgressSpinnerModule,
     MatTooltipModule,
+    MatPaginatorModule,
   ],
   templateUrl: './communion-events-page.component.html',
   styleUrl: './communion-events-page.component.scss',
@@ -63,6 +65,10 @@ export class CommunionEventsPageComponent {
   congregationSearchControl = new FormControl<string | OrganizationUnit | null>(
     '',
   );
+
+  pageIndexSignal = signal(0);
+  pageSizeSignal = signal(25);
+  pageSizeOptions = [25, 50, 100, 200];
 
   eventsTotalSignal = computed(() => this.eventsStore.eventsViewSignal().length);
   eventsOpenSignal = computed(
@@ -81,6 +87,14 @@ export class CommunionEventsPageComponent {
     return Math.round(total / percentages.length);
   });
 
+  pagedEventsSignal = computed(() => {
+    const events = this.eventsStore.eventsViewSignal();
+    const pageIndex = this.pageIndexSignal();
+    const pageSize = this.pageSizeSignal();
+    const start = pageIndex * pageSize;
+    return events.slice(start, start + pageSize);
+  });
+
   displayedColumns = [
     'eventDate',
     'congregation',
@@ -93,6 +107,15 @@ export class CommunionEventsPageComponent {
     afterNextRender(() => {
       this.eventsStore.loadCongregations();
       this.eventsStore.loadEvents();
+    });
+
+    effect(() => {
+      const total = this.eventsTotalSignal();
+      const pageSize = this.pageSizeSignal();
+      const maxPage = total === 0 ? 0 : Math.floor((total - 1) / pageSize);
+      if (this.pageIndexSignal() > maxPage) {
+        this.pageIndexSignal.set(maxPage);
+      }
     });
   }
 
@@ -119,6 +142,7 @@ export class CommunionEventsPageComponent {
 
   onCongregationChange(value: string | null): void {
     this.eventsStore.setSelectedCongregation(value);
+    this.pageIndexSignal.set(0);
     this.eventsStore.loadEvents();
   }
 
@@ -141,25 +165,34 @@ export class CommunionEventsPageComponent {
 
   onStatusChange(value: CommunionEventStatus | null): void {
     this.eventsStore.setSelectedStatus(value);
+    this.pageIndexSignal.set(0);
     this.eventsStore.loadEvents();
   }
 
   onStartDateChange(date: Date | null): void {
     const current = this.eventsStore.dateRangeSignal();
     this.eventsStore.setDateRange(date, current.end);
+    this.pageIndexSignal.set(0);
     this.eventsStore.loadEvents();
   }
 
   onEndDateChange(date: Date | null): void {
     const current = this.eventsStore.dateRangeSignal();
     this.eventsStore.setDateRange(current.start, date);
+    this.pageIndexSignal.set(0);
     this.eventsStore.loadEvents();
   }
 
   clearFilters(): void {
     this.congregationSearchControl.setValue('', { emitEvent: false });
     this.eventsStore.clearFilters();
+    this.pageIndexSignal.set(0);
     this.eventsStore.loadEvents();
+  }
+
+  onPageChange(event: PageEvent): void {
+    this.pageIndexSignal.set(event.pageIndex);
+    this.pageSizeSignal.set(event.pageSize);
   }
 
   viewEvent(event: CommunionEventListItem): void {
