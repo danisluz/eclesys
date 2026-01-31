@@ -44,6 +44,18 @@ public class OrganizationUnit {
   @Column(name = "congregation_label", length = 50)
   private String congregationLabel;
 
+  @Column(name = "contact_email", length = 160)
+  private String contactEmail;
+
+  @Column(name = "contact_phone", length = 40)
+  private String contactPhone;
+
+  @Column(name = "website", length = 200)
+  private String website;
+
+  @Column(name = "address", length = 255)
+  private String address;
+
   @Column(name = "created_at", nullable = false)
   private LocalDateTime createdAt;
 
@@ -147,6 +159,38 @@ public class OrganizationUnit {
 
   public void setCongregationLabel(String congregationLabel) {
     this.congregationLabel = congregationLabel;
+  }
+
+  public String getContactEmail() {
+    return contactEmail;
+  }
+
+  public void setContactEmail(String contactEmail) {
+    this.contactEmail = contactEmail;
+  }
+
+  public String getContactPhone() {
+    return contactPhone;
+  }
+
+  public void setContactPhone(String contactPhone) {
+    this.contactPhone = contactPhone;
+  }
+
+  public String getWebsite() {
+    return website;
+  }
+
+  public void setWebsite(String website) {
+    this.website = website;
+  }
+
+  public String getAddress() {
+    return address;
+  }
+
+  public void setAddress(String address) {
+    this.address = address;
   }
 
   public LocalDateTime getCreatedAt() {

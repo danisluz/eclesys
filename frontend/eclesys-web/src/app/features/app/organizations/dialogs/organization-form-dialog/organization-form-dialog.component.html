@@ -132,6 +132,49 @@
       }
     }
 
+    @if (type === OrganizationUnitType.CHURCH) {
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>E-mail</mat-label>
+        <input
+          matInput
+          type="email"
+          [(ngModel)]="contactEmail"
+          name="contactEmail"
+          placeholder="contato@igreja.com"
+        />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Telefone</mat-label>
+        <input
+          matInput
+          [(ngModel)]="contactPhone"
+          name="contactPhone"
+          placeholder="(51) 99999-0000"
+        />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Site</mat-label>
+        <input
+          matInput
+          [(ngModel)]="website"
+          name="website"
+          placeholder="https://"
+        />
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Endereço</mat-label>
+        <input
+          matInput
+          [(ngModel)]="address"
+          name="address"
+          placeholder="Rua, número, bairro, cidade"
+        />
+      </mat-form-field>
+    }
+
     @if (type === OrganizationUnitType.CONGREGATION) {
       <div class="checkbox-field">
         <mat-checkbox [(ngModel)]="isHeadquarters" name="isHeadquarters">

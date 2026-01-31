@@ -125,4 +125,12 @@ export class CommunionApiService {
 
     return response.data;
   }
+
+  async getBlankListPdf(eventId: string): Promise<Blob> {
+    return await firstValueFrom(
+      this.httpClient.get(`/api/communions/events/${eventId}/blank-list/pdf`, {
+        responseType: 'blob',
+      }),
+    );
+  }
 }

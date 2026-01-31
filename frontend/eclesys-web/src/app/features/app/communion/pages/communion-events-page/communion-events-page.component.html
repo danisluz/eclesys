@@ -227,6 +227,17 @@
                 >
                   <mat-icon>visibility</mat-icon>
                 </button>
+                @if (event.status === 'DRAFT') {
+                  <button
+                    mat-icon-button
+                    type="button"
+                    matTooltip="Exportar lista (PDF)"
+                    [disabled]="eventsStore.isExportingEvent(event.id)"
+                    (click)="exportEventPdf(event)"
+                  >
+                    <mat-icon>download</mat-icon>
+                  </button>
+                }
                 @if (canOpen(event)) {
                   <button
                     mat-icon-button

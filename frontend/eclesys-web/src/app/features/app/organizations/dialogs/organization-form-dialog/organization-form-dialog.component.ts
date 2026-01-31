@@ -64,6 +64,10 @@ export class OrganizationFormDialogComponent {
   // Labels customizáveis (apenas para CHURCH)
   sectorLabel = this.data.unit?.sectorLabel ?? '';
   congregationLabel = this.data.unit?.congregationLabel ?? '';
+  contactEmail = this.data.unit?.contactEmail ?? '';
+  contactPhone = this.data.unit?.contactPhone ?? '';
+  website = this.data.unit?.website ?? '';
+  address = this.data.unit?.address ?? '';
 
   isSaving = signal(false);
 
@@ -188,6 +192,22 @@ export class OrganizationFormDialogComponent {
           this.type === OrganizationUnitType.CHURCH
             ? this.congregationLabel
             : undefined,
+        contactEmail:
+          this.type === OrganizationUnitType.CHURCH
+            ? this.contactEmail
+            : undefined,
+        contactPhone:
+          this.type === OrganizationUnitType.CHURCH
+            ? this.contactPhone
+            : undefined,
+        website:
+          this.type === OrganizationUnitType.CHURCH
+            ? this.website
+            : undefined,
+        address:
+          this.type === OrganizationUnitType.CHURCH
+            ? this.address
+            : undefined,
       };
       this.dialogRef.close(request);
     } else {
@@ -195,6 +215,22 @@ export class OrganizationFormDialogComponent {
         name: this.name,
         code: this.code,
         status: this.status,
+        contactEmail:
+          this.type === OrganizationUnitType.CHURCH
+            ? this.contactEmail
+            : undefined,
+        contactPhone:
+          this.type === OrganizationUnitType.CHURCH
+            ? this.contactPhone
+            : undefined,
+        website:
+          this.type === OrganizationUnitType.CHURCH
+            ? this.website
+            : undefined,
+        address:
+          this.type === OrganizationUnitType.CHURCH
+            ? this.address
+            : undefined,
       };
       this.dialogRef.close(request);
     }

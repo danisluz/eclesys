@@ -59,6 +59,10 @@ public class OrganizationUnitService {
       unit.setHeadquarters(true);
       unit.setSectorLabel(request.sectorLabel());
       unit.setCongregationLabel(request.congregationLabel());
+      unit.setContactEmail(request.contactEmail());
+      unit.setContactPhone(request.contactPhone());
+      unit.setWebsite(request.website());
+      unit.setAddress(request.address());
     } else if (request.type() == OrganizationUnitType.CONGREGATION && request.isHeadquarters() != null) {
       unit.setHeadquarters(request.isHeadquarters());
     }
@@ -105,6 +109,20 @@ public class OrganizationUnitService {
     }
     if (request.status() != null) {
       unit.setStatus(request.status());
+    }
+    if (unit.getType() == OrganizationUnitType.CHURCH) {
+      if (request.contactEmail() != null) {
+        unit.setContactEmail(request.contactEmail());
+      }
+      if (request.contactPhone() != null) {
+        unit.setContactPhone(request.contactPhone());
+      }
+      if (request.website() != null) {
+        unit.setWebsite(request.website());
+      }
+      if (request.address() != null) {
+        unit.setAddress(request.address());
+      }
     }
 
     OrganizationUnit updated = repository.save(unit);
@@ -203,6 +221,10 @@ public class OrganizationUnitService {
         unit.isHeadquarters(),
         unit.getSectorLabel(),
         unit.getCongregationLabel(),
+        unit.getContactEmail(),
+        unit.getContactPhone(),
+        unit.getWebsite(),
+        unit.getAddress(),
         unit.getCreatedAt(),
         unit.getUpdatedAt(),
         new ArrayList<>(),
@@ -247,6 +269,10 @@ public class OrganizationUnitService {
         unit.isHeadquarters(),
         unit.getSectorLabel(),
         unit.getCongregationLabel(),
+        unit.getContactEmail(),
+        unit.getContactPhone(),
+        unit.getWebsite(),
+        unit.getAddress(),
         unit.getCreatedAt(),
         unit.getUpdatedAt(),
         childrenResponse,

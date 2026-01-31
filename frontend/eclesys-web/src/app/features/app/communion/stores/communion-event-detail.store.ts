@@ -4,7 +4,6 @@ import {
   AttendanceRecordResponse,
   AttendanceStatus,
   AttendanceUpdateItem,
-  CommunionBlankListResponse,
   CommunionEvent,
   CommunionMemberAttendance,
 } from '../models/communion.models';
@@ -54,6 +53,30 @@ export class CommunionEventDetailStore {
   });
   notesEnabledSignal = computed(() => {
     return this.membersOriginalSignal().some((member) => 'note' in member);
+  });
+  attendanceSummarySignal = computed(() => {
+    const members = this.membersSignal();
+    let present = 0;
+    let absent = 0;
+    let justified = 0;
+
+    for (const member of members) {
+      const status = this.getStatus(member);
+      if (status === 'PRESENT') {
+        present += 1;
+      } else if (status === 'JUSTIFIED') {
+        justified += 1;
+      } else {
+        absent += 1;
+      }
+    }
+
+    return {
+      total: members.length,
+      present,
+      absent,
+      justified,
+    };
   });
 
   membersSortedSignal = computed(() => {
@@ -309,7 +332,7 @@ export class CommunionEventDetailStore {
     return this.updateEventStatus('CLOSED');
   }
 
-  async exportBlankList(): Promise<CommunionBlankListResponse | null> {
+  async exportBlankList(): Promise<Blob | null> {
     const event = this.eventSignal();
     if (!event) return null;
 
@@ -317,7 +340,7 @@ export class CommunionEventDetailStore {
     this.errorMessageSignal.set(null);
 
     try {
-      return await this.communionApi.getBlankList(event.id);
+      return await this.communionApi.getBlankListPdf(event.id);
     } catch (error: any) {
       this.errorMessageSignal.set(
         this.parseErrorMessage(

@@ -15,12 +15,14 @@ import com.eclesys.api.features.communion.application.AttendanceRecordResult;
 import com.eclesys.api.features.communion.application.AttendanceUpdateItem;
 import com.eclesys.api.features.communion.application.AttendanceUpdateResult;
 import com.eclesys.api.features.communion.application.CommunionBlankList;
+import com.eclesys.api.features.communion.application.CommunionBlankListPdf;
 import com.eclesys.api.features.communion.application.CommunionEventDetails;
 import com.eclesys.api.features.communion.application.CommunionEventSummary;
 import com.eclesys.api.features.communion.application.MemberAttendanceView;
 import com.eclesys.api.features.communion.application.MemberSummaryView;
 import com.eclesys.api.features.communion.application.usecase.CloseCommunionEventUseCase;
 import com.eclesys.api.features.communion.application.usecase.CreateCommunionEventUseCase;
+import com.eclesys.api.features.communion.application.usecase.GenerateCommunionBlankListPdfUseCase;
 import com.eclesys.api.features.communion.application.usecase.GetCommunionBlankListUseCase;
 import com.eclesys.api.features.communion.application.usecase.GetCommunionEventUseCase;
 import com.eclesys.api.features.communion.application.usecase.ListCommunionEventsUseCase;
@@ -37,7 +39,9 @@ import jakarta.validation.Valid;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -61,6 +65,7 @@ public class CommunionEventController {
   private final UpdateCommunionAttendanceBatchUseCase updateAttendanceUseCase;
   private final MarkCommunionAttendanceByRegistrationUseCase markAttendanceUseCase;
   private final GetCommunionBlankListUseCase blankListUseCase;
+  private final GenerateCommunionBlankListPdfUseCase blankListPdfUseCase;
 
   public CommunionEventController(
       CurrentUserService currentUserService,
@@ -71,7 +76,8 @@ public class CommunionEventController {
       GetCommunionEventUseCase getEventUseCase,
       UpdateCommunionAttendanceBatchUseCase updateAttendanceUseCase,
       MarkCommunionAttendanceByRegistrationUseCase markAttendanceUseCase,
-      GetCommunionBlankListUseCase blankListUseCase
+      GetCommunionBlankListUseCase blankListUseCase,
+      GenerateCommunionBlankListPdfUseCase blankListPdfUseCase
   ) {
     this.currentUserService = currentUserService;
     this.createEventUseCase = createEventUseCase;
@@ -82,6 +88,7 @@ public class CommunionEventController {
     this.updateAttendanceUseCase = updateAttendanceUseCase;
     this.markAttendanceUseCase = markAttendanceUseCase;
     this.blankListUseCase = blankListUseCase;
+    this.blankListPdfUseCase = blankListPdfUseCase;
   }
 
   @PostMapping("/events")
@@ -246,6 +253,23 @@ public class CommunionEventController {
     );
 
     return ResponseEntity.ok(ApiResponse.success(response));
+  }
+
+  @GetMapping(value = "/events/{eventId}/blank-list/pdf", produces = MediaType.APPLICATION_PDF_VALUE)
+  public ResponseEntity<byte[]> getBlankListPdf(@PathVariable UUID eventId) {
+    CommunionBlankListPdf pdf = blankListPdfUseCase.execute(
+        currentUserService.getTenantId(),
+        currentUserService.getUserId(),
+        currentUserService.getRole(),
+        eventId
+    );
+
+    String fileName = "santa-ceia-" + pdf.eventDate() + ".pdf";
+
+    return ResponseEntity.ok()
+        .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileName + "\"")
+        .contentType(MediaType.APPLICATION_PDF)
+        .body(pdf.content());
   }
 
   private CommunionEventResponse toEventResponse(CommunionEvent event) {

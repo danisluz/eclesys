@@ -182,18 +182,26 @@ export class CommunionEventDetailPageComponent {
   }
 
   async exportBlankList(): Promise<void> {
-    const payload = await this.detailStore.exportBlankList();
-    if (!payload) {
+    const confirmed = await this.openConfirmDialog(
+      'Exportar lista',
+      'Deseja gerar o PDF para uso no modo manual?',
+      'primary',
+    );
+
+    if (!confirmed) return;
+
+    const blob = await this.detailStore.exportBlankList();
+    if (!blob) {
       if (this.detailStore.errorMessageSignal()) {
         this.notificationService.error(this.detailStore.errorMessageSignal()!);
       }
       return;
     }
 
-    const fileName = `santa-ceia-${payload.event.eventDate}.json`;
-    const blob = new Blob([JSON.stringify(payload, null, 2)], {
-      type: 'application/json',
-    });
+    const fileName = this.buildPdfFileName();
+    if (typeof window === 'undefined') {
+      return;
+    }
     const url = URL.createObjectURL(blob);
 
     const anchor = document.createElement('a');
@@ -228,5 +236,24 @@ export class CommunionEventDetailPageComponent {
         .afterClosed()
         .subscribe((confirmed) => resolve(Boolean(confirmed)));
     });
+  }
+
+  private buildPdfFileName(): string {
+    const event = this.detailStore.eventSignal();
+    const date = event?.eventDate ?? 'lista';
+    const congregation =
+      this.detailStore.congregationNameSignal() ??
+      this.detailStore.congregationLabelSignal();
+    const safeCongregation = this.toFileSafeName(congregation);
+    return `santa-ceia-${safeCongregation}-${date}.pdf`;
+  }
+
+  private toFileSafeName(value: string): string {
+    return value
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-zA-Z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .toLowerCase();
   }
 }

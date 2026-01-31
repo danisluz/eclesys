@@ -24,6 +24,18 @@ public interface OrganizationUnitRepository extends JpaRepository<OrganizationUn
 
   Optional<OrganizationUnit> findByTenantAndId(TenantEntity tenant, UUID id);
 
+  @Query("""
+      SELECT ou
+      FROM OrganizationUnit ou
+      LEFT JOIN FETCH ou.parent parent
+      LEFT JOIN FETCH parent.parent
+      WHERE ou.tenant = :tenant AND ou.id = :id
+      """)
+  Optional<OrganizationUnit> findByTenantAndIdWithParents(
+      @Param("tenant") TenantEntity tenant,
+      @Param("id") UUID id
+  );
+
   boolean existsByTenantAndType(TenantEntity tenant, OrganizationUnitType type);
 
   long countByTenant(TenantEntity tenant);

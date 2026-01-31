@@ -37,6 +37,7 @@ export class CommunionEventsStore {
   });
 
   updatingEventIdsSignal = signal<Set<string>>(new Set());
+  exportingEventIdsSignal = signal<Set<string>>(new Set());
 
   congregationMapSignal = computed(() => {
     const map = new Map<string, string>();
@@ -64,6 +65,10 @@ export class CommunionEventsStore {
 
   isUpdatingEvent(eventId: string): boolean {
     return this.updatingEventIdsSignal().has(eventId);
+  }
+
+  isExportingEvent(eventId: string): boolean {
+    return this.exportingEventIdsSignal().has(eventId);
   }
 
   clearListError(): void {
@@ -162,6 +167,25 @@ export class CommunionEventsStore {
     return this.updateEventStatus(eventId, 'CLOSED');
   }
 
+  async exportBlankListPdf(
+    eventId: string,
+  ): Promise<{ blob: Blob | null; errorMessage?: string }> {
+    this.markExporting(eventId, true);
+
+    try {
+      const blob = await this.communionApi.getBlankListPdf(eventId);
+      return { blob };
+    } catch (error: any) {
+      const message = await this.parseBlobErrorMessage(
+        error,
+        'Não foi possível exportar a lista em branco.',
+      );
+      return { blob: null, errorMessage: message };
+    } finally {
+      this.markExporting(eventId, false);
+    }
+  }
+
   private async updateEventStatus(
     eventId: string,
     nextStatus: CommunionEventStatus,
@@ -191,6 +215,18 @@ export class CommunionEventsStore {
     this.updatingEventIdsSignal.update((current) => {
       const next = new Set(current);
       if (isUpdating) {
+        next.add(eventId);
+      } else {
+        next.delete(eventId);
+      }
+      return next;
+    });
+  }
+
+  private markExporting(eventId: string, isExporting: boolean): void {
+    this.exportingEventIdsSignal.update((current) => {
+      const next = new Set(current);
+      if (isExporting) {
         next.add(eventId);
       } else {
         next.delete(eventId);
@@ -246,6 +282,31 @@ export class CommunionEventsStore {
     if (typeof apiMessage === 'string' && apiMessage.trim().length > 0) {
       return apiMessage;
     }
+    return fallbackMessage;
+  }
+
+  private async parseBlobErrorMessage(
+    error: any,
+    fallbackMessage: string,
+  ): Promise<string> {
+    const apiMessage = error?.error?.message;
+    if (typeof apiMessage === 'string' && apiMessage.trim().length > 0) {
+      return apiMessage;
+    }
+
+    const blob = error?.error;
+    if (blob instanceof Blob) {
+      try {
+        const text = await blob.text();
+        const parsed = JSON.parse(text);
+        if (typeof parsed?.message === 'string' && parsed.message.trim()) {
+          return parsed.message;
+        }
+      } catch {
+        // fallback abaixo
+      }
+    }
+
     return fallbackMessage;
   }
 }

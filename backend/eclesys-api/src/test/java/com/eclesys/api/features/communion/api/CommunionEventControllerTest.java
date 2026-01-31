@@ -16,6 +16,7 @@ import com.eclesys.api.features.communion.application.usecase.GetCommunionEventU
 import com.eclesys.api.features.communion.application.usecase.UpdateCommunionAttendanceBatchUseCase;
 import com.eclesys.api.features.communion.application.usecase.MarkCommunionAttendanceByRegistrationUseCase;
 import com.eclesys.api.features.communion.application.usecase.GetCommunionBlankListUseCase;
+import com.eclesys.api.features.communion.application.usecase.GenerateCommunionBlankListPdfUseCase;
 import com.eclesys.api.features.communion.domain.CommunionEvent;
 import com.eclesys.api.features.communion.domain.CommunionEventStatus;
 import com.eclesys.api.features.auth.service.JwtTokenService;
@@ -70,6 +71,9 @@ class CommunionEventControllerTest {
 
   @MockBean
   private GetCommunionBlankListUseCase getCommunionBlankListUseCase;
+
+  @MockBean
+  private GenerateCommunionBlankListPdfUseCase generateCommunionBlankListPdfUseCase;
 
   @Test
   @WithMockUser(roles = "ADMIN")

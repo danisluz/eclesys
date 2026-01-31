@@ -1,6 +1,7 @@
 package com.eclesys.api.features.organizations.dto;
 
 import com.eclesys.api.features.organizations.entity.OrganizationUnitType;
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
@@ -14,5 +15,9 @@ public record CreateOrganizationUnitRequest(
     UUID parentId,
     Boolean isHeadquarters,
     @Size(max = 50) String sectorLabel,
-    @Size(max = 50) String congregationLabel
+    @Size(max = 50) String congregationLabel,
+    @Email @Size(max = 160) String contactEmail,
+    @Size(max = 40) String contactPhone,
+    @Size(max = 200) String website,
+    @Size(max = 255) String address
 ) {}

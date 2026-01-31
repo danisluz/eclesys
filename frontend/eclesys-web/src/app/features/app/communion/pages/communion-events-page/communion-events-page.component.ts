@@ -233,6 +233,37 @@ export class CommunionEventsPageComponent {
     }
   }
 
+  async exportEventPdf(event: CommunionEventListItem): Promise<void> {
+    const confirmed = await this.openConfirmDialog(
+      'Exportar lista',
+      'Deseja gerar o PDF para uso no modo manual?',
+      'primary',
+    );
+
+    if (!confirmed) return;
+
+    const result = await this.eventsStore.exportBlankListPdf(event.id);
+    if (!result.blob) {
+      this.notificationService.error(
+        result.errorMessage ?? 'Não foi possível exportar a lista em branco.',
+      );
+      return;
+    }
+
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    const fileName = this.buildPdfFileName(event);
+    const url = URL.createObjectURL(result.blob);
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = fileName;
+    anchor.click();
+    URL.revokeObjectURL(url);
+    this.notificationService.success('Lista exportada com sucesso');
+  }
+
   canOpen(event: CommunionEventListItem): boolean {
     return event.status === 'DRAFT';
   }
@@ -330,5 +361,19 @@ export class CommunionEventsPageComponent {
         .afterClosed()
         .subscribe((confirmed) => resolve(Boolean(confirmed)));
     });
+  }
+
+  private buildPdfFileName(event: CommunionEventListItem): string {
+    const safeCongregation = this.toFileSafeName(event.congregationName ?? '');
+    return `santa-ceia-${safeCongregation}-${event.eventDate}.pdf`;
+  }
+
+  private toFileSafeName(value: string): string {
+    return value
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-zA-Z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .toLowerCase();
   }
 }

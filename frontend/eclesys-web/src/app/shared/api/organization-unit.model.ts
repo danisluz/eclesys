@@ -20,6 +20,10 @@ export interface OrganizationUnit {
   isHeadquarters: boolean;
   sectorLabel?: string;
   congregationLabel?: string;
+  contactEmail?: string;
+  contactPhone?: string;
+  website?: string;
+  address?: string;
   createdAt: string;
   updatedAt: string;
   children?: OrganizationUnit[];
@@ -36,10 +40,18 @@ export interface CreateOrganizationUnitRequest {
   isHeadquarters?: boolean;
   sectorLabel?: string;
   congregationLabel?: string;
+  contactEmail?: string;
+  contactPhone?: string;
+  website?: string;
+  address?: string;
 }
 
 export interface UpdateOrganizationUnitRequest {
   name?: string;
   code?: string;
   status?: OrganizationUnitStatus;
+  contactEmail?: string;
+  contactPhone?: string;
+  website?: string;
+  address?: string;
 }
