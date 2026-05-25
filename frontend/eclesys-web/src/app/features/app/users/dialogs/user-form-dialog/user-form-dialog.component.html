@@ -1,61 +1,47 @@
-<h2 mat-dialog-title>Novo usuário</h2>
-
-<div mat-dialog-content class="dialog-content">
-  <form [formGroup]="formGroup" class="form" (ngSubmit)="submit()">
-    <mat-form-field appearance="outline">
-      <mat-label>Nome</mat-label>
-      <input matInput formControlName="name" autocomplete="name" />
-      @if (formGroup.controls.name.touched && formGroup.controls.name.invalid) {
-        <mat-error>Informe um nome válido</mat-error>
-      }
-    </mat-form-field>
-
-    <mat-form-field appearance="outline">
-      <mat-label>E-mail</mat-label>
-      <input matInput formControlName="email" autocomplete="email" />
-      @if (formGroup.controls.email.touched && formGroup.controls.email.invalid) {
-        <mat-error>Informe um e-mail válido</mat-error>
-      }
-    </mat-form-field>
-
-    <mat-form-field appearance="outline">
-      <mat-label>Senha</mat-label>
-      <input matInput type="password" formControlName="password" autocomplete="new-password" />
-      @if (formGroup.controls.password.touched && formGroup.controls.password.invalid) {
-        <mat-error>Mínimo de 6 caracteres</mat-error>
-      }
-    </mat-form-field>
-
-    <mat-form-field appearance="outline">
-      <mat-label>Perfil</mat-label>
-      <mat-select formControlName="role">
-        @for (roleOption of roleOptions; track roleOption.value) {
-          <mat-option [value]="roleOption.value">{{ roleOption.label }}</mat-option>
-        }
-      </mat-select>
-      @if (formGroup.controls.role.touched && formGroup.controls.role.invalid) {
-        <mat-error>Selecione um perfil</mat-error>
-      }
-    </mat-form-field>
-
-    @if (usersStore.createErrorMessage(); as errorMessage) {
-      <div class="form-error" role="alert">
-        {{ errorMessage }}
-      </div>
+<form [formGroup]="formGroup" class="flex flex-col gap-4 p-2" (ngSubmit)="submit()">
+  <div class="flex flex-col gap-1">
+    <label class="font-medium text-sm">Nome</label>
+    <input pInputText formControlName="name" autocomplete="name" />
+    @if (formGroup.controls.name.touched && formGroup.controls.name.invalid) {
+      <small class="text-red-500">Informe um nome válido</small>
     }
+  </div>
 
-    <div mat-dialog-actions align="end">
-      <button mat-button type="button" (click)="close()" [disabled]="isSubmitting()">
-        Cancelar
-      </button>
+  <div class="flex flex-col gap-1">
+    <label class="font-medium text-sm">E-mail</label>
+    <input pInputText formControlName="email" autocomplete="email" />
+    @if (formGroup.controls.email.touched && formGroup.controls.email.invalid) {
+      <small class="text-red-500">Informe um e-mail válido</small>
+    }
+  </div>
 
-      <button
-        mat-flat-button
-        type="submit"
-        [disabled]="isSubmitting() || usersStore.isCreateLoading()"
-      >
-        Criar
-      </button>
-    </div>
-  </form>
-</div>
+  <div class="flex flex-col gap-1">
+    <label class="font-medium text-sm">Senha</label>
+    <p-password formControlName="password" [feedback]="false" [toggleMask]="true" autocomplete="new-password" styleClass="w-full" />
+    @if (formGroup.controls.password.touched && formGroup.controls.password.invalid) {
+      <small class="text-red-500">Mínimo de 6 caracteres</small>
+    }
+  </div>
+
+  <div class="flex flex-col gap-1">
+    <label class="font-medium text-sm">Perfil</label>
+    <p-select formControlName="role" [options]="roleOptions" optionLabel="label" optionValue="value" />
+    @if (formGroup.controls.role.touched && formGroup.controls.role.invalid) {
+      <small class="text-red-500">Selecione um perfil</small>
+    }
+  </div>
+
+  @if (usersStore.createErrorMessage(); as errorMessage) {
+    <div class="text-red-500 text-sm p-2 bg-red-50 rounded">{{ errorMessage }}</div>
+  }
+
+  <div class="flex justify-end gap-2 pt-2">
+    <p-button label="Cancelar" severity="secondary" [outlined]="true" type="button" (onClick)="close()" [disabled]="isSubmitting()" />
+    <p-button
+      label="Criar"
+      type="submit"
+      [disabled]="isSubmitting() || usersStore.isCreateLoading()"
+      (onClick)="submit()"
+    />
+  </div>
+</form>

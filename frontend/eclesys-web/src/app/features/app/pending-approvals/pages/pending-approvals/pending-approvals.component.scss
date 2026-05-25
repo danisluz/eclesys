@@ -1,141 +1,124 @@
-.approval-tabs {
-  margin-top: 16px;
-
-  ::ng-deep {
-    .mat-mdc-tab-body-content {
-      padding: 16px 0 0;
-    }
-  }
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 28px;
 }
 
-.tab-icon {
-  margin-right: 8px;
+.page__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.page__title {
+  margin: 0;
+  font-size: 26px;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.page__subtitle {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: #64748b;
+}
+
+// ─── Tabs ──────────────────────────────────────────────────────────────────
+
+.tab-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .tab-badge {
-  margin-left: 8px;
-  padding: 2px 8px;
-  border-radius: 12px;
-  background: var(--md-sys-color-primary);
-  color: var(--md-sys-color-on-primary);
-  font-size: 12px;
-  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  border-radius: 10px;
+  background: #4338ca;
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 0 4px;
 }
+
+// ─── Table ─────────────────────────────────────────────────────────────────
 
 .table-card {
-  mat-card-content {
-    padding: 0;
-  }
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  overflow: hidden;
 }
 
-.loading-container,
+.member-name {
+  font-weight: 600;
+  color: #0f172a;
+}
+
+.text-muted {
+  font-size: 13px;
+  color: #64748b;
+  white-space: nowrap;
+}
+
+.transfer-route {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+
+  .route-from { color: #64748b; }
+  .route-arrow { font-size: 12px; color: #94a3b8; }
+  .route-to   { font-weight: 600; color: #0f172a; }
+}
+
+.reason-text {
+  display: block;
+  max-width: 280px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+  color: #64748b;
+  cursor: default;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 2px;
+}
+
+// ─── Empty State ───────────────────────────────────────────────────────────
+
 .empty-state {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 16px;
-  padding: 60px 20px;
+  gap: 8px;
+  padding: 48px 24px;
   text-align: center;
 
-  mat-icon {
-    font-size: 64px;
-    width: 64px;
-    height: 64px;
-    color: var(--md-sys-color-on-surface-variant);
-    opacity: 0.5;
+  &__icon {
+    font-size: 36px;
+    color: #cbd5e1;
+    &--success { color: #86efac; }
   }
 
-  p {
+  &__text {
     margin: 0;
-    color: var(--md-sys-color-on-surface);
-    font-size: 16px;
-    font-weight: 500;
-  }
-
-  .empty-subtitle {
-    color: var(--md-sys-color-on-surface-variant);
-    font-size: 14px;
-    font-weight: 400;
-  }
-}
-
-.table-container {
-  overflow-x: auto;
-}
-
-.approvals-table {
-  width: 100%;
-
-  th {
+    font-size: 15px;
     font-weight: 600;
+    color: #334155;
+  }
+
+  &__hint {
+    margin: 0;
     font-size: 13px;
-    color: rgba(0, 0, 0, 0.6);
-  }
-
-  td {
-    padding: 16px 12px;
-  }
-
-  .member-name {
-    font-weight: 500;
-    color: rgba(0, 0, 0, 0.87);
-  }
-
-  .transfer-route {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 13px;
-
-    .route-origin {
-      color: rgba(0, 0, 0, 0.6);
-    }
-
-    .route-arrow {
-      font-size: 18px;
-      width: 18px;
-      height: 18px;
-      color: rgba(0, 0, 0, 0.38);
-    }
-
-    .route-destination {
-      font-weight: 500;
-      color: rgba(0, 0, 0, 0.87);
-    }
-  }
-
-  .transfer-reason {
-    display: block;
-    max-width: 300px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    color: rgba(0, 0, 0, 0.6);
-    font-size: 13px;
-  }
-
-  .requested-by {
-    font-size: 13px;
-    color: rgba(0, 0, 0, 0.6);
-  }
-
-  .transfer-date {
-    font-size: 13px;
-    color: rgba(0, 0, 0, 0.6);
-    white-space: nowrap;
-  }
-
-  .actions-column {
-    text-align: right;
-    padding-right: 8px;
-  }
-
-  tr.mat-mdc-row:hover {
-    background-color: rgba(0, 0, 0, 0.02);
-  }
-
-  button[mat-icon-button] {
-    margin: 0 4px;
+    color: #94a3b8;
   }
 }

@@ -1,199 +1,110 @@
 <section class="dashboard">
+
   <header class="dashboard__header">
-    <div class="dashboard__heading">
+    <div>
       <h1 class="dashboard__title">Dashboard</h1>
       <p class="dashboard__subtitle">Visão geral do sistema</p>
     </div>
-
-    <div class="dashboard__actions">
-      <button mat-stroked-button disabled>
-        <mat-icon>tune</mat-icon>
-        Preferências
-      </button>
-
-      <button mat-flat-button disabled>
-        <mat-icon>add</mat-icon>
-        Novo
-      </button>
-    </div>
   </header>
 
-  <div class="dashboard__grid">
-    @if (isLoading()) {
-      <div class="loading-container" style="grid-column: 1 / -1">
-        <mat-spinner diameter="40"></mat-spinner>
-        <p>Carregando estatísticas...</p>
-      </div>
-    } @else if (errorMessage()) {
-      <div class="error-container" style="grid-column: 1 / -1">
-        <mat-icon color="warn">error</mat-icon>
-        <p>{{ errorMessage() }}</p>
-        <button mat-stroked-button (click)="loadStats()">
-          <mat-icon>refresh</mat-icon>
-          Tentar novamente
+  @if (isLoading()) {
+    <div class="state-container">
+      <p-progressspinner class="w-10 h-10" />
+      <p class="state-container__label">Carregando estatísticas…</p>
+    </div>
+  } @else if (errorMessage()) {
+    <div class="state-container">
+      <i class="pi pi-exclamation-circle state-container__icon state-container__icon--error"></i>
+      <p class="state-container__label">{{ errorMessage() }}</p>
+      <p-button label="Tentar novamente" icon="pi pi-refresh" [outlined]="true" (onClick)="loadStats()" />
+    </div>
+  } @else {
+    <!-- KPI cards -->
+    <div class="kpi-grid">
+
+      <div class="kpi-card">
+        <div class="kpi-card__icon kpi-card__icon--indigo">
+          <i class="pi pi-users"></i>
+        </div>
+        <div class="kpi-card__body">
+          <div class="kpi-card__value">{{ stats()?.totalMembers ?? 0 }}</div>
+          <div class="kpi-card__title">Membros</div>
+          <div class="kpi-card__hint">{{ stats()?.recentMembersCount ?? 0 }} novos nos últimos 30 dias</div>
+        </div>
+        <button type="button" class="kpi-card__link" (click)="navigateTo('/app/members')">
+          Ver membros <i class="pi pi-arrow-right"></i>
         </button>
       </div>
-    } @else {
-      <mat-card class="kpi" appearance="outlined">
-        <div class="kpi__icon">
-          <mat-icon>groups</mat-icon>
+
+      <div class="kpi-card">
+        <div class="kpi-card__icon kpi-card__icon--emerald">
+          <i class="pi pi-building"></i>
         </div>
-
-        <div class="kpi__body">
-          <div class="kpi__top">
-            <div>
-              <div class="kpi__title">Membros</div>
-              <div class="kpi__subtitle">Total cadastrados</div>
-            </div>
-            <div class="kpi__value">{{ stats()?.totalMembers || 0 }}</div>
-          </div>
-
-          <mat-divider></mat-divider>
-
-          <div class="kpi__bottom">
-            <div class="kpi__hint">
-              {{ stats()?.recentMembersCount || 0 }} novos nos últimos 30 dias
-            </div>
-            <button
-              mat-button
-              class="kpi__action"
-              (click)="navigateTo('/app/members')"
-            >
-              Abrir <mat-icon>chevron_right</mat-icon>
-            </button>
-          </div>
+        <div class="kpi-card__body">
+          <div class="kpi-card__value">{{ stats()?.totalOrganizations ?? 0 }}</div>
+          <div class="kpi-card__title">Organizações</div>
+          <div class="kpi-card__hint">{{ stats()?.activeOrganizations ?? 0 }} ativas</div>
         </div>
-      </mat-card>
+        <button type="button" class="kpi-card__link" (click)="navigateTo('/app/organizations')">
+          Ver organizações <i class="pi pi-arrow-right"></i>
+        </button>
+      </div>
 
-      <mat-card class="kpi" appearance="outlined">
-        <div class="kpi__icon">
-          <mat-icon>church</mat-icon>
+      <div class="kpi-card">
+        <div class="kpi-card__icon kpi-card__icon--violet">
+          <i class="pi pi-shield"></i>
         </div>
-
-        <div class="kpi__body">
-          <div class="kpi__top">
-            <div>
-              <div class="kpi__title">Organizações</div>
-              <div class="kpi__subtitle">Igrejas, setores e congregações</div>
-            </div>
-            <div class="kpi__value">{{ stats()?.totalOrganizations || 0 }}</div>
-          </div>
-
-          <mat-divider></mat-divider>
-
-          <div class="kpi__bottom">
-            <div class="kpi__hint">
-              {{ stats()?.activeOrganizations || 0 }} ativas
-            </div>
-            <button
-              mat-button
-              class="kpi__action"
-              (click)="navigateTo('/app/organizations')"
-            >
-              Abrir <mat-icon>chevron_right</mat-icon>
-            </button>
-          </div>
+        <div class="kpi-card__body">
+          <div class="kpi-card__value">{{ stats()?.totalUsers ?? 0 }}</div>
+          <div class="kpi-card__title">Usuários</div>
+          <div class="kpi-card__hint">Gestão de acessos ao sistema</div>
         </div>
-      </mat-card>
+        <button type="button" class="kpi-card__link" (click)="navigateTo('/app/users')">
+          Ver usuários <i class="pi pi-arrow-right"></i>
+        </button>
+      </div>
 
-      <mat-card class="kpi" appearance="outlined">
-        <div class="kpi__icon">
-          <mat-icon>admin_panel_settings</mat-icon>
-        </div>
+    </div>
 
-        <div class="kpi__body">
-          <div class="kpi__top">
-            <div>
-              <div class="kpi__title">Usuários</div>
-              <div class="kpi__subtitle">Perfis e permissões</div>
-            </div>
-            <div class="kpi__value">{{ stats()?.totalUsers || 0 }}</div>
-          </div>
-
-          <mat-divider></mat-divider>
-
-          <div class="kpi__bottom">
-            <div class="kpi__hint">Gestão de acessos ao sistema</div>
-            <button
-              mat-button
-              class="kpi__action"
-              (click)="navigateTo('/app/users')"
-            >
-              Abrir <mat-icon>chevron_right</mat-icon>
-            </button>
-          </div>
-        </div>
-      </mat-card>
-    }
-  </div>
-
-  <!-- Gráficos -->
-  @if (!isLoading() && !errorMessage() && stats()) {
+    <!-- Charts -->
     <div class="charts-grid">
-      <!-- Status dos Membros -->
-      <mat-card class="chart-card" appearance="outlined">
+
+      <div class="chart-card">
         <div class="chart-card__header">
-          <div>
-            <div class="chart-card__title">Status dos Membros</div>
-            <div class="chart-card__subtitle">Distribuição por categoria</div>
-          </div>
+          <span class="chart-card__title">Status dos Membros</span>
+          <span class="chart-card__subtitle">Distribuição por categoria</span>
         </div>
+        <div class="chart-card__body"><canvas #statusChart></canvas></div>
+      </div>
 
-        <div class="chart-card__body">
-          <canvas #statusChart></canvas>
-        </div>
-      </mat-card>
-
-      <!-- Gênero -->
-      <mat-card class="chart-card" appearance="outlined">
+      <div class="chart-card">
         <div class="chart-card__header">
-          <div>
-            <div class="chart-card__title">Distribuição por Gênero</div>
-            <div class="chart-card__subtitle">Membros ativos</div>
-          </div>
+          <span class="chart-card__title">Distribuição por Gênero</span>
+          <span class="chart-card__subtitle">Membros ativos</span>
         </div>
+        <div class="chart-card__body"><canvas #genderChart></canvas></div>
+      </div>
 
-        <div class="chart-card__body">
-          <canvas #genderChart></canvas>
-        </div>
-      </mat-card>
-
-      <!-- Transferências -->
-      <mat-card class="chart-card" appearance="outlined">
+      <div class="chart-card">
         <div class="chart-card__header">
-          <div>
-            <div class="chart-card__title">Transferências</div>
-            <div class="chart-card__subtitle">Distribuição por status</div>
-          </div>
+          <span class="chart-card__title">Transferências</span>
+          <span class="chart-card__subtitle">Distribuição por status</span>
         </div>
+        <div class="chart-card__body"><canvas #transfersChart></canvas></div>
+      </div>
 
-        <div class="chart-card__body">
-          <canvas #transfersChart></canvas>
-        </div>
-      </mat-card>
-
-      <!-- Membros por Organização -->
-      <mat-card class="chart-card chart-card--full" appearance="outlined">
+      <div class="chart-card chart-card--full">
         <div class="chart-card__header">
-          <div>
-            <div class="chart-card__title">Membros por Organização</div>
-            <div class="chart-card__subtitle">
-              @if (
-                stats()?.membersByOrganization &&
-                stats()!.membersByOrganization.length > 10
-              ) {
-                Top 10 congregações
-              } @else {
-                Todas as congregações
-              }
-            </div>
-          </div>
+          <span class="chart-card__title">Membros por Organização</span>
+          <span class="chart-card__subtitle">
+            @if ((stats()?.membersByOrganization?.length ?? 0) > 10) { Top 10 congregações }
+            @else { Todas as congregações }
+          </span>
         </div>
+        <div class="chart-card__body chart-card__body--bars"><canvas #organizationsChart></canvas></div>
+      </div>
 
-        <div class="chart-card__body chart-card__body--bars">
-          <canvas #organizationsChart></canvas>
-        </div>
-      </mat-card>
     </div>
   }
+
 </section>

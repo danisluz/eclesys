@@ -1,14 +1,11 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { MatCardModule } from '@angular/material/card';
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
-import { MatChipsModule } from '@angular/material/chips';
-import { MatTabsModule } from '@angular/material/tabs';
-import { MatTableModule } from '@angular/material/table';
-import { MatTooltipModule } from '@angular/material/tooltip';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatDialog, MatDialogModule } from '@angular/material/dialog';
+import { DialogService } from 'primeng/dynamicdialog';
+import { TableModule } from 'primeng/table';
+import { ButtonModule } from 'primeng/button';
+import { TagModule } from 'primeng/tag';
+import { TabsModule } from 'primeng/tabs';
+import { TooltipModule } from 'primeng/tooltip';
+import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { TransferApprovalsService } from '../../../../../shared/api/transfer-approvals.service';
 import { MemberTransfer } from '../../../../../shared/models/member.model';
 import { RejectDialogComponent } from '../../dialogs/reject-dialog/reject-dialog.component';
@@ -18,16 +15,12 @@ import { NotificationService } from '../../../../../shared/services/notification
   selector: 'app-pending-approvals',
   standalone: true,
   imports: [
-    CommonModule,
-    MatCardModule,
-    MatButtonModule,
-    MatIconModule,
-    MatChipsModule,
-    MatTabsModule,
-    MatTableModule,
-    MatTooltipModule,
-    MatProgressSpinnerModule,
-    MatDialogModule,
+    TableModule,
+    ButtonModule,
+    TagModule,
+    TabsModule,
+    TooltipModule,
+    ProgressSpinnerModule,
   ],
   templateUrl: './pending-approvals.component.html',
   styleUrls: ['./pending-approvals.component.scss'],
@@ -35,28 +28,11 @@ import { NotificationService } from '../../../../../shared/services/notification
 export class PendingApprovalsComponent implements OnInit {
   private readonly approvalsService = inject(TransferApprovalsService);
   private readonly notificationService = inject(NotificationService);
-  private readonly dialog = inject(MatDialog);
+  private readonly dialogService = inject(DialogService);
 
   forApproval = signal<MemberTransfer[]>([]);
   myRequests = signal<MemberTransfer[]>([]);
   loading = signal(false);
-
-  displayedColumnsForApproval: string[] = [
-    'memberName',
-    'fromTo',
-    'reason',
-    'requestedBy',
-    'createdAt',
-    'actions',
-  ];
-
-  displayedColumnsMyRequests: string[] = [
-    'memberName',
-    'fromTo',
-    'reason',
-    'createdAt',
-    'actions',
-  ];
 
   ngOnInit(): void {
     this.loadPendingTransfers();
@@ -65,34 +41,23 @@ export class PendingApprovalsComponent implements OnInit {
   loadPendingTransfers(): void {
     this.loading.set(true);
 
-    // Carregar aprovações pendentes
     this.approvalsService.getPendingForApproval().subscribe({
       next: (response) => {
-        console.log('Response getPendingForApproval:', response);
         if (response.status === 'success') {
-          console.log('Dados forApproval:', response.data);
           this.forApproval.set(response.data);
-          console.log('forApproval signal após set:', this.forApproval());
         }
       },
-      error: (err) => {
-        console.error('Erro ao carregar aprovações pendentes:', err);
-      },
+      error: () => {},
     });
 
-    // Carregar minhas solicitações
     this.approvalsService.getMyPendingRequests().subscribe({
       next: (response) => {
-        console.log('Response getMyPendingRequests:', response);
         if (response.status === 'success') {
-          console.log('Dados myRequests:', response.data);
           this.myRequests.set(response.data);
-          console.log('myRequests signal após set:', this.myRequests());
         }
         this.loading.set(false);
       },
-      error: (err) => {
-        console.error('Erro ao carregar minhas solicitações:', err);
+      error: () => {
         this.loading.set(false);
       },
     });
@@ -102,7 +67,9 @@ export class PendingApprovalsComponent implements OnInit {
     this.approvalsService.approveTransfer(transfer.id).subscribe({
       next: (response) => {
         if (response.status === 'success') {
-          this.notificationService.success('Transferência aprovada com sucesso');
+          this.notificationService.success(
+            'Transferência aprovada com sucesso',
+          );
           this.loadPendingTransfers();
         }
       },
@@ -114,12 +81,14 @@ export class PendingApprovalsComponent implements OnInit {
   }
 
   rejectTransfer(transfer: MemberTransfer): void {
-    const dialogRef = this.dialog.open(RejectDialogComponent, {
+    const ref = this.dialogService.open(RejectDialogComponent, {
+      header: 'Rejeitar Transferência',
       width: '500px',
       data: { transfer },
     });
+    if (!ref) return;
 
-    dialogRef.afterClosed().subscribe((reason: string | undefined) => {
+    ref.onClose.subscribe((reason: string | undefined) => {
       if (reason !== undefined) {
         this.approvalsService
           .rejectTransfer(transfer.id, { reason })
@@ -145,7 +114,9 @@ export class PendingApprovalsComponent implements OnInit {
       this.approvalsService.cancelTransfer(transfer.id).subscribe({
         next: (response) => {
           if (response.status === 'success') {
-            this.notificationService.success('Solicitação cancelada com sucesso');
+            this.notificationService.success(
+              'Solicitação cancelada com sucesso',
+            );
             this.loadPendingTransfers();
           }
         },
@@ -158,10 +129,7 @@ export class PendingApprovalsComponent implements OnInit {
   }
 
   getTransferDestination(transfer: MemberTransfer): string {
-    if (transfer.toCongregationName) {
-      return transfer.toCongregationName;
-    }
-    return 'Externa';
+    return transfer.toCongregationName || 'Externa';
   }
 
   getTransferOrigin(transfer: MemberTransfer): string {

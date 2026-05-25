@@ -1,35 +1,29 @@
-<h2 mat-dialog-title>Justificativa de ausência</h2>
+<div class="dialog-content">
+  <p class="member-name">{{ data.memberName }}</p>
 
-<mat-dialog-content class="dialog-content">
-  <div class="member-name">{{ data.memberName }}</div>
-
-  <mat-form-field appearance="outline">
-    <mat-label>Justificativa</mat-label>
+  <div class="field">
+    <label for="note">Justificativa</label>
     <textarea
-      matInput
+      pTextarea
+      id="note"
+      [formControl]="noteControl"
       rows="5"
       maxlength="500"
-      [formControl]="noteControl"
       [readonly]="!data.canEdit"
       placeholder="Descreva o motivo (opcional)"
     ></textarea>
-    <mat-hint>Até 500 caracteres</mat-hint>
-  </mat-form-field>
-</mat-dialog-content>
+    <small class="hint-text">Até 500 caracteres</small>
+  </div>
 
-<mat-dialog-actions align="end">
-  <button mat-stroked-button type="button" (click)="close()">
-    {{ data.canEdit ? 'Cancelar' : 'Fechar' }}
-  </button>
-  @if (data.canEdit) {
-    <button
-      mat-flat-button
-      color="primary"
-      type="button"
-      (click)="save()"
-      [disabled]="!canSave()"
-    >
-      Salvar
-    </button>
-  }
-</mat-dialog-actions>
+  <div class="dialog-actions">
+    <p-button
+      [label]="data.canEdit ? 'Cancelar' : 'Fechar'"
+      [outlined]="true"
+      severity="secondary"
+      (onClick)="close()"
+    />
+    @if (data.canEdit) {
+      <p-button label="Salvar" [disabled]="!canSave()" (onClick)="save()" />
+    }
+  </div>
+</div>

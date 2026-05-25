@@ -1,18 +1,23 @@
-import { Component, inject, signal, OnInit, computed } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import {
+  Component,
+  inject,
+  signal,
+  OnInit,
+  computed,
+  ViewChild,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { MatCardModule } from '@angular/material/card';
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatDialog, MatDialogModule } from '@angular/material/dialog';
-import { MatChipsModule } from '@angular/material/chips';
-import { MatMenuModule } from '@angular/material/menu';
-import { MatTableModule } from '@angular/material/table';
-import { MatTooltipModule } from '@angular/material/tooltip';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatSelectModule } from '@angular/material/select';
+import { DialogService } from 'primeng/dynamicdialog';
+import { ButtonModule } from 'primeng/button';
+import { InputTextModule } from 'primeng/inputtext';
+import { SelectModule } from 'primeng/select';
+import { TagModule } from 'primeng/tag';
+import { TooltipModule } from 'primeng/tooltip';
+import { IconFieldModule } from 'primeng/iconfield';
+import { InputIconModule } from 'primeng/inputicon';
+import { MenuModule, Menu } from 'primeng/menu';
+import { MenuItem } from 'primeng/api';
+import { ProgressSpinnerModule } from 'primeng/progressspinner';
 
 import { OrganizationsService } from '../../../../../shared/api/organizations.service';
 import {
@@ -39,28 +44,26 @@ import { NotificationService } from '../../../../../shared/services/notification
   standalone: true,
   selector: 'app-organizations',
   imports: [
-    CommonModule,
     FormsModule,
-    MatCardModule,
-    MatButtonModule,
-    MatIconModule,
-    MatProgressSpinnerModule,
-    MatDialogModule,
-    MatChipsModule,
-    MatMenuModule,
-    MatTableModule,
-    MatTooltipModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatSelectModule,
+    ButtonModule,
+    InputTextModule,
+    SelectModule,
+    TagModule,
+    TooltipModule,
+    IconFieldModule,
+    InputIconModule,
+    MenuModule,
+    ProgressSpinnerModule,
   ],
   templateUrl: './organizations.component.html',
   styleUrls: ['./organizations.component.scss'],
 })
 export class OrganizationsComponent implements OnInit {
-  private organizationsService = inject(OrganizationsService);
-  private notificationService = inject(NotificationService);
-  private dialog = inject(MatDialog);
+  private readonly organizationsService = inject(OrganizationsService);
+  private readonly notificationService = inject(NotificationService);
+  private readonly dialogService = inject(DialogService);
+
+  @ViewChild('rowMenu') rowMenu!: Menu;
 
   organizations = signal<OrganizationUnit[]>([]);
   isLoading = signal(true);
@@ -71,6 +74,24 @@ export class OrganizationsComponent implements OnInit {
     'ALL',
   );
 
+  rowMenuItems: MenuItem[] = [];
+
+  typeOptions = computed(() => [
+    { label: 'Todos', value: 'ALL' },
+    { label: 'Igreja (Sede Principal)', value: OrganizationUnitType.CHURCH },
+    { label: this.getSectorLabel(), value: OrganizationUnitType.SECTOR },
+    {
+      label: this.getCongregationLabel(),
+      value: OrganizationUnitType.CONGREGATION,
+    },
+  ]);
+
+  hqOptions = [
+    { label: 'Todas', value: 'ALL' },
+    { label: 'Apenas Sedes', value: 'HEADQUARTERS' },
+    { label: 'Não-Sedes', value: 'NOT_HEADQUARTERS' },
+  ];
+
   filteredUnits = computed(() => {
     const term = this.searchTerm().toLowerCase().trim();
     const type = this.typeFilter();
@@ -78,43 +99,26 @@ export class OrganizationsComponent implements OnInit {
 
     let units = this.getAllUnitsFlat();
 
-    // Filtro por tipo
-    if (type !== 'ALL') {
-      units = units.filter((unit) => unit.type === type);
-    }
+    if (type !== 'ALL') units = units.filter((u) => u.type === type);
+    if (hq === 'HEADQUARTERS') units = units.filter((u) => u.isHeadquarters);
+    else if (hq === 'NOT_HEADQUARTERS')
+      units = units.filter((u) => !u.isHeadquarters);
 
-    // Filtro por sede
-    if (hq === 'HEADQUARTERS') {
-      units = units.filter((unit) => unit.isHeadquarters);
-    } else if (hq === 'NOT_HEADQUARTERS') {
-      units = units.filter((unit) => !unit.isHeadquarters);
-    }
-
-    // Filtro por texto
     if (term) {
-      units = units.filter((unit) => {
-        const matchesName = unit.name?.toLowerCase().includes(term) ?? false;
-        const matchesCode = unit.code?.toLowerCase().includes(term) ?? false;
-        const matchesType = this.getTypeLabel(unit.type)
-          .toLowerCase()
-          .includes(term);
-        const matchesParent = this.getParentName(unit)
-          .toLowerCase()
-          .includes(term);
-
-        return matchesName || matchesCode || matchesType || matchesParent;
+      units = units.filter((u) => {
+        const normalized = (s: string) =>
+          s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+        const t = normalized(term);
+        return (
+          normalized(u.name ?? '').includes(t) ||
+          normalized(u.code ?? '').includes(t) ||
+          normalized(this.getTypeLabel(u.type)).includes(t) ||
+          normalized(this.getParentName(u)).includes(t)
+        );
       });
     }
 
     return units;
-  });
-
-  hasActiveFilters = computed(() => {
-    return (
-      this.searchTerm() !== '' ||
-      this.typeFilter() !== 'ALL' ||
-      this.headquartersFilter() !== 'ALL'
-    );
   });
 
   OrganizationUnitType = OrganizationUnitType;
@@ -135,12 +139,10 @@ export class OrganizationsComponent implements OnInit {
 
     this.organizationsService.listAll().subscribe({
       next: (response) => {
-        console.log('[Organizations] Loaded successfully:', response);
         this.organizations.set(response.data);
         this.isLoading.set(false);
       },
       error: (error) => {
-        console.error('[Organizations] Load failed:', error);
         const message =
           error?.error?.message ?? 'Erro ao carregar organizações';
         this.errorMessage.set(message);
@@ -151,7 +153,6 @@ export class OrganizationsComponent implements OnInit {
 
   getTypeLabel(type: OrganizationUnitType): string {
     const church = this.getRootChurch();
-
     const labels = {
       [OrganizationUnitType.CHURCH]: 'Sede Central',
       [OrganizationUnitType.SECTOR]: church?.sectorLabel ?? 'Setor',
@@ -159,6 +160,15 @@ export class OrganizationsComponent implements OnInit {
         church?.congregationLabel ?? 'Congregação',
     };
     return labels[type] || type;
+  }
+
+  getTypeIcon(type: OrganizationUnitType): string {
+    const icons = {
+      [OrganizationUnitType.CHURCH]: 'pi-building',
+      [OrganizationUnitType.SECTOR]: 'pi-folder',
+      [OrganizationUnitType.CONGREGATION]: 'pi-users',
+    };
+    return icons[type] || 'pi-map-marker';
   }
 
   getSectorLabel(): string {
@@ -171,67 +181,105 @@ export class OrganizationsComponent implements OnInit {
 
   getAllUnitsFlat(): OrganizationUnit[] {
     const result: OrganizationUnit[] = [];
-
     for (const church of this.organizations()) {
       result.push(church);
       if (church.children) {
         for (const sector of church.children) {
           result.push(sector);
-          if (sector.children) {
-            result.push(...sector.children);
-          }
+          if (sector.children) result.push(...sector.children);
         }
       }
     }
-
     return result;
   }
 
   getParentName(unit: OrganizationUnit): string {
-    if (unit.type === OrganizationUnitType.CHURCH) {
-      return '—';
-    }
-
-    // Find parent for sectors and congregations
+    if (unit.type === OrganizationUnitType.CHURCH) return '—';
     for (const church of this.organizations()) {
       if (
         unit.type === OrganizationUnitType.SECTOR &&
         unit.parentId === church.id
-      ) {
+      )
         return church.name;
-      }
       if (church.children) {
         for (const sector of church.children) {
           if (
             unit.type === OrganizationUnitType.CONGREGATION &&
             unit.parentId === sector.id
-          ) {
+          )
             return sector.name;
-          }
         }
       }
     }
-
     return '—';
   }
 
   getHeadquartersLabel(type: OrganizationUnitType): string {
-    if (type === OrganizationUnitType.CHURCH) {
-      return 'Sede Principal';
-    }
-    if (type === OrganizationUnitType.CONGREGATION) {
+    if (type === OrganizationUnitType.CHURCH) return 'Sede Principal';
+    if (type === OrganizationUnitType.CONGREGATION)
       return `Sede ${this.getSectorLabel()}`;
-    }
     return 'Sede';
   }
 
-  getTypeIcon(type: OrganizationUnitType): string {
-    const icons = {
-      [OrganizationUnitType.CHURCH]: 'church',
-      [OrganizationUnitType.SECTOR]: 'folder',
-      [OrganizationUnitType.CONGREGATION]: 'people',
-    };
-    return icons[type] || 'location_on';
+  openRowMenu(event: Event, unit: OrganizationUnit) {
+    const items: MenuItem[] = [
+      {
+        label: 'Visualizar Hierarquia',
+        icon: 'pi pi-eye',
+        command: () => this.openViewHierarchyDialog(unit.id),
+      },
+      {
+        label: 'Gerenciar Cargos',
+        icon: 'pi pi-id-card',
+        command: () => this.openManageRolesDialog(unit),
+      },
+      {
+        label: 'Editar',
+        icon: 'pi pi-pencil',
+        command: () => this.openEditDialog(unit),
+      },
+    ];
+    const addSectorItem =
+      unit.type === OrganizationUnitType.CHURCH
+        ? [
+            {
+              label: `Adicionar ${this.getSectorLabel()}`,
+              icon: 'pi pi-plus',
+              command: () => this.openCreateDialog(unit.id, unit.type),
+            },
+          ]
+        : [];
+
+    const addCongregationItem =
+      unit.type === OrganizationUnitType.SECTOR
+        ? [
+            {
+              label: `Adicionar ${this.getCongregationLabel()}`,
+              icon: 'pi pi-plus',
+              command: () => this.openCreateDialog(unit.id, unit.type),
+            },
+          ]
+        : [];
+
+    this.rowMenuItems = [
+      ...items,
+      ...addSectorItem,
+      ...addCongregationItem,
+      { separator: true },
+      {
+        label: 'Excluir',
+        icon: 'pi pi-trash',
+        styleClass: 'danger-item',
+        command: () => this.deleteUnit(unit),
+      },
+    ];
+    this.rowMenu.toggle(event);
+  }
+
+  clearFilters() {
+    this.searchTerm.set('');
+    this.typeFilter.set('ALL');
+    this.headquartersFilter.set('ALL');
   }
 
   openCreateDialog(parentId?: string, parentType?: OrganizationUnitType) {
@@ -241,65 +289,52 @@ export class OrganizationsComponent implements OnInit {
       parentType,
       allUnits: this.organizations(),
     };
-
-    const dialogRef = this.dialog.open(OrganizationFormDialogComponent, {
+    const ref = this.dialogService.open(OrganizationFormDialogComponent, {
+      header: 'Nova Unidade',
       width: '500px',
       data: dialogData,
     });
-
-    dialogRef
-      .afterClosed()
-      .subscribe((request: CreateOrganizationUnitRequest) => {
-        if (!request) return;
-
-        this.organizationsService.create(request).subscribe({
-          next: () => {
-            this.notificationService.success('Unidade criada com sucesso');
-            this.loadOrganizations();
-          },
-          error: (error) => {
-            const message = error?.error?.message ?? 'Erro ao criar unidade';
-            this.notificationService.error(message, 'OK', { duration: 5000 });
-          },
-        });
+    if (!ref) return;
+    ref.onClose.subscribe((request: CreateOrganizationUnitRequest) => {
+      if (!request) return;
+      this.organizationsService.create(request).subscribe({
+        next: () => {
+          this.notificationService.success('Unidade criada com sucesso');
+          this.loadOrganizations();
+        },
+        error: (error) => {
+          const message = error?.error?.message ?? 'Erro ao criar unidade';
+          this.notificationService.error(message);
+        },
       });
+    });
   }
 
   openEditDialog(unit: OrganizationUnit) {
-    const dialogData: OrganizationFormDialogData = {
-      mode: 'edit',
-      unit,
-    };
-
-    const dialogRef = this.dialog.open(OrganizationFormDialogComponent, {
+    const dialogData: OrganizationFormDialogData = { mode: 'edit', unit };
+    const ref = this.dialogService.open(OrganizationFormDialogComponent, {
+      header: 'Editar Unidade',
       width: '500px',
       data: dialogData,
     });
-
-    dialogRef
-      .afterClosed()
-      .subscribe((request: UpdateOrganizationUnitRequest) => {
-        if (!request) return;
-
-        this.organizationsService.update(unit.id, request).subscribe({
-          next: () => {
-            this.notificationService.success('Unidade atualizada com sucesso');
-            this.loadOrganizations();
-          },
-          error: (error) => {
-            const message =
-              error?.error?.message ?? 'Erro ao atualizar unidade';
-            this.notificationService.error(message, 'OK', { duration: 5000 });
-          },
-        });
+    if (!ref) return;
+    ref.onClose.subscribe((request: UpdateOrganizationUnitRequest) => {
+      if (!request) return;
+      this.organizationsService.update(unit.id, request).subscribe({
+        next: () => {
+          this.notificationService.success('Unidade atualizada com sucesso');
+          this.loadOrganizations();
+        },
+        error: (error) => {
+          const message = error?.error?.message ?? 'Erro ao atualizar unidade';
+          this.notificationService.error(message);
+        },
       });
+    });
   }
 
   deleteUnit(unit: OrganizationUnit) {
-    if (!confirm(`Tem certeza que deseja excluir "${unit.name}"?`)) {
-      return;
-    }
-
+    if (!confirm(`Tem certeza que deseja excluir "${unit.name}"?`)) return;
     this.organizationsService.delete(unit.id).subscribe({
       next: () => {
         this.notificationService.success('Unidade excluída com sucesso');
@@ -307,7 +342,7 @@ export class OrganizationsComponent implements OnInit {
       },
       error: (error) => {
         const message = error?.error?.message ?? 'Erro ao excluir unidade';
-        this.notificationService.error(message, 'OK', { duration: 5000 });
+        this.notificationService.error(message);
       },
     });
   }
@@ -317,35 +352,21 @@ export class OrganizationsComponent implements OnInit {
       organizationUnitId: unit.id,
       organizationUnitName: unit.name,
     };
-
-    const dialogRef = this.dialog.open(ManageRolesDialogComponent, {
+    const ref = this.dialogService.open(ManageRolesDialogComponent, {
+      header: 'Gerenciar Cargos — ' + unit.name,
       width: '800px',
-      maxWidth: '90vw',
       data: dialogData,
     });
-
-    dialogRef.afterClosed().subscribe(() => {
-      // Recarregar organizações para atualizar contadores
-      this.loadOrganizations();
-    });
+    if (!ref) return;
+    ref.onClose.subscribe(() => this.loadOrganizations());
   }
 
   openViewHierarchyDialog(rootOrganizationId?: string) {
-    const dialogData: ViewHierarchyDialogData = {
-      rootOrganizationId,
-    };
-
-    this.dialog.open(ViewHierarchyDialogComponent, {
+    const dialogData: ViewHierarchyDialogData = { rootOrganizationId };
+    this.dialogService.open(ViewHierarchyDialogComponent, {
+      header: 'Hierarquia e Cargos',
       width: '900px',
-      maxWidth: '95vw',
-      maxHeight: '90vh',
       data: dialogData,
     });
-  }
-
-  clearFilters() {
-    this.searchTerm.set('');
-    this.typeFilter.set('ALL');
-    this.headquartersFilter.set('ALL');
   }
 }

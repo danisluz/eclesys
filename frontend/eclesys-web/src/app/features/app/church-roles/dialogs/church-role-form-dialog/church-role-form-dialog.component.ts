@@ -1,15 +1,9 @@
-import { Component, inject, signal, effect } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import {
-  MatDialogModule,
-  MAT_DIALOG_DATA,
-  MatDialogRef,
-} from '@angular/material/dialog';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatButtonModule } from '@angular/material/button';
-import { MatCheckboxModule } from '@angular/material/checkbox';
+import { Component, inject, signal } from '@angular/core';
+import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
+import { DynamicDialogRef, DynamicDialogConfig } from 'primeng/dynamicdialog';
+import { InputTextModule } from 'primeng/inputtext';
+import { ButtonModule } from 'primeng/button';
+import { CheckboxModule } from 'primeng/checkbox';
 import { ChurchRole } from '../../../../../shared/models/church-role.model';
 import { ChurchRolesService } from '../../../../../shared/api/church-roles.service';
 
@@ -22,24 +16,15 @@ interface DialogData {
 @Component({
   selector: 'app-church-role-form-dialog',
   standalone: true,
-  imports: [
-    CommonModule,
-    ReactiveFormsModule,
-    MatDialogModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatButtonModule,
-    MatCheckboxModule,
-  ],
+  imports: [ReactiveFormsModule, InputTextModule, ButtonModule, CheckboxModule],
   templateUrl: './church-role-form-dialog.component.html',
   styleUrls: ['./church-role-form-dialog.component.scss'],
-
 })
 export class ChurchRoleFormDialogComponent {
   private fb = inject(FormBuilder);
   private service = inject(ChurchRolesService);
-  private dialogRef = inject(MatDialogRef<ChurchRoleFormDialogComponent>);
-  data = inject<DialogData>(MAT_DIALOG_DATA);
+  private ref = inject(DynamicDialogRef);
+  data = inject(DynamicDialogConfig).data as DialogData;
 
   saving = signal(false);
 
@@ -56,39 +41,23 @@ export class ChurchRoleFormDialogComponent {
         sortOrder: this.data.role.sortOrder,
         isActive: this.data.role.isActive,
       });
-    } else if (
-      this.data.mode === 'create' &&
-      this.data.maxSortOrder !== undefined
-    ) {
-      this.form.patchValue({
-        sortOrder: this.data.maxSortOrder + 1,
-      });
+    } else if (this.data.mode === 'create' && this.data.maxSortOrder !== undefined) {
+      this.form.patchValue({ sortOrder: this.data.maxSortOrder + 1 });
     }
   }
 
-  cancel() {
-    this.dialogRef.close();
-  }
+  cancel() { this.ref.close(); }
 
   save() {
     if (this.form.invalid) return;
-
     this.saving.set(true);
-
     const request = this.form.value;
-
-    const operation =
-      this.data.mode === 'create'
-        ? this.service.create(request as any)
-        : this.service.update(this.data.role!.id, request as any);
-
+    const operation = this.data.mode === 'create'
+      ? this.service.create(request as any)
+      : this.service.update(this.data.role!.id, request as any);
     operation.subscribe({
-      next: () => {
-        this.dialogRef.close(true);
-      },
-      error: () => {
-        this.saving.set(false);
-      },
+      next: () => { this.ref.close(true); },
+      error: () => { this.saving.set(false); },
     });
   }
 }

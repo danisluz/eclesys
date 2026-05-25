@@ -1,62 +1,84 @@
 <div class="min-h-screen flex flex-col">
 
-  <header class="sticky top-0 z-10 border-b border-slate-200 bg-white/80 backdrop-blur">
-    <div class="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-      <a routerLink="/" class="flex items-center gap-3">
-        <img [src]="'assets/brand/eclesys-logo.svg'" alt="ECLESYS" class="h-6" />
+  <!-- Header -->
+  <header class="sticky top-0 z-20 bg-white/95 backdrop-blur-sm border-b border-slate-100">
+    <div class="w-full px-8 h-16 flex items-center justify-between gap-4">
 
+      <a routerLink="/" class="flex items-center gap-2 flex-shrink-0">
+        <img src="assets/brand/eclesys-logo.svg" alt="ECLESYS" class="h-7" />
       </a>
 
-      <nav class="hidden items-center gap-6 text-sm text-slate-600 md:flex">
-        <a routerLink="/" class="hover:text-slate-900">Produto</a>
-        <a routerLink="/pricing" class="hover:text-slate-900">Planos</a>
-        <a routerLink="/signup" class="hover:text-slate-900">Assinar</a>
+      <nav class="hidden md:flex items-center gap-1 flex-1 justify-center">
+        <a routerLink="/" routerLinkActive="!text-slate-900 !font-semibold"
+           class="px-4 py-2 text-sm font-medium text-slate-500 rounded-lg hover:text-slate-900 hover:bg-slate-50 transition-colors">
+          Produto
+        </a>
+        <a routerLink="/pricing" routerLinkActive="!text-slate-900 !font-semibold"
+           class="px-4 py-2 text-sm font-medium text-slate-500 rounded-lg hover:text-slate-900 hover:bg-slate-50 transition-colors">
+          Planos
+        </a>
       </nav>
 
-      <!-- Mobile actions -->
-      <div class="flex items-center gap-3 md:hidden">
-        <a
-          routerLink="/login"
-          class="hidden rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-900 hover:bg-slate-50 md:inline-flex"
-        >
+      <div class="flex items-center gap-2">
+        <a routerLink="/login"
+           class="hidden md:inline-flex items-center px-4 py-2 text-sm font-medium text-slate-600 rounded-xl hover:bg-slate-100 transition-colors">
           Entrar
         </a>
-
-        <button
-          type="button"
-          (click)="toggleMobileMenu()"
-          class="inline-flex h-10 w-10 items-center justify-center rounded-xl border border-slate-300 bg-white text-slate-900 hover:bg-slate-50"
-          aria-label="Abrir menu"
-          [attr.aria-expanded]="isMobileMenuOpen"
-        >
-          <span class="text-lg leading-none">☰</span>
+        <a routerLink="/signup"
+           class="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-semibold text-white bg-indigo-600 rounded-xl hover:bg-indigo-700 transition-colors shadow-sm shadow-indigo-200">
+          <i class="pi pi-arrow-right text-xs"></i>
+          Começar agora
+        </a>
+        <button type="button"
+                (click)="toggleMobileMenu()"
+                class="md:hidden inline-flex items-center justify-center w-9 h-9 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors"
+                aria-label="Menu"
+                [attr.aria-expanded]="isMobileMenuOpen">
+          <i class="pi pi-bars text-sm"></i>
         </button>
       </div>
+    </div>
 
-      <a routerLink="/login"
-        class="rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-900 hover:bg-slate-50">
+    <!-- Mobile drawer -->
+    @if (isMobileMenuOpen) {
+    <div class="md:hidden border-t border-slate-100 bg-white px-6 py-3 space-y-1">
+      <a routerLink="/" (click)="closeMobileMenu()"
+         class="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-slate-700 rounded-xl hover:bg-slate-50">
+        Produto
+      </a>
+      <a routerLink="/pricing" (click)="closeMobileMenu()"
+         class="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-slate-700 rounded-xl hover:bg-slate-50">
+        Planos
+      </a>
+      <a routerLink="/login" (click)="closeMobileMenu()"
+         class="flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-slate-700 rounded-xl hover:bg-slate-50">
         Entrar
       </a>
-    </div>
-  </header>
-
-  <div *ngIf="isMobileMenuOpen" class="md:hidden border-b border-slate-200 bg-white">
-    <div class="mx-auto max-w-6xl px-6 py-4">
-      <div class="flex flex-col gap-2 text-sm text-slate-700">
-        <a routerLink="/" (click)="closeMobileMenu()" class="rounded-xl px-3 py-2 hover:bg-slate-50">Produto</a>
-        <a routerLink="/pricing" (click)="closeMobileMenu()" class="rounded-xl px-3 py-2 hover:bg-slate-50">Planos</a>
-        <a routerLink="/signup" (click)="closeMobileMenu()" class="rounded-xl px-3 py-2 hover:bg-slate-50">Assinar</a>
+      <div class="pt-2 border-t border-slate-100 mt-1">
+        <a routerLink="/signup" (click)="closeMobileMenu()"
+           class="flex items-center justify-center gap-2 py-2.5 text-sm font-semibold text-white bg-indigo-600 rounded-xl">
+          Começar agora
+        </a>
       </div>
     </div>
-  </div>
+    }
+  </header>
 
-  <main class="flex-1 mx-auto w-full max-w-6xl px-6 py-10">
+  <!-- Main content (sem constraint — cada página controla o próprio layout) -->
+  <main class="flex-1">
     <router-outlet />
   </main>
 
-  <footer class="border-t border-slate-200">
-    <div class="mx-auto max-w-6xl px-6 py-6 text-sm text-slate-500">
-      © {{ year }} ECLESYS CO. Todos os direitos reservados.
+  <!-- Footer -->
+  <footer class="bg-slate-900">
+    <div class="mx-auto max-w-6xl px-6 py-8 flex flex-col md:flex-row items-center justify-between gap-4">
+      <div class="flex items-center gap-4">
+        <img src="assets/brand/eclesys-logo-white.svg" alt="ECLESYS" class="h-5" />
+        <span class="hidden md:block h-4 w-px bg-slate-700"></span>
+        <span class="hidden md:block text-xs text-slate-500">Gestão Eclesiástica</span>
+      </div>
+      <p class="text-sm text-slate-500">© {{ year }} ECLESYS CO. Todos os direitos reservados.</p>
     </div>
   </footer>
+
 </div>

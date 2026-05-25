@@ -1,4 +1,4 @@
-import { Component, Inject, OnInit, inject, signal } from '@angular/core';
+import { Component, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   FormBuilder,
@@ -6,18 +6,13 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
-import {
-  MAT_DIALOG_DATA,
-  MatDialogModule,
-  MatDialogRef,
-} from '@angular/material/dialog';
-import { MatButtonModule } from '@angular/material/button';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatSelectModule } from '@angular/material/select';
-import { MatRadioModule } from '@angular/material/radio';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatIconModule } from '@angular/material/icon';
+import { DynamicDialogRef, DynamicDialogConfig } from 'primeng/dynamicdialog';
+import { ButtonModule } from 'primeng/button';
+import { InputTextModule } from 'primeng/inputtext';
+import { SelectModule } from 'primeng/select';
+import { RadioButtonModule } from 'primeng/radiobutton';
+import { ProgressSpinnerModule } from 'primeng/progressspinner';
+import { TextareaModule } from 'primeng/textarea';
 import { Member } from '../../../../../shared/models/member.model';
 import { MembersService } from '../../../../../shared/api/members.service';
 import { OrganizationsService } from '../../../../../shared/api/organizations.service';
@@ -29,23 +24,22 @@ import { OrganizationUnit } from '../../../../../shared/api/organization-unit.mo
   imports: [
     CommonModule,
     ReactiveFormsModule,
-    MatDialogModule,
-    MatButtonModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatSelectModule,
-    MatRadioModule,
-    MatProgressSpinnerModule,
-    MatIconModule,
+    ButtonModule,
+    InputTextModule,
+    SelectModule,
+    RadioButtonModule,
+    ProgressSpinnerModule,
+    TextareaModule,
   ],
   templateUrl: './transfer-dialog.component.html',
   styleUrls: ['./transfer-dialog.component.scss'],
-
 })
 export class TransferDialogComponent implements OnInit {
-  private fb = inject(FormBuilder);
-  private membersService = inject(MembersService);
-  private organizationsService = inject(OrganizationsService);
+  private readonly fb = inject(FormBuilder);
+  private readonly membersService = inject(MembersService);
+  private readonly organizationsService = inject(OrganizationsService);
+  private readonly ref = inject(DynamicDialogRef);
+  data = inject(DynamicDialogConfig).data as { member: Member };
 
   form: FormGroup;
   congregations = signal<OrganizationUnit[]>([]);
@@ -53,10 +47,7 @@ export class TransferDialogComponent implements OnInit {
   loadingCongregations = signal(true);
   saving = signal(false);
 
-  constructor(
-    @Inject(MAT_DIALOG_DATA) public data: { member: Member },
-    private dialogRef: MatDialogRef<TransferDialogComponent>,
-  ) {
+  constructor() {
     this.form = this.fb.group({
       transferType: ['internal', Validators.required],
       toCongregationId: [null],
@@ -64,7 +55,6 @@ export class TransferDialogComponent implements OnInit {
       reason: ['', Validators.required],
     });
 
-    // Atualiza validações quando o tipo de transferência muda
     this.form.get('transferType')?.valueChanges.subscribe((type) => {
       if (type === 'internal') {
         this.form.get('toCongregationId')?.setValidators([Validators.required]);
@@ -83,55 +73,32 @@ export class TransferDialogComponent implements OnInit {
   }
 
   ngOnInit() {
-    console.log('🚀 TransferDialog ngOnInit - carregando congregações');
     this.loadCongregations();
   }
 
   loadCongregations() {
-    console.log('📋 Iniciando carregamento de congregações');
     this.loadingCongregations.set(true);
     this.organizationsService.listAll().subscribe({
       next: (response) => {
-        console.log('✅ Organizações recebidas:', response.data);
-
-        // Busca a root church para obter os labels customizados
         const rootChurch = response.data.find((org) => org.type === 'CHURCH');
-        if (rootChurch) {
-          this.rootChurch.set(rootChurch);
-        }
+        if (rootChurch) this.rootChurch.set(rootChurch);
 
-        // Função recursiva para achatar a hierarquia e pegar só congregações
         const extractCongregations = (
           orgs: OrganizationUnit[],
         ): OrganizationUnit[] => {
-          let congregations: OrganizationUnit[] = [];
-
+          let result: OrganizationUnit[] = [];
           for (const org of orgs) {
-            // Se é congregação, adiciona
-            if (org.type === 'CONGREGATION') {
-              congregations.push(org);
-            }
-            // Se tem filhos, processa recursivamente
-            if (org.children && org.children.length > 0) {
-              congregations = [
-                ...congregations,
-                ...extractCongregations(org.children),
-              ];
-            }
+            if (org.type === 'CONGREGATION') result.push(org);
+            if (org.children?.length)
+              result = [...result, ...extractCongregations(org.children)];
           }
-
-          return congregations;
+          return result;
         };
 
-        const congregations = extractCongregations(response.data);
-        console.log('🏛️ Congregações encontradas:', congregations);
-        console.log('📊 Total de congregações:', congregations.length);
-
-        this.congregations.set(congregations);
+        this.congregations.set(extractCongregations(response.data));
         this.loadingCongregations.set(false);
       },
-      error: (err) => {
-        console.error('❌ Erro ao carregar congregações:', err);
+      error: () => {
         this.loadingCongregations.set(false);
       },
     });
@@ -140,14 +107,8 @@ export class TransferDialogComponent implements OnInit {
   getCongregationLabel(): string {
     return this.rootChurch()?.congregationLabel ?? 'Congregação';
   }
-
-  getCongregationLabelPlural(): string {
-    const label = this.getCongregationLabel();
-    // Simples pluralização: adiciona 's' ou 'ões'
-    if (label.endsWith('ão')) {
-      return label.slice(0, -2) + 'ões';
-    }
-    return label + 's';
+  cancel() {
+    this.ref.close();
   }
 
   save() {
@@ -155,10 +116,8 @@ export class TransferDialogComponent implements OnInit {
       this.form.markAllAsTouched();
       return;
     }
-
     this.saving.set(true);
     const formValue = this.form.value;
-
     const request = {
       toCongregationId:
         formValue.transferType === 'internal'
@@ -170,10 +129,9 @@ export class TransferDialogComponent implements OnInit {
           : null,
       reason: formValue.reason,
     };
-
     this.membersService.transferMember(this.data.member.id, request).subscribe({
       next: () => {
-        this.dialogRef.close(true);
+        this.ref.close(true);
       },
       error: () => {
         this.saving.set(false);

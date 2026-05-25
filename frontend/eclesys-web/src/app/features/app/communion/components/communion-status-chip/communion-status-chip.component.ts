@@ -1,12 +1,11 @@
-import { CommonModule } from '@angular/common';
 import { Component, computed, input } from '@angular/core';
-import { MatChipsModule } from '@angular/material/chips';
+import { TagModule } from 'primeng/tag';
 import { CommunionEventStatus } from '../../models/communion.models';
 
 @Component({
   selector: 'app-communion-status-chip',
   standalone: true,
-  imports: [CommonModule, MatChipsModule],
+  imports: [TagModule],
   templateUrl: './communion-status-chip.component.html',
   styleUrl: './communion-status-chip.component.scss',
 })
@@ -14,16 +13,18 @@ export class CommunionStatusChipComponent {
   statusSignal = input.required<CommunionEventStatus>();
 
   labelSignal = computed(() => {
-    const status = this.statusSignal();
-    switch (status) {
-      case 'OPEN':
-        return 'Aberto';
-      case 'CLOSED':
-        return 'Fechado';
-      default:
-        return 'Rascunho';
+    switch (this.statusSignal()) {
+      case 'OPEN': return 'Aberto';
+      case 'CLOSED': return 'Fechado';
+      default: return 'Rascunho';
     }
   });
 
-  classSignal = computed(() => `status-${this.statusSignal().toLowerCase()}`);
+  severitySignal = computed((): 'success' | 'info' | 'secondary' => {
+    switch (this.statusSignal()) {
+      case 'OPEN': return 'success';
+      case 'DRAFT': return 'info';
+      default: return 'secondary';
+    }
+  });
 }

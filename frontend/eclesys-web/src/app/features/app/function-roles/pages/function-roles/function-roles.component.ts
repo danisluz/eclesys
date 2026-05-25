@@ -1,12 +1,11 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { MatCardModule } from '@angular/material/card';
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
-import { MatTableModule } from '@angular/material/table';
-import { MatSlideToggleModule } from '@angular/material/slide-toggle';
-import { MatChipsModule } from '@angular/material/chips';
-import { MatDialog } from '@angular/material/dialog';
+import { FormsModule } from '@angular/forms';
+import { DialogService } from 'primeng/dynamicdialog';
+import { TableModule } from 'primeng/table';
+import { ButtonModule } from 'primeng/button';
+import { ToggleSwitchModule } from 'primeng/toggleswitch';
+import { TagModule } from 'primeng/tag';
+import { TooltipModule } from 'primeng/tooltip';
 import { FunctionRolesService } from '../../../../../shared/api/function-roles.service';
 import {
   FunctionRole,
@@ -19,34 +18,23 @@ import { NotificationService } from '../../../../../shared/services/notification
   selector: 'app-function-roles',
   standalone: true,
   imports: [
-    CommonModule,
-    MatCardModule,
-    MatButtonModule,
-    MatIconModule,
-    MatTableModule,
-    MatSlideToggleModule,
-    MatChipsModule,
+    FormsModule,
+    TableModule,
+    ButtonModule,
+    ToggleSwitchModule,
+    TagModule,
+    TooltipModule,
   ],
   templateUrl: './function-roles.component.html',
   styleUrls: ['./function-roles.component.scss'],
-
 })
 export class FunctionRolesComponent implements OnInit {
-  private service = inject(FunctionRolesService);
-  private dialog = inject(MatDialog);
-  private notificationService = inject(NotificationService);
+  private readonly service = inject(FunctionRolesService);
+  private readonly dialogService = inject(DialogService);
+  private readonly notificationService = inject(NotificationService);
 
   roles = signal<FunctionRole[]>([]);
   loading = signal(true);
-
-  displayedColumns = [
-    'name',
-    'scopeType',
-    'maxHolders',
-    'sortOrder',
-    'isActive',
-    'actions',
-  ];
 
   ngOnInit() {
     this.loadRoles();
@@ -75,12 +63,12 @@ export class FunctionRolesComponent implements OnInit {
   }
 
   openCreateDialog() {
-    const dialogRef = this.dialog.open(FunctionRoleFormDialogComponent, {
+    const ref = this.dialogService.open(FunctionRoleFormDialogComponent, {
+      header: 'Nova Função',
       width: '600px',
       data: { mode: 'create', maxSortOrder: this.getMaxSortOrder() },
     });
-
-    dialogRef.afterClosed().subscribe((result) => {
+    ref?.onClose.subscribe((result) => {
       if (result) {
         this.loadRoles();
         this.notificationService.success('Função criada com sucesso');
@@ -89,12 +77,12 @@ export class FunctionRolesComponent implements OnInit {
   }
 
   openEditDialog(role: FunctionRole) {
-    const dialogRef = this.dialog.open(FunctionRoleFormDialogComponent, {
+    const ref = this.dialogService.open(FunctionRoleFormDialogComponent, {
+      header: 'Editar Função',
       width: '600px',
       data: { mode: 'edit', role },
     });
-
-    dialogRef.afterClosed().subscribe((result) => {
+    ref?.onClose.subscribe((result) => {
       if (result) {
         this.loadRoles();
         this.notificationService.success('Função atualizada com sucesso');
@@ -103,9 +91,7 @@ export class FunctionRolesComponent implements OnInit {
   }
 
   toggleActive(role: FunctionRole, isActive: boolean) {
-    const originalValue = role.isActive;
-    role.isActive = isActive;
-
+    const originalValue = !isActive;
     this.service.update(role.id, { isActive }).subscribe({
       next: () => {
         this.notificationService.success(

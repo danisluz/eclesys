@@ -1,246 +1,158 @@
-<div class="page-fullscreen">
-  <div class="page-header">
+<div class="page">
+
+  <header class="page__header">
     <div>
-      <h1 class="page-title">Membros</h1>
-      <p class="page-subtitle">{{ totalElements() }} membros cadastrados</p>
+      <h1 class="page__title">Membros</h1>
+      <p class="page__subtitle">{{ totalElements() }} membros cadastrados</p>
     </div>
-    <button mat-flat-button color="primary" (click)="openCreateDialog()">
-      <mat-icon>add</mat-icon>
-      Novo Membro
+    <p-button label="Novo Membro" icon="pi pi-plus" (onClick)="openCreateDialog()" />
+  </header>
+
+  <!-- Filters -->
+  <div class="filter-bar">
+    <p-iconfield class="filter-bar__search">
+      <p-inputicon class="pi pi-search" />
+      <input
+        pInputText
+        type="text"
+        placeholder="Nome, email ou telefone"
+        [(ngModel)]="searchTerm"
+        (ngModelChange)="onSearchChange()"
+      />
+    </p-iconfield>
+
+    <p-select
+      [options]="churchRoles()"
+      optionLabel="name"
+      optionValue="id"
+      [(ngModel)]="selectedChurchRole"
+      (ngModelChange)="onFilterChange()"
+      placeholder="Cargo Eclesiástico"
+      [showClear]="true"
+      class="filter-bar__select"
+    />
+
+    <p-select
+      [options]="statusOptions"
+      optionLabel="label"
+      optionValue="value"
+      [(ngModel)]="selectedStatus"
+      (ngModelChange)="onFilterChange()"
+      placeholder="Status"
+      [showClear]="true"
+      class="filter-bar__select"
+    />
+
+    <button type="button" class="filter-bar__congregations" (click)="openCongregationFilterDialog()">
+      <i class="pi pi-sitemap"></i>
+      {{ getCongregationFilterLabel() }}
+      @if (selectedCongregations().length > 0) {
+        <span class="filter-bar__badge">{{ selectedCongregations().length }}</span>
+      }
     </button>
+
+    <p-button
+      label="Limpar"
+      icon="pi pi-filter-slash"
+      [outlined]="true"
+      severity="secondary"
+      (onClick)="clearFilters()"
+    />
   </div>
 
-  <mat-card appearance="outlined" class="filter-card">
-    <mat-card-content class="m-0 p-0">
-      <div class="filters-grid">
-        <mat-form-field appearance="outline" class="search-field">
-          <mat-label>Buscar</mat-label>
-          <input
-            matInput
-            [(ngModel)]="searchTerm"
-            (ngModelChange)="onSearchChange()"
-            placeholder="Nome, email ou telefone"
-          />
-          <mat-icon matPrefix>search</mat-icon>
-          @if (searchTerm) {
-            <button
-              matSuffix
-              mat-icon-button
-              (click)="searchTerm = ''; loadMembers()"
-            >
-              <mat-icon>close</mat-icon>
-            </button>
-          }
-        </mat-form-field>
+  <!-- Table -->
+  <div class="table-card">
+    <p-table
+      #membersTable
+      [value]="members()"
+      [lazy]="true"
+      (onLazyLoad)="onLazyLoad($event)"
+      [paginator]="true"
+      [rows]="pageSize()"
+      [totalRecords]="totalElements()"
+      [rowsPerPageOptions]="[25, 50, 100, 200]"
+      [sortField]="sortBy()"
+      [sortOrder]="sortDir() === 'asc' ? 1 : -1"
+      [loading]="loading()"
+      [showCurrentPageReport]="true"
+      currentPageReportTemplate="Mostrando {first}–{last} de {totalRecords}"
+      class="p-datatable-sm"
+    >
+      <ng-template pTemplate="header">
+        <tr>
+          <th scope="col" pSortableColumn="registrationNumber" style="width: 110px">
+            Matrícula <p-sortIcon field="registrationNumber" />
+          </th>
+          <th scope="col" pSortableColumn="fullName">Nome <p-sortIcon field="fullName" /></th>
+          <th scope="col" pSortableColumn="email">E-mail <p-sortIcon field="email" /></th>
+          <th scope="col" pSortableColumn="phone" style="width: 150px">Telefone <p-sortIcon field="phone" /></th>
+          <th scope="col">Congregação</th>
+          <th scope="col">Cargo</th>
+          <th scope="col" pSortableColumn="status" style="width: 130px">Status <p-sortIcon field="status" /></th>
+          <th scope="col" style="width: 120px">Ações</th>
+        </tr>
+      </ng-template>
 
-        <mat-form-field appearance="outline">
-          <mat-label>Cargo Eclesiástico</mat-label>
-          <mat-select
-            [(ngModel)]="selectedChurchRole"
-            (ngModelChange)="onFilterChange()"
-          >
-            <mat-option [value]="null">Todos</mat-option>
-            @for (role of churchRoles(); track role.id) {
-              <mat-option [value]="role.id">{{ role.name }}</mat-option>
-            }
-          </mat-select>
-        </mat-form-field>
+      <ng-template pTemplate="body" let-member>
+        <tr>
+          <td><span class="text-muted">{{ formatRegistrationNumber(member.registrationNumber) }}</span></td>
+          <td><span class="member-name">{{ member.fullName }}</span></td>
+          <td><span class="text-muted">{{ member.email || '—' }}</span></td>
+          <td><span class="text-muted">{{ member.phone || '—' }}</span></td>
+          <td><span class="text-muted">{{ member.organizationUnitName || '—' }}</span></td>
+          <td><span class="text-muted">{{ member.churchRoleName || '—' }}</span></td>
+          <td>
+            <p-tag
+              [value]="getStatusLabel(member.status)"
+              [severity]="getStatusSeverity(member.status)"
+            />
+          </td>
+          <td>
+            <div class="action-buttons">
+              <p-button
+                icon="pi pi-eye"
+                [text]="true"
+                [rounded]="true"
+                size="small"
+                pTooltip="Visualizar"
+                tooltipPosition="top"
+                (onClick)="openViewDialog(member)"
+              />
+              <p-button
+                icon="pi pi-arrow-right-arrow-left"
+                [text]="true"
+                [rounded]="true"
+                size="small"
+                pTooltip="Transferir"
+                tooltipPosition="top"
+                (onClick)="openTransferDialog(member)"
+              />
+              <p-button
+                icon="pi pi-pencil"
+                [text]="true"
+                [rounded]="true"
+                size="small"
+                pTooltip="Editar"
+                tooltipPosition="top"
+                (onClick)="openEditDialog(member)"
+              />
+            </div>
+          </td>
+        </tr>
+      </ng-template>
 
-        <mat-form-field appearance="outline">
-          <mat-label>Status</mat-label>
-          <mat-select
-            [(ngModel)]="selectedStatus"
-            (ngModelChange)="onFilterChange()"
-          >
-            <mat-option [value]="null">Todos</mat-option>
-            <mat-option value="ACTIVE">Ativo</mat-option>
-            <mat-option value="INACTIVE">Inativo</mat-option>
-            <mat-option value="TRANSFERRED">Transferido</mat-option>
-            <mat-option value="DECEASED">Falecido</mat-option>
-          </mat-select>
-        </mat-form-field>
+      <ng-template pTemplate="emptymessage">
+        <tr>
+          <td colspan="8">
+            <div class="empty-state">
+              <i class="pi pi-users empty-state__icon"></i>
+              <p class="empty-state__text">Nenhum membro encontrado</p>
+              <p class="empty-state__hint">Ajuste os filtros ou adicione um novo membro</p>
+            </div>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  </div>
 
-        <div class="congregation-field">
-          <button
-            mat-stroked-button
-            type="button"
-            class="congregation-trigger"
-            (click)="openCongregationFilterDialog()"
-          >
-            <mat-icon>account_tree</mat-icon>
-            {{ getCongregationFilterLabel() }}
-
-            <span class="congregation-summary">
-              @if (selectedCongregations().length === 0) {
-                <span class="muted">Todas</span>
-              } @else {
-                <span class="count">
-                  {{ selectedCongregations().length }} selecionada(s)
-                </span>
-                @if (selectedCongregations().length > 2) {
-                  <span class="muted">(mostrando 2)</span>
-                }
-              }
-            </span>
-          </button>
-        </div>
-
-        <button
-          mat-stroked-button
-          (click)="clearFilters()"
-          class="clear-filters-btn"
-        >
-          <mat-icon>filter_alt_off</mat-icon>
-          Limpar Filtros
-        </button>
-      </div>
-    </mat-card-content>
-  </mat-card>
-
-  <mat-card appearance="outlined" class="table-card">
-    <mat-card-content>
-      @if (loading()) {
-        <div class="loading-container">
-          <mat-spinner diameter="40"></mat-spinner>
-          <p>Carregando membros...</p>
-        </div>
-      } @else if (members().length === 0) {
-        <div class="empty-state">
-          <mat-icon>group</mat-icon>
-          <p>Nenhum membro encontrado</p>
-          <p class="empty-subtitle">
-            Ajuste os filtros ou adicione um novo membro
-          </p>
-        </div>
-      } @else {
-        <div class="table-container">
-          <table
-            mat-table
-            [dataSource]="members()"
-            class="members-table"
-            matSort
-            [matSortActive]="sortBy()"
-            [matSortDirection]="sortDir()"
-            matSortDisableClear
-            (matSortChange)="onSortChange($event)"
-          >
-            <ng-container matColumnDef="registrationNumber">
-              <th mat-header-cell *matHeaderCellDef mat-sort-header="registrationNumber">
-                Matrícula
-              </th>
-              <td mat-cell *matCellDef="let member">
-                <span class="text-secondary">{{
-                  formatRegistrationNumber(member.registrationNumber)
-                }}</span>
-              </td>
-            </ng-container>
-
-            <ng-container matColumnDef="fullName">
-              <th mat-header-cell *matHeaderCellDef mat-sort-header="fullName">
-                Nome
-              </th>
-              <td mat-cell *matCellDef="let member">
-                <span class="member-name">{{ member.fullName }}</span>
-              </td>
-            </ng-container>
-
-            <ng-container matColumnDef="email">
-              <th mat-header-cell *matHeaderCellDef mat-sort-header="email">
-                E-mail
-              </th>
-              <td mat-cell *matCellDef="let member">
-                <span class="text-secondary">{{ member.email || "—" }}</span>
-              </td>
-            </ng-container>
-
-            <ng-container matColumnDef="phone">
-              <th mat-header-cell *matHeaderCellDef mat-sort-header="phone">
-                Telefone
-              </th>
-              <td mat-cell *matCellDef="let member">
-                <span class="text-secondary">{{ member.phone || "—" }}</span>
-              </td>
-            </ng-container>
-
-            <ng-container matColumnDef="congregation">
-              <th mat-header-cell *matHeaderCellDef>Congregação</th>
-              <td mat-cell *matCellDef="let member">
-                <span class="text-secondary">{{
-                  member.organizationUnitName || "—"
-                }}</span>
-              </td>
-            </ng-container>
-
-            <ng-container matColumnDef="churchRole">
-              <th mat-header-cell *matHeaderCellDef>Cargo</th>
-              <td mat-cell *matCellDef="let member">
-                <span class="text-secondary">{{
-                  member.churchRoleName || "—"
-                }}</span>
-              </td>
-            </ng-container>
-
-            <ng-container matColumnDef="status">
-              <th mat-header-cell *matHeaderCellDef mat-sort-header="status">
-                Status
-              </th>
-              <td mat-cell *matCellDef="let member">
-                <mat-chip-set>
-                  <mat-chip [class]="'status-' + member.status.toLowerCase()">
-                    {{ getStatusLabel(member.status) }}
-                  </mat-chip>
-                </mat-chip-set>
-              </td>
-            </ng-container>
-
-            <ng-container matColumnDef="actions">
-              <th mat-header-cell *matHeaderCellDef>Ações</th>
-              <td mat-cell *matCellDef="let member">
-                <div class="action-buttons">
-                  <button
-                    mat-icon-button
-                    (click)="openViewDialog(member)"
-                    matTooltip="Visualizar"
-                  >
-                    <mat-icon>visibility</mat-icon>
-                  </button>
-                  <button
-                    mat-icon-button
-                    (click)="openTransferDialog(member)"
-                    matTooltip="Transferir"
-                  >
-                    <mat-icon>swap_horiz</mat-icon>
-                  </button>
-                  <button
-                    mat-icon-button
-                    (click)="openEditDialog(member)"
-                    matTooltip="Editar"
-                  >
-                    <mat-icon>edit</mat-icon>
-                  </button>
-                </div>
-              </td>
-            </ng-container>
-
-            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-            <tr
-              mat-row
-              *matRowDef="let row; columns: displayedColumns"
-              class="table-row"
-            ></tr>
-          </table>
-        </div>
-
-        <mat-paginator
-          [length]="totalElements()"
-          [pageSize]="pageSize()"
-          [pageIndex]="pageIndex()"
-          [pageSizeOptions]="[25, 50, 100, 200]"
-          (page)="onPageChange($event)"
-          showFirstLastButtons
-        >
-        </mat-paginator>
-      }
-    </mat-card-content>
-  </mat-card>
 </div>

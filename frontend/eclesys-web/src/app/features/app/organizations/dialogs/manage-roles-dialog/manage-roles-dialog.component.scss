@@ -56,12 +56,6 @@
   border-radius: 4px;
   color: #1976d2;
 
-  mat-icon {
-    font-size: 20px;
-    width: 20px;
-    height: 20px;
-  }
-
   span {
     flex: 1;
   }
@@ -97,18 +91,12 @@ table {
   text-align: right;
 }
 
-mat-dialog-content {
-  min-width: 700px;
-  max-width: 900px;
-  min-height: 400px;
-}
-
 @media (max-width: 768px) {
   .assign-form {
     grid-template-columns: 1fr;
   }
 
-  mat-dialog-content {
+  .dialog-content {
     min-width: auto;
     max-width: 100%;
   }

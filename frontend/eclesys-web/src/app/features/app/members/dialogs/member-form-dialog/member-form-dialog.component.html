@@ -1,329 +1,257 @@
-<h2 mat-dialog-title>
-  {{ data.mode === "create" ? "Novo Membro" : "Editar Membro" }}
-</h2>
+<form [formGroup]="form" class="flex flex-col gap-4 p-2">
 
-<mat-dialog-content>
-  <form [formGroup]="form">
-    <!-- Dados Básicos -->
-    <div class="form-row">
-      <mat-form-field appearance="outline" class="w-full mt-2">
-        <mat-label>Nome Completo *</mat-label>
-        <input matInput formControlName="fullName" />
-        @if (form.controls.fullName.hasError("required")) {
-          <mat-error>Nome é obrigatório</mat-error>
-        }
-        @if (form.controls.fullName.hasError("maxlength")) {
-          <mat-error>Máximo 180 caracteres</mat-error>
-        }
-      </mat-form-field>
-    </div>
-
-    <div class="form-row">
-      <mat-form-field appearance="outline" class="w-full">
-        <mat-label>{{ getCongregationLabel() }} *</mat-label>
-        <input
-          matInput
-          [formControl]="congregationSearchControl"
-          [matAutocomplete]="congregationAuto"
-          placeholder="Digite para buscar"
-        />
-        <mat-autocomplete
-          #congregationAuto="matAutocomplete"
-          [displayWith]="displayCongregation"
-          (optionSelected)="onCongregationSelected($event)"
-          [autoActiveFirstOption]="true"
-        >
-          @if (congregations().length === 0) {
-            <mat-option disabled>
-              Nenhuma {{ getCongregationLabel() }} cadastrada. Cadastre em
-              Organizações.
-            </mat-option>
-          } @else {
-            @for (
-              org of filterCongregations(congregationSearchControl.value);
-              track org.id
-            ) {
-              <mat-option [value]="org">{{ org.name }}</mat-option>
-            }
-          }
-        </mat-autocomplete>
-        @if (form.controls.organizationUnitId.hasError("required")) {
-          <mat-error>{{ getCongregationLabel() }} é obrigatória</mat-error>
-        }
-      </mat-form-field>
-    </div>
-
-    <div class="form-row two-cols">
-      <mat-form-field appearance="outline">
-        <mat-label>Email</mat-label>
-        <input matInput type="email" formControlName="email" />
-        @if (form.controls.email.hasError("email")) {
-          <mat-error>Email inválido</mat-error>
-        }
-      </mat-form-field>
-
-      <mat-form-field appearance="outline">
-        <mat-label>Telefone</mat-label>
-        <input
-          matInput
-          formControlName="phone"
-          mask="(00) 0000-0000||(00) 0 0000-0000"
-        />
-      </mat-form-field>
-    </div>
-
-    <div class="form-row two-cols">
-      <mat-form-field appearance="outline">
-        <mat-label>CPF/Documento *</mat-label>
-        <input
-          matInput
-          formControlName="document"
-          mask="000.000.000-00"
-          [readonly]="data.mode === 'edit'"
-        />
-        @if (form.controls.document.hasError("required")) {
-          <mat-error>CPF é obrigatório</mat-error>
-        }
-        @if (form.controls.document.hasError("cpfInvalido")) {
-          <mat-error>CPF inválido</mat-error>
-        }
-      </mat-form-field>
-
-      <mat-form-field appearance="outline">
-        <mat-label>Cargo Eclesiástico</mat-label>
-        <mat-select formControlName="churchRoleId">
-          <mat-option [value]="null">Nenhum</mat-option>
-          @for (role of churchRoles(); track role.id) {
-            <mat-option [value]="role.id">{{ role.name }}</mat-option>
-          }
-        </mat-select>
-      </mat-form-field>
-    </div>
-
-    <!-- Informações Pessoais -->
-    <div class="form-row two-cols">
-      <div>
-        <label class="form-label">Sexo</label>
-        <mat-radio-group formControlName="gender" class="radio-group">
-          <mat-radio-button value="M">Masculino</mat-radio-button>
-          <mat-radio-button value="F">Feminino</mat-radio-button>
-        </mat-radio-group>
-      </div>
-
-      <mat-form-field appearance="outline">
-        <mat-label>Estado Civil</mat-label>
-        <mat-select formControlName="maritalStatus">
-          <mat-option [value]="null">Não informado</mat-option>
-          <mat-option value="SINGLE">Solteiro(a)</mat-option>
-          <mat-option value="MARRIED">Casado(a)</mat-option>
-          <mat-option value="WIDOWED">Viúvo(a)</mat-option>
-          <mat-option value="DIVORCED">Divorciado(a)</mat-option>
-          <mat-option value="SEPARATED">Separado(a)</mat-option>
-        </mat-select>
-      </mat-form-field>
-    </div>
-
-    <div class="form-row two-cols">
-      <mat-form-field appearance="outline">
-        <mat-label>Data de Nascimento</mat-label>
-        <input
-          matInput
-          [matDatepicker]="birthPicker"
-          formControlName="birthDate"
-          appDateMask
-        />
-        <mat-datepicker-toggle
-          matSuffix
-          [for]="birthPicker"
-        ></mat-datepicker-toggle>
-        <mat-datepicker #birthPicker></mat-datepicker>
-      </mat-form-field>
-
-      <mat-form-field appearance="outline">
-        <mat-label>Data de Batismo</mat-label>
-        <input
-          matInput
-          [matDatepicker]="baptismPicker"
-          formControlName="baptismDate"
-          appDateMask
-        />
-        <mat-datepicker-toggle
-          matSuffix
-          [for]="baptismPicker"
-        ></mat-datepicker-toggle>
-        <mat-datepicker #baptismPicker></mat-datepicker>
-      </mat-form-field>
-    </div>
-
-    <div class="form-row two-cols">
-      <mat-form-field appearance="outline">
-        <mat-label>Igreja do Batismo</mat-label>
-        <input matInput formControlName="baptismChurch" />
-      </mat-form-field>
-
-      <mat-form-field appearance="outline">
-        <mat-label>Local do Batismo</mat-label>
-        <input matInput formControlName="baptismLocation" />
-      </mat-form-field>
-    </div>
-
-    <!-- Endereço -->
-    <h3 class="section-title">Endereço</h3>
-
-    <div class="form-row cep-row">
-      <mat-form-field appearance="outline">
-        <mat-label>CEP</mat-label>
-        <input matInput formControlName="addressZipCode" mask="00000-000" />
-        <mat-hint>Digite o CEP para preencher o endereço</mat-hint>
-      </mat-form-field>
-
-      <button
-        mat-stroked-button
-        type="button"
-        class="cep-button"
-        [disabled]="isCepLookupLoading()"
-        (click)="lookupCep()"
-      >
-        <mat-icon>
-          @if (isCepLookupLoading()) {
-            hourglass_top
-          } @else {
-            search
-          }
-        </mat-icon>
-        Buscar CEP
-      </button>
-    </div>
-
-    <div class="form-row two-cols two-cols--wide">
-      <mat-form-field appearance="outline" class="col-street field-disabled-soft">
-        <mat-label>Rua/Avenida</mat-label>
-        <input matInput formControlName="addressStreet" />
-      </mat-form-field>
-
-      <mat-form-field appearance="outline" class="col-number">
-        <mat-label>Número</mat-label>
-        <input matInput formControlName="addressNumber" />
-      </mat-form-field>
-    </div>
-
-    <div class="form-row two-cols">
-      <mat-form-field appearance="outline">
-        <mat-label>Complemento</mat-label>
-        <input matInput formControlName="addressComplement" />
-      </mat-form-field>
-
-      <mat-form-field appearance="outline" class="field-disabled-soft">
-        <mat-label>Bairro</mat-label>
-        <input matInput formControlName="addressNeighborhood" />
-      </mat-form-field>
-    </div>
-
-    <div class="form-row two-cols two-cols--wide">
-      <mat-form-field appearance="outline" class="field-disabled-soft">
-        <mat-label>Cidade</mat-label>
-        <input matInput formControlName="addressCity" />
-      </mat-form-field>
-
-      <mat-form-field appearance="outline" class="field-disabled-soft">
-        <mat-label>Estado</mat-label>
-        <input matInput formControlName="addressState" maxlength="2" />
-      </mat-form-field>
-    </div>
-
-    <!-- Família -->
-    <h3 class="section-title">Família</h3>
-    <div class="form-row two-cols family-grid">
-      <mat-form-field appearance="outline">
-        <mat-label>Cônjuge</mat-label>
-        <input
-          matInput
-          [formControl]="spouseSearchControl"
-          [matAutocomplete]="spouseAuto"
-          placeholder="Digite para buscar"
-        />
-        <mat-autocomplete
-          #spouseAuto="matAutocomplete"
-          [displayWith]="displayMember"
-          (optionSelected)="onSpouseSelected($event)"
-        >
-          @for (
-            member of filterMembers(spouseSearchControl.value);
-            track member.id
-          ) {
-            <mat-option [value]="member">{{ member.fullName }}</mat-option>
-          }
-        </mat-autocomplete>
-      </mat-form-field>
-
-      <mat-form-field appearance="outline">
-        <mat-label>Pai</mat-label>
-        <input
-          matInput
-          [formControl]="fatherSearchControl"
-          [matAutocomplete]="fatherAuto"
-          placeholder="Digite para buscar"
-        />
-        <mat-autocomplete
-          #fatherAuto="matAutocomplete"
-          [displayWith]="displayMember"
-          (optionSelected)="onFatherSelected($event)"
-        >
-          @for (
-            member of filterMembers(fatherSearchControl.value);
-            track member.id
-          ) {
-            <mat-option [value]="member">{{ member.fullName }}</mat-option>
-          }
-        </mat-autocomplete>
-      </mat-form-field>
-
-      <mat-form-field appearance="outline">
-        <mat-label>Mãe</mat-label>
-        <input
-          matInput
-          [formControl]="motherSearchControl"
-          [matAutocomplete]="motherAuto"
-          placeholder="Digite para buscar"
-        />
-        <mat-autocomplete
-          #motherAuto="matAutocomplete"
-          [displayWith]="displayMember"
-          (optionSelected)="onMotherSelected($event)"
-        >
-          @for (
-            member of filterMembers(motherSearchControl.value);
-            track member.id
-          ) {
-            <mat-option [value]="member">{{ member.fullName }}</mat-option>
-          }
-        </mat-autocomplete>
-      </mat-form-field>
-    </div>
-
-    @if (data.mode === "edit") {
-      <div class="form-row">
-        <mat-form-field appearance="outline" class="w-full">
-          <mat-label>Status</mat-label>
-          <mat-select formControlName="status">
-            <mat-option value="ACTIVE">Ativo</mat-option>
-            <mat-option value="INACTIVE">Inativo</mat-option>
-            <mat-option value="DECEASED">Falecido</mat-option>
-          </mat-select>
-        </mat-form-field>
-      </div>
+  <!-- Dados Básicos -->
+  <div class="flex flex-col gap-1">
+    <label for="fullName" class="text-sm font-medium">Nome Completo *</label>
+    <input pInputText id="fullName" formControlName="fullName" placeholder="Nome completo do membro" class="w-full" />
+    @if (form.controls.fullName.hasError('required') && form.controls.fullName.touched) {
+      <small class="text-red-500">Nome é obrigatório</small>
     }
-  </form>
-</mat-dialog-content>
+    @if (form.controls.fullName.hasError('maxlength') && form.controls.fullName.touched) {
+      <small class="text-red-500">Máximo 180 caracteres</small>
+    }
+  </div>
 
-<mat-dialog-actions align="end">
-  <button mat-button (click)="cancel()">Cancelar</button>
-  <button
-    mat-flat-button
-    color="primary"
-    [disabled]="form.invalid || saving()"
-    (click)="save()"
-  >
-    {{ saving() ? "Salvando..." : "Salvar" }}
-  </button>
-</mat-dialog-actions>
+  <div class="flex flex-col gap-1">
+    <label for="congregation-search" class="text-sm font-medium">{{ getCongregationLabel() }} *</label>
+    <p-autocomplete
+      inputId="congregation-search"
+      [formControl]="congregationSearchControl"
+      [suggestions]="filteredCongregations"
+      field="name"
+      [forceSelection]="true"
+      [dropdown]="true"
+      (completeMethod)="searchCongregations($event)"
+      (onSelect)="onCongregationSelected($event)"
+      (onClear)="onCongregationClear()"
+      [placeholder]="'Digite para buscar ' + getCongregationLabel()"
+      styleClass="w-full"
+    />
+    @if (form.controls.organizationUnitId.hasError('required') && form.controls.organizationUnitId.touched) {
+      <small class="text-red-500">{{ getCongregationLabel() }} é obrigatória</small>
+    }
+  </div>
+
+  <div class="grid grid-cols-2 gap-3">
+    <div class="flex flex-col gap-1">
+      <label for="email" class="text-sm font-medium">Email</label>
+      <input pInputText id="email" type="email" formControlName="email" placeholder="email@exemplo.com" />
+      @if (form.controls.email.hasError('email') && form.controls.email.touched) {
+        <small class="text-red-500">Email inválido</small>
+      }
+    </div>
+    <div class="flex flex-col gap-1">
+      <label for="phone" class="text-sm font-medium">Telefone</label>
+      <input pInputText id="phone" formControlName="phone" mask="(00) 0000-0000||(00) 0 0000-0000" placeholder="(00) 00000-0000" />
+    </div>
+  </div>
+
+  <div class="grid grid-cols-2 gap-3">
+    <div class="flex flex-col gap-1">
+      <label for="document" class="text-sm font-medium">CPF/Documento *</label>
+      <input pInputText id="document" formControlName="document" mask="000.000.000-00" placeholder="000.000.000-00" [readonly]="data.mode === 'edit'" />
+      @if (form.controls.document.hasError('required') && form.controls.document.touched) {
+        <small class="text-red-500">CPF é obrigatório</small>
+      }
+      @if (form.controls.document.hasError('cpfInvalido') && form.controls.document.touched) {
+        <small class="text-red-500">CPF inválido</small>
+      }
+    </div>
+    <div class="flex flex-col gap-1">
+      <label for="churchRole" class="text-sm font-medium">Cargo Eclesiástico</label>
+      <p-select
+        inputId="churchRole"
+        formControlName="churchRoleId"
+        [options]="churchRoleOptions"
+        optionLabel="label"
+        optionValue="value"
+        placeholder="Selecione um cargo"
+        styleClass="w-full"
+      />
+    </div>
+  </div>
+
+  <!-- Informações Pessoais -->
+  <div class="grid grid-cols-2 gap-3">
+    <div class="flex flex-col gap-2">
+      <label class="text-sm font-medium">Sexo</label>
+      <div class="flex gap-4">
+        <div class="flex items-center gap-2">
+          <p-radiobutton inputId="genderM" formControlName="gender" value="M" />
+          <label for="genderM">Masculino</label>
+        </div>
+        <div class="flex items-center gap-2">
+          <p-radiobutton inputId="genderF" formControlName="gender" value="F" />
+          <label for="genderF">Feminino</label>
+        </div>
+      </div>
+    </div>
+    <div class="flex flex-col gap-1">
+      <label for="maritalStatus" class="text-sm font-medium">Estado Civil</label>
+      <p-select
+        inputId="maritalStatus"
+        formControlName="maritalStatus"
+        [options]="maritalStatusOptions"
+        optionLabel="label"
+        optionValue="value"
+        placeholder="Não informado"
+        styleClass="w-full"
+      />
+    </div>
+  </div>
+
+  <div class="grid grid-cols-2 gap-3">
+    <div class="flex flex-col gap-1">
+      <label for="birthDate" class="text-sm font-medium">Data de Nascimento</label>
+      <p-datepicker inputId="birthDate" formControlName="birthDate" dateFormat="dd/mm/yy" [showIcon]="true" [showButtonBar]="true" placeholder="dd/mm/aaaa" styleClass="w-full" />
+    </div>
+    <div class="flex flex-col gap-1">
+      <label for="baptismDate" class="text-sm font-medium">Data de Batismo</label>
+      <p-datepicker inputId="baptismDate" formControlName="baptismDate" dateFormat="dd/mm/yy" [showIcon]="true" [showButtonBar]="true" placeholder="dd/mm/aaaa" styleClass="w-full" />
+    </div>
+  </div>
+
+  <div class="grid grid-cols-2 gap-3">
+    <div class="flex flex-col gap-1">
+      <label for="baptismChurch" class="text-sm font-medium">Igreja do Batismo</label>
+      <input pInputText id="baptismChurch" formControlName="baptismChurch" />
+    </div>
+    <div class="flex flex-col gap-1">
+      <label for="baptismLocation" class="text-sm font-medium">Local do Batismo</label>
+      <input pInputText id="baptismLocation" formControlName="baptismLocation" />
+    </div>
+  </div>
+
+  <!-- Endereço -->
+  <h3 class="font-semibold text-sm text-gray-600 uppercase border-t pt-3">Endereço</h3>
+
+  <div class="flex gap-3 items-end">
+    <div class="flex flex-col gap-1 flex-1">
+      <label for="addressZipCode" class="text-sm font-medium">CEP</label>
+      <input pInputText id="addressZipCode" formControlName="addressZipCode" mask="00000-000" placeholder="00000-000" />
+      <small class="text-gray-400">Digite o CEP para preencher o endereço</small>
+    </div>
+    <p-button
+      label="Buscar CEP"
+      icon="pi pi-search"
+      severity="secondary"
+      [outlined]="true"
+      type="button"
+      [loading]="isCepLookupLoading()"
+      (onClick)="lookupCep()"
+    />
+  </div>
+
+  <div class="grid grid-cols-3 gap-3">
+    <div class="col-span-2 flex flex-col gap-1">
+      <label for="addressStreet" class="text-sm font-medium">Rua/Avenida</label>
+      <input pInputText id="addressStreet" formControlName="addressStreet" />
+    </div>
+    <div class="flex flex-col gap-1">
+      <label for="addressNumber" class="text-sm font-medium">Número</label>
+      <input pInputText id="addressNumber" formControlName="addressNumber" />
+    </div>
+  </div>
+
+  <div class="grid grid-cols-2 gap-3">
+    <div class="flex flex-col gap-1">
+      <label for="addressComplement" class="text-sm font-medium">Complemento</label>
+      <input pInputText id="addressComplement" formControlName="addressComplement" />
+    </div>
+    <div class="flex flex-col gap-1">
+      <label for="addressNeighborhood" class="text-sm font-medium">Bairro</label>
+      <input pInputText id="addressNeighborhood" formControlName="addressNeighborhood" />
+    </div>
+  </div>
+
+  <div class="grid grid-cols-3 gap-3">
+    <div class="col-span-2 flex flex-col gap-1">
+      <label for="addressCity" class="text-sm font-medium">Cidade</label>
+      <input pInputText id="addressCity" formControlName="addressCity" />
+    </div>
+    <div class="flex flex-col gap-1">
+      <label for="addressState" class="text-sm font-medium">Estado</label>
+      <input pInputText id="addressState" formControlName="addressState" maxlength="2" />
+    </div>
+  </div>
+
+  <!-- Família -->
+  <h3 class="font-semibold text-sm text-gray-600 uppercase border-t pt-3">Família</h3>
+
+  <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+    <div class="flex flex-col gap-1">
+      <label for="spouse-search" class="text-sm font-medium">Cônjuge</label>
+      <p-autocomplete
+        inputId="spouse-search"
+        [formControl]="spouseSearchControl"
+        [suggestions]="filteredMembers"
+        field="fullName"
+        [forceSelection]="true"
+        [dropdown]="true"
+        (completeMethod)="searchMembersFor('spouse', $event)"
+        (onSelect)="onSpouseSelected($event)"
+        (onClear)="onSpouseClear()"
+        placeholder="Digite para buscar"
+        styleClass="w-full"
+      />
+    </div>
+    <div class="flex flex-col gap-1">
+      <label for="father-search" class="text-sm font-medium">Pai</label>
+      <p-autocomplete
+        inputId="father-search"
+        [formControl]="fatherSearchControl"
+        [suggestions]="filteredMembers"
+        field="fullName"
+        [forceSelection]="true"
+        [dropdown]="true"
+        (completeMethod)="searchMembersFor('father', $event)"
+        (onSelect)="onFatherSelected($event)"
+        (onClear)="onFatherClear()"
+        placeholder="Digite para buscar"
+        styleClass="w-full"
+      />
+    </div>
+    <div class="flex flex-col gap-1">
+      <label for="mother-search" class="text-sm font-medium">Mãe</label>
+      <p-autocomplete
+        inputId="mother-search"
+        [formControl]="motherSearchControl"
+        [suggestions]="filteredMembers"
+        field="fullName"
+        [forceSelection]="true"
+        [dropdown]="true"
+        (completeMethod)="searchMembersFor('mother', $event)"
+        (onSelect)="onMotherSelected($event)"
+        (onClear)="onMotherClear()"
+        placeholder="Digite para buscar"
+        styleClass="w-full"
+      />
+    </div>
+  </div>
+
+  @if (data.mode === 'edit') {
+    <div class="flex flex-col gap-1">
+      <label for="status" class="text-sm font-medium">Status</label>
+      <p-select
+        inputId="status"
+        formControlName="status"
+        [options]="statusOptions"
+        optionLabel="label"
+        optionValue="value"
+        styleClass="w-full"
+      />
+    </div>
+  }
+
+  <!-- Ações -->
+  <div class="flex justify-end gap-2 border-t pt-3">
+    <p-button label="Cancelar" severity="secondary" [outlined]="true" type="button" (onClick)="cancel()" />
+    <p-button
+      [label]="saving() ? 'Salvando...' : 'Salvar'"
+      type="button"
+      [loading]="saving()"
+      [disabled]="form.invalid"
+      (onClick)="save()"
+    />
+  </div>
+</form>

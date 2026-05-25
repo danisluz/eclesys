@@ -1,14 +1,18 @@
-.dialog-title {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.dialog-icon {
-  opacity: 0.8;
-}
-
 .dialog-content {
-  padding-top: 8px;
-  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.dialog-message {
+  margin: 0;
+  font-size: 14px;
+  color: #374151;
+  line-height: 1.6;
+}
+
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
 }

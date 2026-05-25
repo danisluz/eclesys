@@ -24,6 +24,8 @@ export class LoginComponent {
   authStore = inject(AuthStore);
   private readonly notificationService = inject(NotificationService);
 
+  readonly year = new Date().getFullYear();
+
   @ViewChild('turnstileContainer')
   turnstileContainer!: ElementRef<HTMLDivElement>;
 

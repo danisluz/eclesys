@@ -1,7 +1,3 @@
-mat-dialog-content {
-  max-height: 70vh;
-  overflow-y: auto;
-}
 .form-row {
   margin-bottom: 1rem;
 }
@@ -39,10 +35,6 @@ mat-dialog-content {
 .two-cols--wide {
   grid-template-columns: 3fr 1fr;
   gap: 16px;
-}
-
-.form-row mat-form-field {
-  width: 100%;
 }
 
 .cep-row {

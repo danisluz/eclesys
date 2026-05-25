@@ -1,116 +1,113 @@
-<h2 mat-dialog-title>Transferir Membro</h2>
-
-<mat-dialog-content>
-  <div class="transfer-info">
+<div class="flex flex-col gap-4 p-2" [formGroup]="form">
+  <div class="text-sm text-gray-700">
     <p><strong>Membro:</strong> {{ data.member.fullName }}</p>
     <p>
       <strong>{{ getCongregationLabel() }} Atual:</strong>
-      {{ data.member.organizationUnitName || 'Não definida' }}
+      {{ data.member.organizationUnitName || "Não definida" }}
     </p>
   </div>
 
-  <form [formGroup]="form">
-    <mat-radio-group formControlName="transferType" class="transfer-type">
-      <mat-radio-button value="internal">
-        Transferência Interna (dentro da organização)
-      </mat-radio-button>
-      <mat-radio-button value="external">
-        Transferência Externa (para outra igreja)
-      </mat-radio-button>
-    </mat-radio-group>
-
-    @if (form.value.transferType === 'internal') {
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>{{ getCongregationLabel() }} de Destino</mat-label>
-        <mat-select formControlName="toCongregationId">
-          @if (loadingCongregations()) {
-            <mat-option disabled>Carregando...</mat-option>
-          } @else if (congregations().length === 0) {
-            <mat-option disabled>
-              Nenhuma {{ getCongregationLabel() }} cadastrada. Crie
-              {{ getCongregationLabelPlural() }} primeiro em Organizações.
-            </mat-option>
-          } @else {
-            @for (congregation of congregations(); track congregation.id) {
-              @if (congregation.id !== data.member.organizationUnitId) {
-                <mat-option [value]="congregation.id">
-                  {{ congregation.name }}
-                </mat-option>
-              }
-            }
-          }
-        </mat-select>
-        @if (
-          form.get('toCongregationId')?.invalid &&
-          form.get('toCongregationId')?.touched
-        ) {
-          <mat-error
-            >Selecione {{ getCongregationLabel().toLowerCase() }} de
-            destino</mat-error
-          >
-        }
-      </mat-form-field>
-
-      @if (congregations().length === 0) {
-        <div class="info-message">
-          <mat-icon>info</mat-icon>
-          <p>
-            Você precisa cadastrar {{ getCongregationLabelPlural() }} antes
-            de fazer transferências internas. Vá em
-            <strong>Organizações</strong> e crie pelo menos uma
-            {{ getCongregationLabel() }}.
-          </p>
-        </div>
-      }
-    }
-
-    @if (form.value.transferType === 'external') {
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Destino (Igreja/Cidade)</mat-label>
-        <input
-          matInput
-          formControlName="externalDestination"
-          placeholder="Ex: Igreja Batista Central - Porto Alegre"
+  <div class="flex flex-col gap-2">
+    <span class="font-medium text-sm">Tipo de Transferência</span>
+    <div class="flex flex-col gap-2">
+      <div class="flex items-center gap-2">
+        <p-radiobutton
+          formControlName="transferType"
+          value="internal"
+          inputId="type-internal"
         />
-        @if (
-          form.get('externalDestination')?.invalid &&
-          form.get('externalDestination')?.touched
-        ) {
-          <mat-error>Informe o destino da transferência</mat-error>
-        }
-      </mat-form-field>
-    }
+        <label for="type-internal" class="cursor-pointer text-sm"
+          >Transferência Interna (dentro da organização)</label
+        >
+      </div>
+      <div class="flex items-center gap-2">
+        <p-radiobutton
+          formControlName="transferType"
+          value="external"
+          inputId="type-external"
+        />
+        <label for="type-external" class="cursor-pointer text-sm"
+          >Transferência Externa (para outra igreja)</label
+        >
+      </div>
+    </div>
+  </div>
 
-    <mat-form-field appearance="outline" class="full-width">
-      <mat-label>Motivo da Transferência</mat-label>
-      <textarea
-        matInput
-        formControlName="reason"
-        rows="3"
-        placeholder="Descreva o motivo da transferência"
-      ></textarea>
-      @if (form.get('reason')?.invalid && form.get('reason')?.touched) {
-        <mat-error>Informe o motivo da transferência</mat-error>
+  @if (form.value.transferType === "internal") {
+    <div class="flex flex-col gap-1">
+      <span class="font-medium text-sm"
+        >{{ getCongregationLabel() }} de Destino</span
+      >
+      @if (loadingCongregations()) {
+        <p class="text-sm text-gray-500">Carregando...</p>
+      } @else if (congregations().length === 0) {
+        <div class="text-amber-600 text-sm p-2 bg-amber-50 rounded">
+          Nenhuma {{ getCongregationLabel() }} cadastrada. Crie em Organizações
+          primeiro.
+        </div>
+      } @else {
+        <p-select
+          formControlName="toCongregationId"
+          [options]="congregations().filter(c => c.id !== data.member.organizationUnitId)"
+          optionLabel="name"
+          optionValue="id"
+          [placeholder]="'Selecione ' + getCongregationLabel().toLowerCase()"
+        />
       }
-    </mat-form-field>
-  </form>
-</mat-dialog-content>
+      @if (
+        form.get("toCongregationId")?.invalid &&
+        form.get("toCongregationId")?.touched
+      ) {
+        <small class="text-red-500"
+          >Selecione {{ getCongregationLabel().toLowerCase() }} de
+          destino</small
+        >
+      }
+    </div>
+  }
 
-<mat-dialog-actions align="end">
-  <button mat-button mat-dialog-close [disabled]="saving()">
-    Cancelar
-  </button>
-  <button
-    mat-flat-button
-    color="primary"
-    (click)="save()"
-    [disabled]="form.invalid || saving()"
-  >
-    @if (saving()) {
-      <mat-spinner diameter="20"></mat-spinner>
-      Transferindo...
-    } @else {
-      Confirmar Transferência
+  @if (form.value.transferType === "external") {
+    <div class="flex flex-col gap-1">
+      <span class="font-medium text-sm">Destino (Igreja/Cidade)</span>
+      <input
+        pInputText
+        formControlName="externalDestination"
+        placeholder="Ex: Igreja Batista Central - Porto Alegre"
+      />
+      @if (
+        form.get("externalDestination")?.invalid &&
+        form.get("externalDestination")?.touched
+      ) {
+        <small class="text-red-500">Informe o destino da transferência</small>
+      }
+    </div>
+  }
+
+  <div class="flex flex-col gap-1">
+    <span class="font-medium text-sm">Motivo da Transferência</span>
+    <textarea
+      pTextarea
+      formControlName="reason"
+      rows="3"
+      placeholder="Descreva o motivo da transferência"
+    ></textarea>
+    @if (form.get("reason")?.invalid && form.get("reason")?.touched) {
+      <small class="text-red-500">Informe o motivo da transferência</small>
     }
-  </button>
-</mat-dialog-actions>
+  </div>
+
+  <div class="flex justify-end gap-2 pt-2">
+    <p-button
+      label="Cancelar"
+      severity="secondary"
+      [outlined]="true"
+      [disabled]="saving()"
+      (onClick)="cancel()"
+    />
+    <p-button
+      [label]="saving() ? 'Transferindo...' : 'Confirmar Transferência'"
+      [disabled]="form.invalid || saving()"
+      (onClick)="save()"
+    />
+  </div>
+</div>

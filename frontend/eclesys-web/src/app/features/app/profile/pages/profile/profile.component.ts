@@ -1,33 +1,31 @@
-import { Component, inject, signal, computed, ElementRef, ViewChild } from '@angular/core';
+import {
+  Component,
+  inject,
+  signal,
+  computed,
+  ElementRef,
+  ViewChild,
+} from '@angular/core';
 import { FormControl, FormsModule } from '@angular/forms';
 
 import { AuthStore } from '../../../../../core/auth/auth.store';
 import { UsersService } from '../../../../../core/auth/users.service';
 import { TenantLogosService } from '../../../../../shared/api/tenant-logos.service';
 
-import { MatCardModule } from '@angular/material/card';
-import { MatIconModule } from '@angular/material/icon';
-import { MatButtonModule } from '@angular/material/button';
-import { MatDividerModule } from '@angular/material/divider';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
+import { ButtonModule } from 'primeng/button';
+import { ProgressSpinnerModule } from 'primeng/progressspinner';
+import { InputTextModule } from 'primeng/inputtext';
 import { NotificationService } from '../../../../../shared/services/notification.service';
 import { UserAvatarComponent } from '../../../../../shared/ui/user-avatar/user-avatar.component';
-import { ErrorStateMatcher } from '@angular/material/core';
 
 @Component({
   standalone: true,
   selector: 'app-profile',
   imports: [
     FormsModule,
-    MatCardModule,
-    MatIconModule,
-    MatButtonModule,
-    MatDividerModule,
-    MatProgressSpinnerModule,
-    MatFormFieldModule,
-    MatInputModule,
+    ButtonModule,
+    ProgressSpinnerModule,
+    InputTextModule,
     UserAvatarComponent,
   ],
   templateUrl: './profile.component.html',
@@ -35,9 +33,9 @@ import { ErrorStateMatcher } from '@angular/material/core';
 })
 export class ProfileComponent {
   authStore = inject(AuthStore);
-  private usersService = inject(UsersService);
-  private tenantLogosService = inject(TenantLogosService);
-  private notificationService = inject(NotificationService);
+  private readonly usersService = inject(UsersService);
+  private readonly tenantLogosService = inject(TenantLogosService);
+  private readonly notificationService = inject(NotificationService);
 
   isEditingProfileSignal = signal(false);
   isSavingProfileSignal = signal(false);
@@ -341,12 +339,8 @@ export class ProfileComponent {
     this.logoPreviewUrl.set(null);
   }
 
-  confirmPasswordErrorStateMatcher: ErrorStateMatcher = {
-    isErrorState: (control: FormControl | null) => {
-      if (!control) return false;
-
-      const shouldShowError = control.dirty || control.touched;
-      return shouldShowError && this.isNewPasswordMismatch();
-    },
-  };
+  isConfirmPasswordInvalid(control: FormControl | null): boolean {
+    if (!control) return false;
+    return (control.dirty || control.touched) && this.isNewPasswordMismatch();
+  }
 }

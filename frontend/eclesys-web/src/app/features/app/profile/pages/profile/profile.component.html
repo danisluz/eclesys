@@ -8,36 +8,36 @@
 
       <div class="page-header__actions">
         @if (!isEditingProfileSignal()) {
-          <button mat-stroked-button (click)="startEditProfile()">
-            <mat-icon>edit</mat-icon>
-            Editar
-          </button>
+          <p-button
+            label="Editar"
+            icon="pi pi-pencil"
+            severity="secondary"
+            [outlined]="true"
+            (onClick)="startEditProfile()"
+          />
         } @else {
-          <button mat-stroked-button (click)="cancelEditProfile()">
-            <mat-icon>close</mat-icon>
-            Cancelar
-          </button>
-
-          <button
-            mat-flat-button
-            (click)="saveProfile()"
+          <p-button
+            label="Cancelar"
+            icon="pi pi-times"
+            severity="secondary"
+            [outlined]="true"
+            (onClick)="cancelEditProfile()"
+          />
+          <p-button
+            label="Salvar"
+            icon="pi pi-save"
+            [loading]="isSavingProfileSignal()"
             [disabled]="!canSaveProfile()"
-          >
-            @if (isSavingProfileSignal()) {
-              <mat-progress-spinner diameter="18" mode="indeterminate" />
-            } @else {
-              <mat-icon>save</mat-icon>
-            }
-            Salvar
-          </button>
+            (onClick)="saveProfile()"
+          />
         }
       </div>
     </header>
 
-    <mat-card appearance="outlined" class="card profile-card">
+    <div class="card profile-card">
       @if (profileErrorMessageSignal(); as errorMessage) {
         <div class="form-error" style="margin: 16px">
-          <mat-icon>error</mat-icon>
+          <i class="pi pi-exclamation-circle"></i>
           <div>{{ errorMessage }}</div>
         </div>
       }
@@ -56,20 +56,17 @@
             <div class="profile-header__email">{{ me.email }}</div>
           } @else {
             <div class="profile-edit">
-              <mat-form-field
-                appearance="outline"
+              <input
+                pInputText
+                id="profile-name"
+                name="profileName"
                 class="form-field form-field--full"
-              >
-                <mat-label>Nome</mat-label>
-                <input
-                  matInput
-                  [ngModel]="profileName()"
-                  (ngModelChange)="profileName.set($event)"
-                  [ngModelOptions]="{ standalone: true }"
-                  autocomplete="name"
-                />
-              </mat-form-field>
-
+                [ngModel]="profileName()"
+                (ngModelChange)="profileName.set($event)"
+                [ngModelOptions]="{ standalone: true }"
+                autocomplete="off"
+                placeholder="Nome"
+              />
               <div class="profile-header__email">{{ me.email }}</div>
             </div>
           }
@@ -81,297 +78,176 @@
         </div>
       </div>
 
-      <mat-divider></mat-divider>
+      <hr />
 
-      <mat-card-content class="profile-content">
+      <div class="profile-content">
         <div class="info-list">
           <div class="info-item">
-            <mat-icon class="info-item__icon">admin_panel_settings</mat-icon>
+            <i class="pi pi-shield info-item__icon"></i>
             <div>
               <div class="label">Perfil</div>
               <div class="value">{{ me.role }}</div>
             </div>
           </div>
-
           <div class="info-item">
-            <mat-icon class="info-item__icon">church</mat-icon>
+            <i class="pi pi-building-columns info-item__icon"></i>
             <div>
               <div class="label">Igreja</div>
               <div class="value">{{ me.tenantName }}</div>
             </div>
           </div>
-
           <div class="info-item">
-            <mat-icon class="info-item__icon">tag</mat-icon>
+            <i class="pi pi-tag info-item__icon"></i>
             <div>
               <div class="label">Tenant Code</div>
               <div class="value">{{ me.tenantCode }}</div>
             </div>
           </div>
         </div>
-      </mat-card-content>
-    </mat-card>
+      </div>
+    </div>
 
     @if (isAdminSignal()) {
-      <mat-card appearance="outlined" class="card form-card">
-        <mat-card-header class="mb-4">
-          <mat-card-title>Logo da igreja</mat-card-title>
-          <mat-card-subtitle>
-            PNG até 5MB, largura máxima de 512px
-          </mat-card-subtitle>
-        </mat-card-header>
+      <div class="card form-card">
+        <h3 class="mb-1">Logo da igreja</h3>
+        <p class="mb-4 text-sm text-gray-500">
+          PNG até 5MB, largura máxima de 512px
+        </p>
 
-        <mat-card-content class="form-card__content">
-          @if (logoErrorMessageSignal(); as errorMessage) {
-            <div class="form-error">
-              <mat-icon>error</mat-icon>
-              <div>{{ errorMessage }}</div>
-            </div>
-          }
-
-          <div class="logo-uploader">
-            <div class="logo-preview">
-              @if (logoPreviewUrl(); as previewUrl) {
-                <img [src]="previewUrl" alt="Pré-visualização do logo" />
-              } @else if (me.tenantLogoUrl) {
-                <img [src]="me.tenantLogoUrl" alt="Logo atual da igreja" />
-              } @else {
-                <div class="logo-placeholder">
-                  <mat-icon>image</mat-icon>
-                  <span>Nenhum logo cadastrado</span>
-                </div>
-              }
-            </div>
-
-            <div class="logo-actions">
-              <input
-                #logoInput
-                type="file"
-                accept="image/*"
-                (change)="onLogoSelected($event)"
-                hidden
-              />
-
-              <div class="logo-buttons">
-                <button
-                  mat-stroked-button
-                  type="button"
-                  (click)="logoInput.click()"
-                >
-                  <mat-icon>upload_file</mat-icon>
-                  Escolher arquivo
-                </button>
-
-                <button
-                  mat-flat-button
-                  color="primary"
-                  type="button"
-                  [disabled]="!canUploadLogo()"
-                  (click)="uploadLogo()"
-                >
-                  @if (isUploadingLogoSignal()) {
-                    <mat-progress-spinner diameter="18" mode="indeterminate" />
-                  } @else {
-                    <mat-icon>save</mat-icon>
-                  }
-                  Atualizar logo
-                </button>
-
-                <button
-                  mat-stroked-button
-                  color="warn"
-                  type="button"
-                  [disabled]="isUploadingLogoSignal() || !me.tenantLogoUrl"
-                  (click)="removeLogo()"
-                >
-                  <mat-icon>delete</mat-icon>
-                  Remover logo
-                </button>
-              </div>
-
-              <div class="logo-hint">
-                O sistema comprime o arquivo e salva em PNG.
-              </div>
-            </div>
-          </div>
-        </mat-card-content>
-      </mat-card>
-    }
-
-    <mat-card appearance="outlined" class="card form-card">
-      <mat-card-header class="mb-4">
-        <mat-card-title>Segurança</mat-card-title>
-        <mat-card-subtitle>Trocar senha</mat-card-subtitle>
-      </mat-card-header>
-
-      <mat-card-content class="form-card__content">
-        @if (passwordErrorMessageSignal(); as errorMessage) {
+        @if (logoErrorMessageSignal(); as errorMessage) {
           <div class="form-error">
-            <mat-icon>error</mat-icon>
+            <i class="pi pi-exclamation-circle"></i>
             <div>{{ errorMessage }}</div>
           </div>
         }
 
-        <div class="form-body">
-          <div class="form-grid">
-            <!-- Senha atual -->
-            <mat-form-field
-              appearance="outline"
-              class="form-field form-field--full"
-            >
-              <mat-label>Senha atual</mat-label>
-              <input
-                matInput
-                [type]="isCurrentPasswordVisible() ? 'text' : 'password'"
-                [ngModel]="currentPassword()"
-                (ngModelChange)="currentPassword.set($event)"
-                [ngModelOptions]="{ standalone: true }"
-                autocomplete="current-password"
-                required
-                #currentPasswordModel="ngModel"
+        <div class="logo-uploader">
+          <div class="logo-preview">
+            @if (logoPreviewUrl(); as previewUrl) {
+              <img [src]="previewUrl" alt="Pré-visualização do logo" />
+            } @else if (me.tenantLogoUrl) {
+              <img [src]="me.tenantLogoUrl" alt="Logo atual da igreja" />
+            } @else {
+              <div class="logo-placeholder">
+                <i class="pi pi-image"></i><span>Nenhum logo cadastrado</span>
+              </div>
+            }
+          </div>
+
+          <div class="logo-actions">
+            <input
+              #logoInput
+              type="file"
+              accept="image/*"
+              (change)="onLogoSelected($event)"
+              hidden
+            />
+            <div class="logo-buttons">
+              <p-button
+                label="Escolher arquivo"
+                icon="pi pi-upload"
+                severity="secondary"
+                [outlined]="true"
+                (onClick)="logoInput.click()"
               />
-
-              <button
-                type="button"
-                mat-icon-button
-                matSuffix
-                (click)="toggleCurrentPasswordVisibility()"
-              >
-                <mat-icon>
-                  {{
-                    isCurrentPasswordVisible() ? "visibility_off" : "visibility"
-                  }}
-                </mat-icon>
-              </button>
-
-              @if (
-                (currentPasswordModel.dirty || currentPasswordModel.touched) &&
-                currentPasswordModel.errors?.["required"]
-              ) {
-                <mat-error>Informe a senha atual</mat-error>
-              }
-            </mat-form-field>
-
-            <!-- Nova senha -->
-            <mat-form-field appearance="outline" class="form-field">
-              <mat-label>Nova senha</mat-label>
-              <input
-                matInput
-                [type]="isNewPasswordVisible() ? 'text' : 'password'"
-                [ngModel]="newPassword()"
-                (ngModelChange)="newPassword.set($event)"
-                [ngModelOptions]="{ standalone: true }"
-                autocomplete="new-password"
-                required
-                minlength="8"
-                #newPasswordModel="ngModel"
+              <p-button
+                label="Atualizar logo"
+                icon="pi pi-save"
+                [loading]="isUploadingLogoSignal()"
+                [disabled]="!canUploadLogo()"
+                (onClick)="uploadLogo()"
               />
-
-              <button
-                type="button"
-                mat-icon-button
-                matSuffix
-                (click)="toggleNewPasswordVisibility()"
-              >
-                <mat-icon>
-                  {{ isNewPasswordVisible() ? "visibility_off" : "visibility" }}
-                </mat-icon>
-              </button>
-
-              <mat-hint>Mínimo 8 caracteres</mat-hint>
-
-              @if (
-                (newPasswordModel.dirty || newPasswordModel.touched) &&
-                newPasswordModel.errors?.["minlength"]
-              ) {
-                <mat-error>Use pelo menos 8 caracteres</mat-error>
-              }
-
-              @if (
-                (newPasswordModel.dirty || newPasswordModel.touched) &&
-                newPasswordModel.errors?.["required"]
-              ) {
-                <mat-error>Informe a nova senha</mat-error>
-              }
-            </mat-form-field>
-
-            <!-- Confirmar nova senha -->
-            <mat-form-field appearance="outline" class="form-field">
-              <mat-label>Confirmar nova senha</mat-label>
-              <input
-                matInput
-                [type]="isConfirmPasswordVisible() ? 'text' : 'password'"
-                [ngModel]="confirmNewPassword()"
-                (ngModelChange)="confirmNewPassword.set($event)"
-                [ngModelOptions]="{ standalone: true }"
-                autocomplete="new-password"
-                required
-                minlength="8"
-                [errorStateMatcher]="confirmPasswordErrorStateMatcher"
-                #confirmPasswordModel="ngModel"
+              <p-button
+                label="Remover logo"
+                icon="pi pi-trash"
+                severity="danger"
+                [outlined]="true"
+                [disabled]="isUploadingLogoSignal() || !me.tenantLogoUrl"
+                (onClick)="removeLogo()"
               />
-
-              <button
-                type="button"
-                mat-icon-button
-                matSuffix
-                (click)="toggleConfirmPasswordVisibility()"
-              >
-                <mat-icon>
-                  {{
-                    isConfirmPasswordVisible() ? "visibility_off" : "visibility"
-                  }}
-                </mat-icon>
-              </button>
-
-              @if (
-                (confirmPasswordModel.dirty || confirmPasswordModel.touched) &&
-                confirmPasswordModel.errors?.["minlength"]
-              ) {
-                <mat-error>Use pelo menos 8 caracteres</mat-error>
-              } @else if (
-                (confirmPasswordModel.dirty || confirmPasswordModel.touched) &&
-                isNewPasswordMismatch()
-              ) {
-                <mat-error>As senhas não conferem</mat-error>
-              }
-
-              @if (
-                (confirmPasswordModel.dirty || confirmPasswordModel.touched) &&
-                confirmPasswordModel.errors?.["required"]
-              ) {
-                <mat-error>Confirme a nova senha</mat-error>
-              }
-            </mat-form-field>
+            </div>
+            <div class="logo-hint">
+              O sistema comprime o arquivo e salva em PNG.
+            </div>
           </div>
         </div>
-      </mat-card-content>
+      </div>
+    }
 
-      <mat-card-actions class="form-actions m-3">
-        <button
-          mat-flat-button
-          (click)="changePassword()"
-          [disabled]="!canChangePassword()"
-        >
-          @if (isChangingPasswordSignal()) {
-            <mat-progress-spinner diameter="18" mode="indeterminate" />
-          } @else {
-            <mat-icon>lock_reset</mat-icon>
+    <div class="card form-card">
+      <h3 class="mb-1">Segurança</h3>
+      <p class="mb-4 text-sm text-gray-500">Trocar senha</p>
+
+      @if (passwordErrorMessageSignal(); as errorMessage) {
+        <div class="form-error">
+          <i class="pi pi-exclamation-circle"></i>
+          <div>{{ errorMessage }}</div>
+        </div>
+      }
+
+      <div class="form-grid">
+        <div class="form-field form-field--full">
+          <label for="current-password">Senha atual</label>
+          <input
+            id="current-password"
+            name="currentPassword"
+            pInputText
+            [type]="isCurrentPasswordVisible() ? 'text' : 'password'"
+            [ngModel]="currentPassword()"
+            (ngModelChange)="currentPassword.set($event)"
+            [ngModelOptions]="{ standalone: true }"
+            autocomplete="off"
+          />
+        </div>
+        <div class="form-field">
+          <label for="new-password">Nova senha</label>
+          <input
+            id="new-password"
+            name="newPassword"
+            pInputText
+            [type]="isNewPasswordVisible() ? 'text' : 'password'"
+            [ngModel]="newPassword()"
+            (ngModelChange)="newPassword.set($event)"
+            [ngModelOptions]="{ standalone: true }"
+            autocomplete="off"
+          />
+        </div>
+        <div class="form-field">
+          <label for="confirm-new-password">Confirmar nova senha</label>
+          <input
+            id="confirm-new-password"
+            name="confirmNewPassword"
+            pInputText
+            [type]="isConfirmPasswordVisible() ? 'text' : 'password'"
+            [ngModel]="confirmNewPassword()"
+            (ngModelChange)="confirmNewPassword.set($event)"
+            [ngModelOptions]="{ standalone: true }"
+            autocomplete="off"
+          />
+          @if (isNewPasswordMismatch()) {
+            <small class="text-red-500">As senhas não conferem</small>
           }
-          Trocar senha
-        </button>
-      </mat-card-actions>
-    </mat-card>
+        </div>
+      </div>
+
+      <div class="form-actions m-3">
+        <p-button
+          label="Trocar senha"
+          icon="pi pi-lock"
+          [loading]="isChangingPasswordSignal()"
+          [disabled]="!canChangePassword()"
+          (onClick)="changePassword()"
+        />
+      </div>
+    </div>
   </section>
 } @else {
   <section class="page-fullscreen">
-    <mat-card appearance="outlined" class="card">
-      <mat-card-content class="loading">
-        <div class="loading__row">
-          <mat-progress-spinner diameter="22" mode="indeterminate" />
-          <span>Carregando perfil…</span>
-        </div>
-      </mat-card-content>
-    </mat-card>
+    <div class="card loading">
+      <div class="loading__row">
+        <p-progressspinner styleClass="w-5 h-5" />
+        <span>Carregando perfil…</span>
+      </div>
+    </div>
   </section>
 }

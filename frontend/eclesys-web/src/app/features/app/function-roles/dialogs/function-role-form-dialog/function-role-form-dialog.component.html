@@ -1,69 +1,50 @@
-<h2 mat-dialog-title>
-  {{ data.mode === 'create' ? 'Nova Função' : 'Editar Função' }}
-</h2>
+<form [formGroup]="form" class="flex flex-col gap-4 p-2">
+  <div class="flex flex-col gap-1">
+    <label class="font-medium text-sm">Nome da Função</label>
+    <input pInputText formControlName="name" placeholder="Ex: Líder, Secretário, Tesoureiro" />
+    @if (form.controls.name.touched && form.controls.name.hasError('required')) {
+      <small class="text-red-500">Nome é obrigatório</small>
+    }
+    @if (form.controls.name.touched && form.controls.name.hasError('maxlength')) {
+      <small class="text-red-500">Máximo 60 caracteres</small>
+    }
+  </div>
 
-<mat-dialog-content>
-  <form [formGroup]="form">
-    <mat-form-field appearance="outline" class="w-full">
-      <mat-label>Nome da Função</mat-label>
-      <input
-        matInput
-        formControlName="name"
-        placeholder="Ex: Líder, Secretário, Tesoureiro"
-      />
-      @if (form.controls.name.hasError('required')) {
-        <mat-error>Nome é obrigatório</mat-error>
-      }
-      @if (form.controls.name.hasError('maxlength')) {
-        <mat-error>Máximo 60 caracteres</mat-error>
-      }
-    </mat-form-field>
+  <div class="flex flex-col gap-1">
+    <label class="font-medium text-sm">Escopo</label>
+    <p-select formControlName="scopeType" [options]="scopeOptions" optionLabel="label" optionValue="value" />
+    @if (form.controls.scopeType.touched && form.controls.scopeType.hasError('required')) {
+      <small class="text-red-500">Escopo é obrigatório</small>
+    }
+    <small class="text-gray-500">Define onde a função pode ser exercida</small>
+  </div>
 
-    <mat-form-field appearance="outline" class="w-full">
-      <mat-label>Escopo</mat-label>
-      <mat-select formControlName="scopeType">
-        <mat-option value="UNIT">Unidade Organizacional</mat-option>
-        <mat-option value="MINISTRY">Ministério</mat-option>
-        <mat-option value="BOTH">Ambos</mat-option>
-      </mat-select>
-      @if (form.controls.scopeType.hasError('required')) {
-        <mat-error>Escopo é obrigatório</mat-error>
-      }
-      <mat-hint>Define onde a função pode ser exercida</mat-hint>
-    </mat-form-field>
+  <div class="flex flex-col gap-1">
+    <label class="font-medium text-sm">Limite de Pessoas (opcional)</label>
+    <input pInputText type="number" formControlName="maxHolders" placeholder="Ex: 1 para Tesoureiro" />
+    <small class="text-gray-500">Deixe vazio para ilimitado</small>
+  </div>
 
-    <mat-form-field appearance="outline" class="w-full">
-      <mat-label>Limite de Pessoas (opcional)</mat-label>
-      <input
-        matInput
-        type="number"
-        formControlName="maxHolders"
-        placeholder="Ex: 1 para Tesoureiro"
-      />
-      <mat-hint>Deixe vazio para ilimitado</mat-hint>
-    </mat-form-field>
+  <div class="flex flex-col gap-1">
+    <label class="font-medium text-sm">Ordem de Exibição</label>
+    <input pInputText type="number" formControlName="sortOrder" />
+    @if (form.controls.sortOrder.touched && form.controls.sortOrder.hasError('required')) {
+      <small class="text-red-500">Ordem é obrigatória</small>
+    }
+    <small class="text-gray-500">Define a ordem de exibição na lista</small>
+  </div>
 
-    <mat-form-field appearance="outline" class="w-full">
-      <mat-label>Ordem de Exibição</mat-label>
-      <input matInput type="number" formControlName="sortOrder" />
-      @if (form.controls.sortOrder.hasError('required')) {
-        <mat-error>Ordem é obrigatória</mat-error>
-      }
-      <mat-hint>Define a ordem de exibição na lista</mat-hint>
-    </mat-form-field>
+  <div class="flex items-center gap-2">
+    <p-checkbox formControlName="isActive" [binary]="true" inputId="isActive" />
+    <label for="isActive" class="cursor-pointer text-sm">Função ativa</label>
+  </div>
 
-    <mat-checkbox formControlName="isActive"> Função ativa </mat-checkbox>
-  </form>
-</mat-dialog-content>
-
-<mat-dialog-actions align="end">
-  <button mat-button (click)="cancel()">Cancelar</button>
-  <button
-    mat-flat-button
-    color="primary"
-    [disabled]="form.invalid || saving()"
-    (click)="save()"
-  >
-    {{ saving() ? 'Salvando...' : 'Salvar' }}
-  </button>
-</mat-dialog-actions>
+  <div class="flex justify-end gap-2 pt-2">
+    <p-button label="Cancelar" severity="secondary" [outlined]="true" (onClick)="cancel()" />
+    <p-button
+      [label]="saving() ? 'Salvando...' : 'Salvar'"
+      [disabled]="form.invalid || saving()"
+      (onClick)="save()"
+    />
+  </div>
+</form>

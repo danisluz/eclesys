@@ -1,96 +1,28 @@
-import { Injectable, inject } from '@angular/core';
-import { MatSnackBar, MatSnackBarConfig } from '@angular/material/snack-bar';
-import { NotificationSnackbarComponent, NotificationType, NotificationSnackbarData } from '../ui/notification-snackbar/notification-snackbar.component';
+import { inject, Injectable } from '@angular/core';
+import { MessageService } from 'primeng/api';
 
 @Injectable({ providedIn: 'root' })
 export class NotificationService {
-  private snackBar = inject(MatSnackBar);
+  private readonly messages = inject(MessageService);
 
-  success(message: string, action: string = 'OK', config?: MatSnackBarConfig) {
-    this.open(message, 'success', action, config);
+  success(message: string, _action?: string, _config?: unknown) {
+    this.messages.add({ severity: 'success', summary: 'Sucesso', detail: message, life: 3000 });
   }
 
-  error(message: string, action: string = 'Fechar', config?: MatSnackBarConfig) {
-    this.open(message, 'error', action, config);
+  error(message: string, _action?: string, _config?: unknown) {
+    this.messages.add({ severity: 'error', summary: 'Erro', detail: message, life: 5000 });
   }
 
-  warn(message: string, action: string = 'Fechar', config?: MatSnackBarConfig) {
-    this.open(message, 'warn', action, config);
+  warn(message: string, _action?: string, _config?: unknown) {
+    this.messages.add({ severity: 'warn', summary: 'Atenção', detail: message, life: 4500 });
   }
 
-  info(message: string, action: string = 'OK', config?: MatSnackBarConfig) {
-    this.open(message, 'info', action, config);
+  info(message: string, _action?: string, _config?: unknown) {
+    this.messages.add({ severity: 'info', summary: 'Informação', detail: message, life: 3500 });
   }
 
-  fromError(error: any, fallback: string = 'Ocorreu um erro inesperado.') {
-    const message = error?.error?.message ?? fallback;
+  fromError(error: unknown, fallback = 'Ocorreu um erro inesperado.') {
+    const message = (error as any)?.error?.message ?? fallback;
     this.error(message);
-  }
-
-  private open(
-    message: string,
-    type: NotificationType,
-    action: string,
-    config?: MatSnackBarConfig,
-  ) {
-    const duration = this.resolveDuration(type, config?.duration);
-    const panelClass = this.resolvePanelClass(type, config?.panelClass);
-
-    const data: NotificationSnackbarData = {
-      message,
-      type,
-      actionLabel: action,
-    };
-
-    this.snackBar.openFromComponent(NotificationSnackbarComponent, {
-      duration,
-      horizontalPosition: 'center',
-      verticalPosition: 'top',
-      ...config,
-      panelClass,
-      data,
-    });
-  }
-
-  private resolveDuration(type: NotificationType, override?: number) {
-    if (override !== undefined) return override;
-    switch (type) {
-      case 'success':
-        return 3000;
-      case 'info':
-        return 3500;
-      case 'warn':
-        return 4500;
-      case 'error':
-      default:
-        return 5000;
-    }
-  }
-
-  private resolvePanelClass(
-    type: NotificationType,
-    panelClass?: string | string[],
-  ): string[] {
-    const typeClass = this.panelClassFor(type);
-    const normalized = Array.isArray(panelClass)
-      ? panelClass
-      : panelClass
-        ? [panelClass]
-        : [];
-    return ['snackbar-base', typeClass, ...normalized];
-  }
-
-  private panelClassFor(type: NotificationType) {
-    switch (type) {
-      case 'success':
-        return 'snackbar-success';
-      case 'info':
-        return 'snackbar-info';
-      case 'warn':
-        return 'snackbar-warning';
-      case 'error':
-      default:
-        return 'snackbar-error';
-    }
   }
 }

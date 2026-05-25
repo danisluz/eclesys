@@ -1,28 +1,15 @@
 import { Component, inject, signal, OnInit, computed } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import {
-  MAT_DIALOG_DATA,
-  MatDialogRef,
-  MatDialogModule,
-} from '@angular/material/dialog';
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatSelectModule } from '@angular/material/select';
-import { MatListModule } from '@angular/material/list';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatInputModule } from '@angular/material/input';
-import { MatAutocompleteModule } from '@angular/material/autocomplete';
-import { MatTooltipModule } from '@angular/material/tooltip';
-import { MatTableModule } from '@angular/material/table';
+import { FormsModule } from '@angular/forms';
+import { DynamicDialogRef, DynamicDialogConfig } from 'primeng/dynamicdialog';
+import { AutoCompleteModule, AutoCompleteSelectEvent } from 'primeng/autocomplete';
+import { SelectModule } from 'primeng/select';
+import { TableModule } from 'primeng/table';
+import { ButtonModule } from 'primeng/button';
+import { ProgressSpinnerModule } from 'primeng/progressspinner';
+import { TooltipModule } from 'primeng/tooltip';
 import { firstValueFrom } from 'rxjs';
 
-import {
-  OrganizationRolesService,
-  RoleAssignment,
-  AssignRoleRequest,
-} from '../../../../../shared/api/organization-roles.service';
+import { OrganizationRolesService, RoleAssignment, AssignRoleRequest } from '../../../../../shared/api/organization-roles.service';
 import { MembersService } from '../../../../../shared/api/members.service';
 import { Member } from '../../../../../shared/models/member.model';
 import { FunctionRolesService } from '../../../../../shared/api/function-roles.service';
@@ -38,28 +25,20 @@ export interface ManageRolesDialogData {
   standalone: true,
   selector: 'app-manage-roles-dialog',
   imports: [
-    CommonModule,
     FormsModule,
-    ReactiveFormsModule,
-    MatDialogModule,
-    MatButtonModule,
-    MatIconModule,
-    MatFormFieldModule,
-    MatSelectModule,
-    MatListModule,
-    MatProgressSpinnerModule,
-    MatInputModule,
-    MatAutocompleteModule,
-    MatTooltipModule,
-    MatTableModule,
+    AutoCompleteModule,
+    SelectModule,
+    TableModule,
+    ButtonModule,
+    ProgressSpinnerModule,
+    TooltipModule,
   ],
   templateUrl: './manage-roles-dialog.component.html',
   styleUrls: ['./manage-roles-dialog.component.scss'],
-
 })
 export class ManageRolesDialogComponent implements OnInit {
-  private readonly dialogRef = inject(MatDialogRef<ManageRolesDialogComponent>);
-  protected readonly data = inject<ManageRolesDialogData>(MAT_DIALOG_DATA);
+  private readonly ref = inject(DynamicDialogRef);
+  readonly data = inject(DynamicDialogConfig).data as ManageRolesDialogData;
   private readonly rolesService = inject(OrganizationRolesService);
   private readonly membersService = inject(MembersService);
   private readonly functionRolesService = inject(FunctionRolesService);
@@ -68,55 +47,18 @@ export class ManageRolesDialogComponent implements OnInit {
   isLoading = signal(true);
   isAssigning = signal(false);
   isRemoving = signal(false);
-  isSearchingMembers = signal(false);
 
   assignments = signal<RoleAssignment[]>([]);
   allMembers = signal<Member[]>([]);
   availableFunctionRoles = signal<FunctionRole[]>([]);
+  filteredMembers: Member[] = [];
 
   selectedMember: Member | null = null;
-  selectedRole: string | '' = '';
-  memberSearchText = signal('');
+  selectedRoleId: string | null = null;
 
-  readonly displayedColumns = ['name', 'role', 'actions'];
-
-  filteredMembers = computed(() => {
-    const search = this.memberSearchText().toLowerCase().trim();
-
-    // Se não houver busca, mostra os primeiros 10 membros
-    if (!search) {
-      return this.allMembers().slice(0, 10);
-    }
-
-    // Se busca muito curta, não filtra
-    if (search.length < 1) {
-      return [];
-    }
-
-    const filtered = this.allMembers()
-      .filter(
-        (member) =>
-          member.fullName.toLowerCase().includes(search) ||
-          member.document?.toLowerCase().includes(search),
-      )
-      .slice(0, 10); // Limitar a 10 resultados
-
-    return filtered;
-  });
-
-  displayMember = (member: Member | null): string => {
-    return member?.fullName || '';
-  };
-
-  onInputChange(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    this.memberSearchText.set(input.value);
-
-    // Se o input não corresponde ao membro selecionado, limpar seleção
-    if (this.selectedMember && input.value !== this.selectedMember.fullName) {
-      this.selectedMember = null;
-    }
-  }
+  roleOptions = computed(() =>
+    this.availableFunctionRoles().map((r) => ({ label: r.name, value: r.id }))
+  );
 
   ngOnInit(): void {
     this.loadData();
@@ -125,33 +67,23 @@ export class ManageRolesDialogComponent implements OnInit {
   private async loadData(): Promise<void> {
     this.isLoading.set(true);
     try {
-      // Carregar membros
       const membersResult = await firstValueFrom(
-        this.membersService.listAll(
-          undefined,
-          undefined,
-          undefined,
-          undefined,
-          0,
-          500,
-        ),
+        this.membersService.listAll(undefined, undefined, undefined, undefined, 0, 500),
       );
       this.allMembers.set(membersResult?.data?.content || []);
+      this.filteredMembers = [...this.allMembers()].slice(0, 10);
 
-      // Carregar funções administrativas ativas
       const functionRolesResult = await firstValueFrom(
         this.functionRolesService.listAll(true),
       );
       this.availableFunctionRoles.set(functionRolesResult?.data || []);
 
-      // Carregar atribuições existentes (pode retornar 404 se não houver nenhuma)
       try {
         const assignmentsResult = await firstValueFrom(
           this.rolesService.listRoles(this.data.organizationUnitId),
         );
         this.assignments.set(assignmentsResult || []);
       } catch (roleError: any) {
-        // Se for 404, não há cargos atribuídos ainda (não é um erro)
         if (roleError?.status === 404) {
           this.assignments.set([]);
         } else {
@@ -159,58 +91,45 @@ export class ManageRolesDialogComponent implements OnInit {
         }
       }
     } catch (error) {
-      console.error('Erro ao carregar dados:', error);
       this.notificationService.error('Erro ao carregar dados');
     } finally {
       this.isLoading.set(false);
     }
   }
 
-  onMemberSearchChange(value: string): void {
-    // Não usado mais
+  searchMembers(event: { query: string }): void {
+    const term = event.query.toLowerCase().trim();
+    const all = this.allMembers();
+    this.filteredMembers = (term
+      ? all.filter((m) => m.fullName.toLowerCase().includes(term) || m.document?.toLowerCase().includes(term))
+      : all
+    ).slice(0, 10);
   }
 
-  onMemberSelected(member: any): void {
-    // Não usado mais
+  onMemberSelected(event: AutoCompleteSelectEvent): void {
+    this.selectedMember = event.value as Member;
   }
 
-  clearMemberSearch(): void {
-    this.memberSearchText.set('');
+  onMemberClear(): void {
     this.selectedMember = null;
-  }
-
-  clearSelectedMember(): void {
-    this.selectedMember = null;
-    this.memberSearchText.set('');
   }
 
   async assignRole(): Promise<void> {
-    if (!this.selectedMember || !this.selectedRole) {
-      return;
-    }
+    if (!this.selectedMember || !this.selectedRoleId) return;
 
     this.isAssigning.set(true);
     try {
       const request: AssignRoleRequest = {
         userId: this.selectedMember.id,
-        functionRoleId: this.selectedRole, // agora é UUID do FunctionRole
+        functionRoleId: this.selectedRoleId,
       };
-
-      console.log('[assignRole] Request:', request);
-
-      await firstValueFrom(
-        this.rolesService.assignRole(this.data.organizationUnitId, request),
-      );
-
+      await firstValueFrom(this.rolesService.assignRole(this.data.organizationUnitId, request));
       this.notificationService.success('Cargo atribuído com sucesso');
-
       await this.loadData();
-
-      this.clearSelectedMember();
-      this.selectedRole = '';
+      this.selectedMember = null;
+      this.selectedRoleId = null;
     } catch (error: any) {
-      const message = error?.error?.message || 'Erro ao atribuir cargo';
-      this.notificationService.error(message);
+      this.notificationService.error(error?.error?.message || 'Erro ao atribuir cargo');
     } finally {
       this.isAssigning.set(false);
     }
@@ -220,21 +139,18 @@ export class ManageRolesDialogComponent implements OnInit {
     this.isRemoving.set(true);
     try {
       await firstValueFrom(
-        this.rolesService.removeRole(
-          this.data.organizationUnitId,
-          assignment.userId,
-          assignment.functionRoleId,
-        ),
+        this.rolesService.removeRole(this.data.organizationUnitId, assignment.userId, assignment.functionRoleId),
       );
-
       this.notificationService.success('Cargo removido com sucesso');
-
       await this.loadData();
     } catch (error: any) {
-      const message = error?.error?.message || 'Erro ao remover cargo';
-      this.notificationService.error(message);
+      this.notificationService.error(error?.error?.message || 'Erro ao remover cargo');
     } finally {
       this.isRemoving.set(false);
     }
+  }
+
+  close(): void {
+    this.ref.close();
   }
 }

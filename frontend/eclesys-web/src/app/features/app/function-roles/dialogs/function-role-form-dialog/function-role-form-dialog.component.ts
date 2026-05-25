@@ -1,20 +1,11 @@
 import { Component, inject, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import {
-  MatDialogModule,
-  MAT_DIALOG_DATA,
-  MatDialogRef,
-} from '@angular/material/dialog';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatButtonModule } from '@angular/material/button';
-import { MatCheckboxModule } from '@angular/material/checkbox';
-import { MatSelectModule } from '@angular/material/select';
-import {
-  FunctionRole,
-  ScopeType,
-} from '../../../../../shared/models/function-role.model';
+import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
+import { DynamicDialogRef, DynamicDialogConfig } from 'primeng/dynamicdialog';
+import { InputTextModule } from 'primeng/inputtext';
+import { ButtonModule } from 'primeng/button';
+import { CheckboxModule } from 'primeng/checkbox';
+import { SelectModule } from 'primeng/select';
+import { FunctionRole, ScopeType } from '../../../../../shared/models/function-role.model';
 import { FunctionRolesService } from '../../../../../shared/api/function-roles.service';
 
 interface DialogData {
@@ -26,27 +17,23 @@ interface DialogData {
 @Component({
   selector: 'app-function-role-form-dialog',
   standalone: true,
-  imports: [
-    CommonModule,
-    ReactiveFormsModule,
-    MatDialogModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatButtonModule,
-    MatCheckboxModule,
-    MatSelectModule,
-  ],
+  imports: [ReactiveFormsModule, InputTextModule, ButtonModule, CheckboxModule, SelectModule],
   templateUrl: './function-role-form-dialog.component.html',
   styleUrls: ['./function-role-form-dialog.component.scss'],
-
 })
 export class FunctionRoleFormDialogComponent {
   private fb = inject(FormBuilder);
   private service = inject(FunctionRolesService);
-  private dialogRef = inject(MatDialogRef<FunctionRoleFormDialogComponent>);
-  data = inject<DialogData>(MAT_DIALOG_DATA);
+  private ref = inject(DynamicDialogRef);
+  data = inject(DynamicDialogConfig).data as DialogData;
 
   saving = signal(false);
+
+  scopeOptions = [
+    { label: 'Unidade Organizacional', value: 'UNIT' },
+    { label: 'Ministério', value: 'MINISTRY' },
+    { label: 'Ambos', value: 'BOTH' },
+  ];
 
   form = this.fb.group({
     name: ['', [Validators.required, Validators.maxLength(60)]],
@@ -65,39 +52,23 @@ export class FunctionRoleFormDialogComponent {
         sortOrder: this.data.role.sortOrder,
         isActive: this.data.role.isActive,
       });
-    } else if (
-      this.data.mode === 'create' &&
-      this.data.maxSortOrder !== undefined
-    ) {
-      this.form.patchValue({
-        sortOrder: this.data.maxSortOrder + 1,
-      });
+    } else if (this.data.mode === 'create' && this.data.maxSortOrder !== undefined) {
+      this.form.patchValue({ sortOrder: this.data.maxSortOrder + 1 });
     }
   }
 
-  cancel() {
-    this.dialogRef.close();
-  }
+  cancel() { this.ref.close(); }
 
   save() {
     if (this.form.invalid) return;
-
     this.saving.set(true);
-
     const request = this.form.value;
-
-    const operation =
-      this.data.mode === 'create'
-        ? this.service.create(request as any)
-        : this.service.update(this.data.role!.id, request as any);
-
+    const operation = this.data.mode === 'create'
+      ? this.service.create(request as any)
+      : this.service.update(this.data.role!.id, request as any);
     operation.subscribe({
-      next: () => {
-        this.dialogRef.close(true);
-      },
-      error: () => {
-        this.saving.set(false);
-      },
+      next: () => { this.ref.close(true); },
+      error: () => { this.saving.set(false); },
     });
   }
 }

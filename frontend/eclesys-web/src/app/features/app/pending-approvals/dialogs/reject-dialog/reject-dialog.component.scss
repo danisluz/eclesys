@@ -1,12 +1,29 @@
-.dialog-description {
-  margin-bottom: 16px;
-  color: var(--md-sys-color-on-surface-variant);
-}
-
-.full-width {
-  width: 100%;
-}
-
-mat-dialog-content {
+.dialog-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
   min-width: 400px;
+}
+
+.dialog-description {
+  margin: 0;
+  font-size: 14px;
+  color: #374151;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  label { font-size: 13px; font-weight: 500; color: #374151; }
+  textarea { width: 100%; }
+}
+
+.hint-text { font-size: 12px; color: #64748b; }
+
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
 }

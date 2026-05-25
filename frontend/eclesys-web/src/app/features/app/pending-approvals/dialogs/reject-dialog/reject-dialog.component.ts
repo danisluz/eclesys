@@ -1,40 +1,30 @@
 import { Component, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import {
-  MAT_DIALOG_DATA,
-  MatDialogModule,
-  MatDialogRef,
-} from '@angular/material/dialog';
-import { MatButtonModule } from '@angular/material/button';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
+import { DynamicDialogRef, DynamicDialogConfig } from 'primeng/dynamicdialog';
+import { ButtonModule } from 'primeng/button';
+import { TextareaModule } from 'primeng/textarea';
 import { MemberTransfer } from '../../../../../shared/models/member.model';
 
 @Component({
   selector: 'app-reject-dialog',
   standalone: true,
-  imports: [
-    CommonModule,
-    FormsModule,
-    MatDialogModule,
-    MatButtonModule,
-    MatFormFieldModule,
-    MatInputModule,
-  ],
+  imports: [FormsModule, ButtonModule, TextareaModule],
   templateUrl: './reject-dialog.component.html',
   styleUrls: ['./reject-dialog.component.scss'],
-
 })
 export class RejectDialogComponent {
-  dialogRef = inject(MatDialogRef<RejectDialogComponent>);
-  data: { transfer: MemberTransfer } = inject(MAT_DIALOG_DATA);
+  private readonly ref = inject(DynamicDialogRef);
+  readonly data: { transfer: MemberTransfer } = inject(DynamicDialogConfig).data;
 
   reason = '';
 
   confirm(): void {
     if (this.reason && this.reason.trim().length > 0) {
-      this.dialogRef.close(this.reason.trim());
+      this.ref.close(this.reason.trim());
     }
+  }
+
+  cancel(): void {
+    this.ref.close();
   }
 }

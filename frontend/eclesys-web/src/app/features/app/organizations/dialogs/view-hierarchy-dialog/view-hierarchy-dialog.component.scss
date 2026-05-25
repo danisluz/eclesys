@@ -1,11 +1,3 @@
-mat-dialog-content {
-  min-width: 700px;
-  max-width: 900px;
-  min-height: 400px;
-  max-height: 70vh;
-  overflow-y: auto;
-}
-
 .loading {
   display: flex;
   flex-direction: column;
@@ -19,20 +11,6 @@ mat-dialog-content {
   margin-bottom: 1.5rem;
   padding-bottom: 1rem;
   border-bottom: 1px solid rgba(0, 0, 0, 0.12);
-
-  mat-chip-listbox {
-    display: flex;
-    gap: 0.5rem;
-  }
-
-  mat-chip-option {
-    mat-icon {
-      font-size: 18px;
-      width: 18px;
-      height: 18px;
-      margin-right: 0.25rem;
-    }
-  }
 }
 
 .empty-message {
@@ -49,13 +27,6 @@ mat-dialog-content {
     margin: 0;
     padding: 0;
     list-style-type: none;
-  }
-
-  .mat-tree-node {
-    display: flex;
-    align-items: flex-start;
-    padding: 0.5rem 0;
-    min-height: auto;
   }
 
   .node-content {
@@ -105,13 +76,6 @@ mat-dialog-content {
         align-items: center;
         gap: 0.5rem;
         font-size: 0.875rem;
-
-        mat-icon {
-          font-size: 18px;
-          width: 18px;
-          height: 18px;
-          color: #4caf50;
-        }
       }
     }
 
@@ -123,17 +87,7 @@ mat-dialog-content {
       font-size: 0.875rem;
       font-style: italic;
       margin-top: 0.5rem;
-
-      mat-icon {
-        font-size: 16px;
-        width: 16px;
-        height: 16px;
-      }
     }
-  }
-
-  .hierarchy-tree-invisible {
-    display: none;
   }
 
   ul {

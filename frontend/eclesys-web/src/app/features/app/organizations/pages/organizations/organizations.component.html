@@ -1,204 +1,131 @@
-<div class="page-fullscreen">
-  <div class="page-header">
+<div class="page">
+
+  <header class="page__header">
     <div>
-      <h1 class="page-title">Organizações</h1>
-      <p class="page-subtitle">Gerencie igrejas, setores e congregações</p>
+      <h1 class="page__title">Organizações</h1>
+      <p class="page__subtitle">Gerencie igrejas, setores e congregações</p>
     </div>
-    <div class="page-actions">
-      <button
-        mat-stroked-button
-        color="primary"
-        (click)="openViewHierarchyDialog()"
-        matTooltip="Visualizar toda a hierarquia com cargos"
-      >
-        <mat-icon>visibility</mat-icon>
-        Visualizar Hierarquia
-      </button>
-      <button mat-flat-button color="primary" (click)="openCreateDialog()">
-        <mat-icon>add</mat-icon>
-        Nova Unidade
-      </button>
+    <div class="page__actions">
+      <p-button
+        label="Visualizar Hierarquia"
+        icon="pi pi-eye"
+        [outlined]="true"
+        (onClick)="openViewHierarchyDialog()"
+      />
+      <p-button label="Nova Unidade" icon="pi pi-plus" (onClick)="openCreateDialog()" />
     </div>
-  </div>
+  </header>
 
-  <mat-card appearance="outlined">
-    <mat-card-content>
-      @if (isLoading()) {
-        <div class="loading-container">
-          <mat-spinner diameter="40"></mat-spinner>
-          <p>Carregando organizações...</p>
-        </div>
-      } @else if (errorMessage()) {
-        <div class="error-state">
-          <mat-icon color="warn">error</mat-icon>
-          <p>{{ errorMessage() }}</p>
-          <button mat-stroked-button (click)="loadOrganizations()">
-            <mat-icon>refresh</mat-icon>
-            Tentar novamente
-          </button>
-        </div>
-      } @else if (organizations().length === 0) {
-        <div class="empty-state">
-          <mat-icon>church</mat-icon>
-          <p>Nenhuma organização cadastrada</p>
-          <button
-            mat-stroked-button
-            color="primary"
-            (click)="openCreateDialog()"
-          >
-            <mat-icon>add</mat-icon>
-            Cadastrar primeira unidade
-          </button>
-        </div>
-      } @else {
-        <div class="filter-container">
-          <mat-form-field appearance="outline" class="search-field">
-            <mat-label>Buscar</mat-label>
-            <input
-              matInput
-              [(ngModel)]="searchTerm"
-              placeholder="Nome, código, tipo ou organização pai"
-            />
-            <mat-icon matPrefix>search</mat-icon>
-            @if (searchTerm()) {
-              <button
-                matSuffix
-                mat-icon-button
-                (click)="searchTerm.set('')"
-                aria-label="Limpar busca"
-              >
-                <mat-icon>close</mat-icon>
-              </button>
-            }
-          </mat-form-field>
+  @if (isLoading()) {
+    <div class="state-container">
+      <p-progressspinner class="w-10 h-10" />
+      <p class="state-container__label">Carregando organizações…</p>
+    </div>
+  } @else if (errorMessage()) {
+    <div class="state-container">
+      <i class="pi pi-exclamation-circle state-container__icon state-container__icon--error"></i>
+      <p class="state-container__label">{{ errorMessage() }}</p>
+      <p-button label="Tentar novamente" icon="pi pi-refresh" [outlined]="true" (onClick)="loadOrganizations()" />
+    </div>
+  } @else if (organizations().length === 0) {
+    <div class="state-container">
+      <i class="pi pi-building state-container__icon"></i>
+      <p class="state-container__label">Nenhuma organização cadastrada</p>
+      <p-button label="Cadastrar primeira unidade" icon="pi pi-plus" [outlined]="true" (onClick)="openCreateDialog()" />
+    </div>
+  } @else {
 
-          <mat-form-field appearance="outline" class="filter-field">
-            <mat-label>Tipo</mat-label>
-            <mat-select [(ngModel)]="typeFilter">
-              <mat-option value="ALL">Todos</mat-option>
-              <mat-option [value]="OrganizationUnitType.CHURCH"
-                >Igreja (Sede Principal)</mat-option
-              >
-              <mat-option [value]="OrganizationUnitType.SECTOR">{{
-                getSectorLabel()
-              }}</mat-option>
-              <mat-option [value]="OrganizationUnitType.CONGREGATION">{{
-                getCongregationLabel()
-              }}</mat-option>
-            </mat-select>
-          </mat-form-field>
+    <!-- Filter Bar -->
+    <div class="filter-bar">
+      <p-iconfield class="filter-bar__search">
+        <p-inputicon class="pi pi-search" />
+        <input
+          pInputText
+          type="text"
+          placeholder="Nome, código, tipo ou organização pai"
+          [ngModel]="searchTerm()"
+          (ngModelChange)="searchTerm.set($event)"
+        />
+      </p-iconfield>
 
-          <mat-form-field appearance="outline" class="filter-field">
-            <mat-label>Sede</mat-label>
-            <mat-select [(ngModel)]="headquartersFilter">
-              <mat-option value="ALL">Todas</mat-option>
-              <mat-option value="HEADQUARTERS">Apenas Sedes</mat-option>
-              <mat-option value="NOT_HEADQUARTERS">Não-Sedes</mat-option>
-            </mat-select>
-          </mat-form-field>
+      <p-select
+        [options]="typeOptions()"
+        optionLabel="label"
+        optionValue="value"
+        [ngModel]="typeFilter()"
+        (ngModelChange)="typeFilter.set($event)"
+        class="filter-bar__select"
+      />
 
-          <button
-            mat-stroked-button
-            (click)="clearFilters()"
-            class="clear-filters-btn"
-          >
-            <mat-icon>filter_alt_off</mat-icon>
-            Limpar Filtros
-          </button>
-        </div>
+      <p-select
+        [options]="hqOptions"
+        optionLabel="label"
+        optionValue="value"
+        [ngModel]="headquartersFilter()"
+        (ngModelChange)="headquartersFilter.set($event)"
+        class="filter-bar__select"
+      />
 
-        <table class="organizations-table">
-          <thead>
-            <tr>
-              <th>Nome</th>
-              <th>Código</th>
-              <th>Tipo</th>
-              <th>Organização Pai</th>
-              <th>Cargos</th>
-              <th class="col-actions">Ações</th>
-            </tr>
-          </thead>
-          <tbody>
-            @for (unit of filteredUnits(); track unit.id) {
-              <tr class="org-row">
-                <td>
-                  <div class="name-cell">
-                    <mat-icon class="type-icon">{{
-                      getTypeIcon(unit.type)
-                    }}</mat-icon>
-                    <span>{{ unit.name }}</span>
-                    @if (unit.isHeadquarters) {
-                      <mat-chip class="headquarters-badge">{{
-                        getHeadquartersLabel(unit.type)
-                      }}</mat-chip>
-                    }
-                  </div>
-                </td>
-                <td>
-                  <span class="code">{{ unit.code }}</span>
-                </td>
-                <td>
-                  {{ getTypeLabel(unit.type) }}
-                </td>
-                <td>
-                  <span class="text-secondary">{{ getParentName(unit) }}</span>
-                </td>
-                <td>
-                  @if (unit.assignmentsCount && unit.assignmentsCount > 0) {
-                    <span>{{ unit.assignmentsCount }} cargo(s)</span>
-                  } @else {
-                    <span class="text-secondary">—</span>
+      <p-button
+        label="Limpar"
+        icon="pi pi-filter-slash"
+        [outlined]="true"
+        severity="secondary"
+        (onClick)="clearFilters()"
+      />
+    </div>
+
+    <!-- Table -->
+    <div class="table-card">
+      <table class="orgs-table">
+        <thead>
+          <tr>
+            <th scope="col">Nome</th>
+            <th scope="col">Código</th>
+            <th scope="col">Tipo</th>
+            <th scope="col">Organização Pai</th>
+            <th scope="col">Cargos</th>
+            <th scope="col" class="col-actions">Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (unit of filteredUnits(); track unit.id) {
+            <tr class="org-row">
+              <td>
+                <div class="name-cell">
+                  <i class="pi {{ getTypeIcon(unit.type) }} type-icon"></i>
+                  <span class="unit-name">{{ unit.name }}</span>
+                  @if (unit.isHeadquarters) {
+                    <p-tag [value]="getHeadquartersLabel(unit.type)" severity="info" />
                   }
-                </td>
-                <td class="col-actions">
-                  <button mat-icon-button [matMenuTriggerFor]="menu">
-                    <mat-icon>more_vert</mat-icon>
-                  </button>
-                  <mat-menu #menu="matMenu">
-                    <button
-                      mat-menu-item
-                      (click)="openViewHierarchyDialog(unit.id)"
-                    >
-                      <mat-icon>visibility</mat-icon>
-                      Visualizar Hierarquia
-                    </button>
-                    <button mat-menu-item (click)="openManageRolesDialog(unit)">
-                      <mat-icon>badge</mat-icon>
-                      Gerenciar Cargos
-                    </button>
-                    <button mat-menu-item (click)="openEditDialog(unit)">
-                      <mat-icon>edit</mat-icon>
-                      Editar
-                    </button>
-                    @if (unit.type === OrganizationUnitType.CHURCH) {
-                      <button
-                        mat-menu-item
-                        (click)="openCreateDialog(unit.id, unit.type)"
-                      >
-                        <mat-icon>add</mat-icon>
-                        Adicionar {{ getSectorLabel() }}
-                      </button>
-                    }
-                    @if (unit.type === OrganizationUnitType.SECTOR) {
-                      <button
-                        mat-menu-item
-                        (click)="openCreateDialog(unit.id, unit.type)"
-                      >
-                        <mat-icon>add</mat-icon>
-                        Adicionar {{ getCongregationLabel() }}
-                      </button>
-                    }
-                    <button mat-menu-item (click)="deleteUnit(unit)">
-                      <mat-icon color="warn">delete</mat-icon>
-                      Excluir
-                    </button>
-                  </mat-menu>
-                </td>
-              </tr>
-            }
-          </tbody>
-        </table>
-      }
-    </mat-card-content>
-  </mat-card>
+                </div>
+              </td>
+              <td><span class="code-text">{{ unit.code }}</span></td>
+              <td><span class="text-muted">{{ getTypeLabel(unit.type) }}</span></td>
+              <td><span class="text-muted">{{ getParentName(unit) }}</span></td>
+              <td>
+                @if (unit.assignmentsCount && unit.assignmentsCount > 0) {
+                  <span class="text-muted">{{ unit.assignmentsCount }} cargo(s)</span>
+                } @else {
+                  <span class="text-muted">—</span>
+                }
+              </td>
+              <td class="col-actions">
+                <p-button
+                  icon="pi pi-ellipsis-v"
+                  [text]="true"
+                  [rounded]="true"
+                  size="small"
+                  (onClick)="openRowMenu($event, unit)"
+                />
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+
+      <p-menu #rowMenu [model]="rowMenuItems" [popup]="true" />
+    </div>
+  }
+
 </div>

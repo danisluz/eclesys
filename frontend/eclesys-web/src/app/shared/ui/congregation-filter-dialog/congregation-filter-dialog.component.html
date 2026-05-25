@@ -1,52 +1,41 @@
-<h2 mat-dialog-title class="dialog-title">
-  {{ data.title }}
-</h2>
-
-<div mat-dialog-content class="dialog-content">
-  <mat-form-field appearance="outline" class="w-full">
-    <mat-label>Buscar</mat-label>
+<div class="flex flex-col gap-4 p-2">
+  <p-iconfield>
+    <p-inputicon styleClass="pi pi-search" />
     <input
-      matInput
+      pInputText
       [ngModel]="searchTerm()"
       (ngModelChange)="searchTerm.set($event)"
       placeholder="Digite o nome da congregação ou setor"
+      class="w-full"
     />
+  </p-iconfield>
 
-    <mat-icon matPrefix>search</mat-icon>
-    @if (searchTerm()) {
-      <button matSuffix mat-icon-button (click)="searchTerm.set('')">
-        <mat-icon>close</mat-icon>
-      </button>
-    }
-  </mat-form-field>
-
-  <div class="list">
+  <div class="list flex flex-col gap-2 max-h-72 overflow-y-auto">
     @if (filteredCongregations().length === 0) {
-      <div class="empty">Nenhuma congregação encontrada.</div>
+      <div class="text-gray-500 text-sm py-4 text-center">Nenhuma congregação encontrada.</div>
     } @else {
       @for (org of filteredCongregations(); track org.id) {
-        <div class="row">
-          <mat-checkbox
-            [checked]="isSelected(org.id)"
-            (change)="toggleSelection(org.id, $event.checked)"
-          >
-            <div class="label">
-              <div class="name">{{ org.name }}</div>
-              @if (org.parentName) {
-                <div class="parent">{{ org.parentName }}</div>
-              }
-            </div>
-          </mat-checkbox>
+        <div class="flex items-start gap-2 py-1">
+          <p-checkbox
+            [binary]="true"
+            [ngModel]="isSelected(org.id)"
+            (ngModelChange)="toggleSelection(org.id, $event)"
+            [inputId]="'org-' + org.id"
+          />
+          <label [for]="'org-' + org.id" class="cursor-pointer">
+            <div class="font-medium text-sm">{{ org.name }}</div>
+            @if (org.parentName) {
+              <div class="text-gray-500 text-xs">{{ org.parentName }}</div>
+            }
+          </label>
         </div>
       }
     }
   </div>
-</div>
 
-<div mat-dialog-actions align="end" class="dialog-actions">
-  <button mat-button (click)="clear()">Limpar</button>
-  <button mat-button (click)="cancel()">Cancelar</button>
-  <button mat-flat-button color="primary" (click)="apply()">
-    Aplicar ({{ selectedIds().length }})
-  </button>
+  <div class="flex justify-end gap-2 pt-2 border-t">
+    <p-button label="Limpar" severity="secondary" [outlined]="true" (onClick)="clear()" />
+    <p-button label="Cancelar" severity="secondary" [outlined]="true" (onClick)="cancel()" />
+    <p-button [label]="'Aplicar (' + selectedIds().length + ')'" (onClick)="apply()" />
+  </div>
 </div>

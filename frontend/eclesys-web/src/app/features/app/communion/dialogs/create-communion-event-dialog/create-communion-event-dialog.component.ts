@@ -1,26 +1,10 @@
-import { CommonModule } from '@angular/common';
 import { Component, DestroyRef, computed, inject } from '@angular/core';
-import {
-  MatDialogModule,
-  MAT_DIALOG_DATA,
-  MatDialogRef,
-} from '@angular/material/dialog';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import {
-  MatAutocompleteModule,
-  MatAutocompleteSelectedEvent,
-} from '@angular/material/autocomplete';
-import { MatButtonModule } from '@angular/material/button';
-import { MatDatepickerModule } from '@angular/material/datepicker';
-import { MatNativeDateModule } from '@angular/material/core';
-import {
-  FormBuilder,
-  FormControl,
-  ReactiveFormsModule,
-  Validators,
-} from '@angular/forms';
+import { FormBuilder, FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { DynamicDialogRef, DynamicDialogConfig } from 'primeng/dynamicdialog';
+import { AutoCompleteModule, AutoCompleteSelectEvent } from 'primeng/autocomplete';
+import { DatePickerModule } from 'primeng/datepicker';
+import { ButtonModule } from 'primeng/button';
 import { OrganizationUnit } from '../../../../../shared/api/organization-unit.model';
 import { CommunionEventsStore } from '../../stores/communion-events.store';
 import { CommunionEvent } from '../../models/communion.models';
@@ -35,37 +19,27 @@ interface CreateCommunionEventDialogData {
   selector: 'app-create-communion-event-dialog',
   standalone: true,
   imports: [
-    CommonModule,
     ReactiveFormsModule,
-    MatDialogModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatAutocompleteModule,
-    MatButtonModule,
-    MatDatepickerModule,
-    MatNativeDateModule,
+    AutoCompleteModule,
+    DatePickerModule,
+    ButtonModule,
   ],
   templateUrl: './create-communion-event-dialog.component.html',
   styleUrl: './create-communion-event-dialog.component.scss',
 })
 export class CreateCommunionEventDialogComponent {
   private formBuilder = inject(FormBuilder);
-  private dialogRef = inject(
-    MatDialogRef<CreateCommunionEventDialogComponent>,
-  );
+  private ref = inject(DynamicDialogRef);
   private eventsStore = inject(CommunionEventsStore);
   private destroyRef = inject(DestroyRef);
 
-  data = inject<CreateCommunionEventDialogData>(MAT_DIALOG_DATA);
+  data = inject(DynamicDialogConfig).data as CreateCommunionEventDialogData;
 
   isCreatingSignal = this.eventsStore.isCreatingSignal;
-  errorMessageSignal = computed(
-    () => this.eventsStore.createErrorMessageSignal(),
-  );
+  errorMessageSignal = computed(() => this.eventsStore.createErrorMessageSignal());
 
-  congregationSearchControl = new FormControl<string | OrganizationUnit | null>(
-    '',
-  );
+  congregationSearchControl = new FormControl<OrganizationUnit | null>(null);
+  filteredCongregations: OrganizationUnit[] = [];
 
   form = this.formBuilder.group({
     congregationId: [null as string | null, [Validators.required]],
@@ -74,7 +48,7 @@ export class CreateCommunionEventDialogComponent {
 
   constructor() {
     const defaultCongregation = this.data.congregations.find(
-      (congregation) => congregation.id === this.data.defaultCongregationId,
+      (c) => c.id === this.data.defaultCongregationId,
     );
 
     if (defaultCongregation) {
@@ -82,17 +56,19 @@ export class CreateCommunionEventDialogComponent {
       this.form.controls.congregationId.setValue(defaultCongregation.id);
     }
 
+    this.filteredCongregations = [...this.data.congregations];
+
     this.congregationSearchControl.valueChanges
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((value) => {
-        if (typeof value === 'string' || value === null) {
+        if (value === null) {
           this.form.controls.congregationId.setValue(null);
         }
       });
   }
 
   cancel(): void {
-    this.dialogRef.close();
+    this.ref.close();
   }
 
   async save(): Promise<void> {
@@ -104,44 +80,30 @@ export class CreateCommunionEventDialogComponent {
     const value = this.form.getRawValue();
     if (!value.eventDate || !value.congregationId) return;
 
-    const eventDate = this.formatDateOnly(value.eventDate);
-
     const created = await this.eventsStore.createEvent({
       congregationId: value.congregationId,
-      eventDate,
+      eventDate: this.formatDateOnly(value.eventDate),
     });
 
     if (created) {
-      this.dialogRef.close(created as CommunionEvent);
+      this.ref.close(created as CommunionEvent);
     }
   }
 
-  onCongregationSelected(event: MatAutocompleteSelectedEvent): void {
-    const congregation = event.option.value as OrganizationUnit;
+  onCongregationSelected(event: AutoCompleteSelectEvent): void {
+    const congregation = event.value as OrganizationUnit;
     this.form.controls.congregationId.setValue(congregation.id);
   }
 
-  displayCongregation(
-    congregation: OrganizationUnit | string | null,
-  ): string {
-    if (!congregation || typeof congregation === 'string') return '';
-    return congregation.name;
+  onCongregationClear(): void {
+    this.form.controls.congregationId.setValue(null);
   }
 
-  filterCongregations(
-    value: string | OrganizationUnit | null,
-  ): OrganizationUnit[] {
-    if (!this.data.congregations?.length) return [];
-
-    const term =
-      typeof value === 'string' ? value : value?.name ?? '';
-    const normalized = term.toLowerCase().trim();
-
-    if (!normalized) return this.data.congregations;
-
-    return this.data.congregations.filter((congregation) =>
-      congregation.name.toLowerCase().includes(normalized),
-    );
+  searchCongregations(event: { query: string }): void {
+    const term = event.query.toLowerCase().trim();
+    this.filteredCongregations = term
+      ? this.data.congregations.filter((c) => c.name.toLowerCase().includes(term))
+      : [...this.data.congregations];
   }
 
   private formatDateOnly(date: Date): string {

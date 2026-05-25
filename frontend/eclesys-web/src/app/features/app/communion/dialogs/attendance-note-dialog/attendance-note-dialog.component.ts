@@ -1,14 +1,8 @@
-import { CommonModule } from '@angular/common';
 import { Component, inject } from '@angular/core';
-import {
-  MAT_DIALOG_DATA,
-  MatDialogModule,
-  MatDialogRef,
-} from '@angular/material/dialog';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatButtonModule } from '@angular/material/button';
-import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { ReactiveFormsModule, FormControl } from '@angular/forms';
+import { DynamicDialogRef, DynamicDialogConfig } from 'primeng/dynamicdialog';
+import { ButtonModule } from 'primeng/button';
+import { TextareaModule } from 'primeng/textarea';
 
 export interface AttendanceNoteDialogData {
   memberName: string;
@@ -19,35 +13,27 @@ export interface AttendanceNoteDialogData {
 @Component({
   selector: 'app-attendance-note-dialog',
   standalone: true,
-  imports: [
-    CommonModule,
-    ReactiveFormsModule,
-    MatDialogModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatButtonModule,
-  ],
+  imports: [ReactiveFormsModule, ButtonModule, TextareaModule],
   templateUrl: './attendance-note-dialog.component.html',
   styleUrl: './attendance-note-dialog.component.scss',
 })
 export class AttendanceNoteDialogComponent {
-  private dialogRef = inject(MatDialogRef<AttendanceNoteDialogComponent>);
-  data = inject<AttendanceNoteDialogData>(MAT_DIALOG_DATA);
+  private readonly ref = inject(DynamicDialogRef);
+  readonly data = inject(DynamicDialogConfig).data as AttendanceNoteDialogData;
 
   noteControl = new FormControl<string>(this.data.note ?? '', { nonNullable: true });
 
   close(): void {
-    this.dialogRef.close();
+    this.ref.close();
   }
 
   save(): void {
     if (!this.data.canEdit) {
-      this.dialogRef.close();
+      this.ref.close();
       return;
     }
-
     const note = this.normalizeNote(this.noteControl.value);
-    this.dialogRef.close(note.length > 0 ? note : null);
+    this.ref.close(note.length > 0 ? note : null);
   }
 
   canSave(): boolean {

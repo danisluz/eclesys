@@ -1,163 +1,143 @@
-<div class="shell">
-  <!-- TOPBAR -->
-  <mat-toolbar class="topbar">
-    <div class="topbar__left">
-      <!-- BRAND -->
-      <div class="topbar__brand">
-        @if (tenantLogoUrl(); as logoUrl) {
-          <img
-            class="topbar__brand-logo topbar__brand-logo--tenant"
-            [src]="logoUrl"
-            alt="Logo da igreja"
-          />
-          <span class="topbar__brand-separator">|</span>
-          <img
-            class="topbar__brand-logo"
-            src="assets/brand/eclesys-logo-white.svg"
-            alt="ECLESYS"
-          />
-        } @else {
-          <img
-            class="topbar__brand-logo"
-            src="assets/brand/eclesys-logo-white.svg"
-            alt="ECLESYS"
-          />
+<p-toast position="top-center" [breakpoints]="{'640px': {width: '95vw'}}" />
+<p-confirmdialog />
 
-          <div class="topbar__brand-text">
-            <div class="topbar__brand-subtitle">administração</div>
-          </div>
-        }
+<div class="app-layout">
+
+  <!-- ─── SIDEBAR ─── -->
+  <aside class="sidebar">
+
+    <div class="sidebar-header">
+      @if (tenantLogoUrl(); as logo) {
+        <img [src]="logo" alt="Logo da igreja" class="sidebar-tenant-logo" />
+        <span class="sidebar-brand-sep">|</span>
+      }
+      <img src="assets/brand/eclesys-logo-white.svg" alt="ECLESYS" class="sidebar-logo" />
+    </div>
+
+    <nav class="sidebar-nav">
+
+      <div class="nav-section">
+        <span class="nav-section-label">Principal</span>
+
+        <a routerLink="/app/dashboard"
+           routerLinkActive="nav-item--active"
+           class="nav-item">
+          <i class="pi pi-home nav-item__icon"></i>
+          <span class="nav-item__label">Dashboard</span>
+        </a>
+
+        <a routerLink="/app/members"
+           routerLinkActive="nav-item--active"
+           class="nav-item">
+          <i class="pi pi-users nav-item__icon"></i>
+          <span class="nav-item__label">Membros</span>
+        </a>
+
+        <a routerLink="/app/organizations"
+           routerLinkActive="nav-item--active"
+           class="nav-item">
+          <i class="pi pi-sitemap nav-item__icon"></i>
+          <span class="nav-item__label">Organizações</span>
+        </a>
+
+        <a routerLink="/app/santa-ceia"
+           routerLinkActive="nav-item--active"
+           class="nav-item">
+          <i class="pi pi-star nav-item__icon"></i>
+          <span class="nav-item__label">Santa Ceia</span>
+        </a>
+
+        <a routerLink="/app/pending-approvals"
+           routerLinkActive="nav-item--active"
+           class="nav-item">
+          <i class="pi pi-check-square nav-item__icon"></i>
+          <span class="nav-item__label">Aprovações</span>
+        </a>
       </div>
 
-      <!-- NAV -->
-      <nav class="topbar__nav">
-        <button
-          mat-button
-          class="topbar__nav-btn"
-          [matMenuTriggerFor]="menuDashboard"
-        >
-          Dashboard
-          <mat-icon>expand_more</mat-icon>
-        </button>
-        <mat-menu #menuDashboard="matMenu">
-          <button mat-menu-item routerLink="/app/dashboard">Dashboard</button>
-        </mat-menu>
+      <div class="nav-section">
+        <span class="nav-section-label">Configurações</span>
 
-        <button
-          mat-button
-          class="topbar__nav-btn"
-          [matMenuTriggerFor]="menuAdmin"
-        >
-          Administração
-          <mat-icon>expand_more</mat-icon>
-        </button>
+        <a routerLink="/app/church-roles"
+           routerLinkActive="nav-item--active"
+           class="nav-item">
+          <i class="pi pi-id-card nav-item__icon"></i>
+          <span class="nav-item__label">Cargos Eclesiásticos</span>
+        </a>
 
-        <mat-menu #menuAdmin="matMenu">
-          <button mat-menu-item routerLink="/app/organizations">
-            <mat-icon>church</mat-icon>
-            Organizações
-          </button>
-          <button mat-menu-item routerLink="/app/members">
-            <mat-icon>people</mat-icon>
-            Membros
-          </button>
-          <button mat-menu-item routerLink="/app/pending-approvals">
-            <mat-icon>how_to_reg</mat-icon>
-            Aprovações
-          </button>
-          <button mat-menu-item routerLink="/app/church-roles">
-            <mat-icon>badge</mat-icon>
-            Cargos Eclesiásticos
-          </button>
-          <button mat-menu-item routerLink="/app/function-roles">
-            <mat-icon>assignment_ind</mat-icon>
-            Funções Administrativas
-          </button>
-          <button mat-menu-item routerLink="/app/users">
-            <mat-icon>group</mat-icon>
-            Usuários
-          </button>
-        </mat-menu>
+        <a routerLink="/app/function-roles"
+           routerLinkActive="nav-item--active"
+           class="nav-item">
+          <i class="pi pi-briefcase nav-item__icon"></i>
+          <span class="nav-item__label">Funções</span>
+        </a>
 
-        <button
-          mat-button
-          class="topbar__nav-btn"
-          [matMenuTriggerFor]="menuEvents"
-        >
-          Eventos
-          <mat-icon>expand_more</mat-icon>
-        </button>
-        <mat-menu #menuEvents="matMenu">
-          <button mat-menu-item routerLink="/app/santa-ceia">
-            <mat-icon>event_available</mat-icon>
-            Santa Ceia
-          </button>
-        </mat-menu>
-      </nav>
+        <a routerLink="/app/users"
+           routerLinkActive="nav-item--active"
+           class="nav-item">
+          <i class="pi pi-user-edit nav-item__icon"></i>
+          <span class="nav-item__label">Usuários</span>
+        </a>
+      </div>
+
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="sidebar-tenant-name">{{ tenantName() }}</div>
+      <div class="sidebar-brand-label">ECLESYS</div>
     </div>
 
-    <span class="topbar__spacer"></span>
+  </aside>
 
-    <!-- USER -->
-    <div class="topbar__right">
-      <button
-        mat-button
-        class="topbar__user-btn"
-        [matMenuTriggerFor]="userMenu"
-      >
+  <!-- ─── MAIN ─── -->
+  <div class="main-area">
+
+    <!-- TOPBAR -->
+    <header class="topbar">
+      <div class="topbar-search">
+        <i class="pi pi-search topbar-search__icon"></i>
+        <input type="text" placeholder="Buscar…" class="topbar-search__input" />
+      </div>
+
+      <div class="topbar-spacer"></div>
+
+      <button type="button" class="topbar-user" (click)="toggleUserMenu($event)">
         <app-user-avatar
-          class="topbar__user-avatar"
           [userNameSignal]="meNameSignal()"
           [userEmailSignal]="meEmailSignal()"
-          [sizeSignal]="32"
-          ariaLabelSignal="Avatar do usuário"
-        ></app-user-avatar>
-
-        <div class="topbar__user-text">
-          @if (authStore.me(); as me) {
-            <div class="topbar__user-name">
-              {{ me.name }}
-            </div>
-            <div class="topbar__user-tenant">
-              {{ me.tenantName }}
-            </div>
-          } @else {
-            <div class="topbar__user-name">Carregando…</div>
-            <div class="topbar__user-tenant">—</div>
-          }
+          [sizeSignal]="36"
+          ariaLabelSignal="Avatar"
+        />
+        <div class="topbar-user__info">
+          <span class="topbar-user__name">{{ meNameSignal() }}</span>
+          <span class="topbar-user__org">{{ tenantName() }}</span>
         </div>
+        <i class="pi pi-chevron-down topbar-user__chevron"
+           [class.topbar-user__chevron--open]="userMenuOpen()"></i>
 
-        <mat-icon>expand_more</mat-icon>
+        @if (userMenuOpen()) {
+          <div class="user-menu"
+               (click)="$event.stopPropagation()"
+               (keydown)="$event.stopPropagation()">
+            <a routerLink="/app/profile" class="user-menu__item" (click)="closeUserMenu()">
+              <i class="pi pi-user"></i>
+              Meu Perfil
+            </a>
+            <div class="user-menu__divider"></div>
+            <button class="user-menu__item user-menu__item--danger"
+                    (click)="authStore.logout(); closeUserMenu()">
+              <i class="pi pi-sign-out"></i>
+              Sair
+            </button>
+          </div>
+        }
       </button>
+    </header>
 
-      <mat-menu #userMenu="matMenu">
-        <button mat-menu-item [routerLink]="'/app/profile'">
-          <mat-icon>person</mat-icon>
-          Meu Perfil
-        </button>
-        <button mat-menu-item disabled>
-          <mat-icon>settings</mat-icon>
-          Configurações
-        </button>
-        <button mat-menu-item (click)="authStore.logout()">
-          <mat-icon>logout</mat-icon>
-          Sair
-        </button>
-      </mat-menu>
-    </div>
-  </mat-toolbar>
+    <!-- CONTENT -->
+    <main class="content">
+      <router-outlet />
+    </main>
 
-  <!-- CONTENT -->
-  <main class="content">
-    <router-outlet></router-outlet>
-  </main>
-
-  <!-- FOOTER -->
-  <footer class="footer">
-    <div class="footer__inner">
-      <span>© {{ currentYear }} ECLESYS</span>
-      <span class="dot">•</span>
-      <span>Administração</span>
-    </div>
-  </footer>
+  </div>
 </div>

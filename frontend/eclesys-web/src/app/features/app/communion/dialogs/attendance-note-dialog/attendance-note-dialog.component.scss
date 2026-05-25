@@ -1,15 +1,28 @@
 .dialog-content {
-  padding-top: 8px;
-  display: grid;
-  gap: 12px;
-  min-width: 320px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
 .member-name {
+  margin: 0;
   font-weight: 600;
-  color: rgba(0, 0, 0, 0.8);
+  color: #0f172a;
 }
 
-:host ::ng-deep .mat-mdc-form-field {
-  width: 100%;
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  label { font-size: 13px; font-weight: 500; color: #374151; }
+  textarea { width: 100%; min-width: 320px; }
+}
+
+.hint-text { font-size: 12px; color: #64748b; }
+
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
 }

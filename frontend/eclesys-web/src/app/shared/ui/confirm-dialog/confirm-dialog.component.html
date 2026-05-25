@@ -1,23 +1,15 @@
-<h2 mat-dialog-title class="dialog-title">
-  <mat-icon class="dialog-icon">help_outline</mat-icon>
-  {{ data.title }}
-</h2>
-
-<div mat-dialog-content class="dialog-content">
-  <p>{{ data.message }}</p>
-</div>
-
-<div mat-dialog-actions align="end">
-  <button mat-button type="button" (click)="cancel()">
-    {{ data.cancelLabel || 'Cancelar' }}
-  </button>
-
-  <button
-    mat-flat-button
-    type="button"
-    [color]="data.confirmColor || 'primary'"
-    (click)="confirm()"
-  >
-    {{ data.confirmLabel || 'Confirmar' }}
-  </button>
+<div class="dialog-content">
+  <p class="dialog-message">{{ data.message }}</p>
+  <div class="dialog-actions">
+    <p-button
+      [label]="data.cancelLabel || 'Cancelar'"
+      [outlined]="true"
+      severity="secondary"
+      (onClick)="cancel()"
+    />
+    <p-button
+      [label]="data.confirmLabel || 'Confirmar'"
+      (onClick)="confirm()"
+    />
+  </div>
 </div>

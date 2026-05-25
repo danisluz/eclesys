@@ -20,6 +20,8 @@ import { environment } from '../../../../../../environments/environment';
   styleUrls: ['./signup.component.scss'],
 })
 export class SignupComponent {
+  readonly year = new Date().getFullYear();
+
   @ViewChild('turnstileContainer')
   turnstileContainer!: ElementRef<HTMLDivElement>;
 

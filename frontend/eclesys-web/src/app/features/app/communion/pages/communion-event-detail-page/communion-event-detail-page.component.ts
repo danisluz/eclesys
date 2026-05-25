@@ -1,20 +1,15 @@
-import { CommonModule } from '@angular/common';
-import { Component, computed, inject } from '@angular/core';
-import { afterNextRender } from '@angular/core';
+import { Component, inject, afterNextRender } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { MatButtonModule } from '@angular/material/button';
-import { MatButtonToggleModule } from '@angular/material/button-toggle';
-import { MatCardModule } from '@angular/material/card';
-import { MatCheckboxModule } from '@angular/material/checkbox';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatIconModule } from '@angular/material/icon';
-import { MatInputModule } from '@angular/material/input';
-import { MatTableModule } from '@angular/material/table';
-import { MatSortModule, Sort } from '@angular/material/sort';
-import { MatDialog, MatDialogModule } from '@angular/material/dialog';
-import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { MatSlideToggleModule } from '@angular/material/slide-toggle';
-import { MatTooltipModule } from '@angular/material/tooltip';
+import { FormsModule } from '@angular/forms';
+import { DialogService } from 'primeng/dynamicdialog';
+import { TableModule } from 'primeng/table';
+import { ButtonModule } from 'primeng/button';
+import { ToggleSwitchModule } from 'primeng/toggleswitch';
+import { InputTextModule } from 'primeng/inputtext';
+import { IconFieldModule } from 'primeng/iconfield';
+import { InputIconModule } from 'primeng/inputicon';
+import { ProgressSpinnerModule } from 'primeng/progressspinner';
+import { TooltipModule } from 'primeng/tooltip';
 import { CommunionEventDetailStore } from '../../stores/communion-event-detail.store';
 import {
   AttendanceStatus,
@@ -32,38 +27,28 @@ import {
   selector: 'app-communion-event-detail-page',
   standalone: true,
   imports: [
-    CommonModule,
     RouterLink,
-    MatCardModule,
-    MatButtonModule,
-    MatButtonToggleModule,
-    MatIconModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatTableModule,
-    MatSortModule,
-    MatCheckboxModule,
-    MatDialogModule,
-    MatProgressSpinnerModule,
-    MatSlideToggleModule,
-    MatTooltipModule,
+    FormsModule,
+    TableModule,
+    ButtonModule,
+    ToggleSwitchModule,
+    InputTextModule,
+    IconFieldModule,
+    InputIconModule,
+    ProgressSpinnerModule,
+    TooltipModule,
     CommunionStatusChipComponent,
   ],
   templateUrl: './communion-event-detail-page.component.html',
   styleUrl: './communion-event-detail-page.component.scss',
 })
 export class CommunionEventDetailPageComponent {
-  private route = inject(ActivatedRoute);
-  private router = inject(Router);
-  private dialog = inject(MatDialog);
-  private notificationService = inject(NotificationService);
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
+  private readonly dialogService = inject(DialogService);
+  private readonly notificationService = inject(NotificationService);
 
-  detailStore = inject(CommunionEventDetailStore);
-
-  displayedColumnsSignal = computed(() => {
-    const base = ['registrationNumber', 'fullName', 'status'];
-    return this.detailStore.notesEnabledSignal() ? [...base, 'note'] : base;
-  });
+  readonly detailStore = inject(CommunionEventDetailStore);
 
   constructor() {
     afterNextRender(() => {
@@ -77,8 +62,7 @@ export class CommunionEventDetailPageComponent {
   }
 
   formatDate(date: string): string {
-    const parsed = new Date(date + 'T00:00:00');
-    return parsed.toLocaleDateString('pt-BR');
+    return new Date(date + 'T00:00:00').toLocaleDateString('pt-BR');
   }
 
   goBack(): void {
@@ -87,9 +71,8 @@ export class CommunionEventDetailPageComponent {
 
   updateAttendanceStatus(
     member: CommunionMemberAttendance,
-    status: AttendanceStatus | null,
+    status: AttendanceStatus,
   ): void {
-    if (!status) return;
     if (!this.isAttendanceStatus(status)) return;
     this.detailStore.updateAttendanceStatus(member.memberId, status);
   }
@@ -98,14 +81,10 @@ export class CommunionEventDetailPageComponent {
     return member.status ?? (member.present ? 'PRESENT' : 'ABSENT');
   }
 
-  onSortChange(sort: Sort): void {
-    const active = sort.active as 'registrationNumber' | 'fullName' | 'status';
+  onSortChange(event: { field: string; order: number }): void {
+    const active = event.field as 'registrationNumber' | 'fullName' | 'status';
     if (!active) return;
-    this.detailStore.setSort(active, sort.direction);
-  }
-
-  private isAttendanceStatus(value: string): value is AttendanceStatus {
-    return value === 'PRESENT' || value === 'ABSENT' || value === 'JUSTIFIED';
+    this.detailStore.setSort(active, event.order === 1 ? 'asc' : 'desc');
   }
 
   openNoteDialog(member: CommunionMemberAttendance): void {
@@ -119,23 +98,22 @@ export class CommunionEventDetailPageComponent {
       canEdit,
     };
 
-    const dialogRef = this.dialog.open(AttendanceNoteDialogComponent, {
-      width: '520px',
-      maxWidth: '92vw',
-      data,
-    });
-
-    dialogRef.afterClosed().subscribe((note: string | null | undefined) => {
-      if (note === undefined) return;
-      this.detailStore.updateNote(member.memberId, note);
-    });
+    this.dialogService
+      ?.open(AttendanceNoteDialogComponent, {
+        header: 'Anotação de Presença',
+        width: '520px',
+        data,
+      })
+      ?.onClose.subscribe((note: string | null | undefined) => {
+        if (note === undefined) return;
+        this.detailStore.updateNote(member.memberId, note);
+      });
   }
 
   getNotePreview(note: string | null | undefined): string {
     if (!note) return 'Sem anotação';
     const trimmed = note.trim();
-    if (trimmed.length <= 120) return trimmed;
-    return `${trimmed.slice(0, 120)}…`;
+    return trimmed.length <= 120 ? trimmed : `${trimmed.slice(0, 120)}…`;
   }
 
   async saveChanges(): Promise<void> {
@@ -151,11 +129,8 @@ export class CommunionEventDetailPageComponent {
     const confirmed = await this.openConfirmDialog(
       'Abrir evento',
       'Deseja abrir este evento de Santa Ceia?',
-      'primary',
     );
-
     if (!confirmed) return;
-
     const updated = await this.detailStore.openEvent();
     if (updated) {
       this.notificationService.success('Evento aberto');
@@ -168,11 +143,8 @@ export class CommunionEventDetailPageComponent {
     const confirmed = await this.openConfirmDialog(
       'Fechar evento',
       'Deseja fechar este evento? Após fechado, não será possível editar presenças.',
-      'warn',
     );
-
     if (!confirmed) return;
-
     const updated = await this.detailStore.closeEvent();
     if (updated) {
       this.notificationService.success('Evento fechado');
@@ -185,9 +157,7 @@ export class CommunionEventDetailPageComponent {
     const confirmed = await this.openConfirmDialog(
       'Exportar lista',
       'Deseja gerar o PDF para uso no modo manual?',
-      'primary',
     );
-
     if (!confirmed) return;
 
     const blob = await this.detailStore.exportBlankList();
@@ -198,17 +168,14 @@ export class CommunionEventDetailPageComponent {
       return;
     }
 
-    const fileName = this.buildPdfFileName();
-    if (typeof window === 'undefined') {
-      return;
-    }
-    const url = URL.createObjectURL(blob);
+    if (globalThis.window === undefined) return;
 
+    const fileName = this.buildPdfFileName();
+    const url = URL.createObjectURL(blob);
     const anchor = document.createElement('a');
     anchor.href = url;
     anchor.download = fileName;
     anchor.click();
-
     URL.revokeObjectURL(url);
     this.notificationService.success('Lista exportada com sucesso');
   }
@@ -217,24 +184,22 @@ export class CommunionEventDetailPageComponent {
     this.detailStore.setMemberSearchTerm(term);
   }
 
-  private openConfirmDialog(
-    title: string,
-    message: string,
-    confirmColor: 'primary' | 'accent' | 'warn',
-  ): Promise<boolean> {
+  private isAttendanceStatus(value: string): value is AttendanceStatus {
+    return value === 'PRESENT' || value === 'ABSENT' || value === 'JUSTIFIED';
+  }
+
+  private openConfirmDialog(title: string, message: string): Promise<boolean> {
     return new Promise((resolve) => {
-      this.dialog
-        .open(ConfirmDialogComponent, {
+      this.dialogService
+        ?.open(ConfirmDialogComponent, {
           data: {
             title,
             message,
-            confirmColor,
             confirmLabel: 'Confirmar',
             cancelLabel: 'Cancelar',
           },
         })
-        .afterClosed()
-        .subscribe((confirmed) => resolve(Boolean(confirmed)));
+        ?.onClose.subscribe((confirmed) => resolve(Boolean(confirmed)));
     });
   }
 
@@ -244,14 +209,13 @@ export class CommunionEventDetailPageComponent {
     const congregation =
       this.detailStore.congregationNameSignal() ??
       this.detailStore.congregationLabelSignal();
-    const safeCongregation = this.toFileSafeName(congregation);
-    return `santa-ceia-${safeCongregation}-${date}.pdf`;
+    return `santa-ceia-${this.toFileSafeName(congregation)}-${date}.pdf`;
   }
 
   private toFileSafeName(value: string): string {
     return value
       .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[̀-ͯ]/g, '')
       .replace(/[^a-zA-Z0-9]+/g, '-')
       .replace(/^-+|-+$/g, '')
       .toLowerCase();

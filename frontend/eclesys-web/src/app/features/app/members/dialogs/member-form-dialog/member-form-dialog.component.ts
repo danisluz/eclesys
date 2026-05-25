@@ -1,20 +1,12 @@
 import { Component, inject, signal, OnInit, DestroyRef } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators, FormControl } from '@angular/forms';
-import {
-  MatDialogModule,
-  MAT_DIALOG_DATA,
-  MatDialogRef,
-} from '@angular/material/dialog';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatInputModule } from '@angular/material/input';
-import { MatButtonModule } from '@angular/material/button';
-import { MatSelectModule } from '@angular/material/select';
-import { MatDatepickerModule } from '@angular/material/datepicker';
-import { MatNativeDateModule } from '@angular/material/core';
-import { MatRadioModule } from '@angular/material/radio';
-import { MatIconModule } from '@angular/material/icon';
-import { MatAutocompleteModule, MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
+import { DynamicDialogRef, DynamicDialogConfig } from 'primeng/dynamicdialog';
+import { InputTextModule } from 'primeng/inputtext';
+import { ButtonModule } from 'primeng/button';
+import { SelectModule } from 'primeng/select';
+import { DatePickerModule } from 'primeng/datepicker';
+import { RadioButtonModule } from 'primeng/radiobutton';
+import { AutoCompleteModule, AutoCompleteSelectEvent } from 'primeng/autocomplete';
 import { NotificationService } from '../../../../../shared/services/notification.service';
 import { NgxMaskDirective } from 'ngx-mask';
 import {
@@ -29,7 +21,6 @@ import { ChurchRole } from '../../../../../shared/models/church-role.model';
 import { OrganizationsService } from '../../../../../shared/api/organizations.service';
 import { OrganizationUnit } from '../../../../../shared/api/organization-unit.model';
 import { cpfValidator } from '../../../../../shared/validators/cpf.validator';
-import { DateMaskDirective } from '../../../../../shared/directives/date-mask.directive';
 import { CepLookupService } from '../../../../../shared/services/cep-lookup.service';
 import { CepLookupResult } from '../../../../../shared/models/cep-lookup.models';
 import { finalize, take } from 'rxjs';
@@ -44,20 +35,14 @@ interface DialogData {
   selector: 'app-member-form-dialog',
   standalone: true,
   imports: [
-    CommonModule,
     ReactiveFormsModule,
-    MatDialogModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatButtonModule,
-    MatSelectModule,
-    MatDatepickerModule,
-    MatNativeDateModule,
-    MatRadioModule,
-    MatIconModule,
-    MatAutocompleteModule,
+    InputTextModule,
+    ButtonModule,
+    SelectModule,
+    DatePickerModule,
+    RadioButtonModule,
+    AutoCompleteModule,
     NgxMaskDirective,
-    DateMaskDirective,
   ],
   templateUrl: './member-form-dialog.component.html',
   styleUrls: ['./member-form-dialog.component.scss'],
@@ -68,10 +53,10 @@ export class MemberFormDialogComponent implements OnInit {
   private readonly churchRolesService = inject(ChurchRolesService);
   private readonly organizationsService = inject(OrganizationsService);
   private readonly cepLookupService = inject(CepLookupService);
-  private readonly dialogRef = inject(MatDialogRef<MemberFormDialogComponent>);
+  private readonly ref = inject(DynamicDialogRef);
   private readonly notificationService = inject(NotificationService);
   private readonly destroyRef = inject(DestroyRef);
-  data = inject<DialogData>(MAT_DIALOG_DATA);
+  data = inject(DynamicDialogConfig).data as DialogData;
 
   saving = signal(false);
   churchRoles = signal<ChurchRole[]>([]);
@@ -80,10 +65,28 @@ export class MemberFormDialogComponent implements OnInit {
   allMembers = signal<Member[]>([]);
   isCepLookupLoading = signal(false);
 
-  spouseSearchControl = new FormControl<string | Member | null>('');
-  fatherSearchControl = new FormControl<string | Member | null>('');
-  motherSearchControl = new FormControl<string | Member | null>('');
-  congregationSearchControl = new FormControl<string | OrganizationUnit | null>('');
+  spouseSearchControl = new FormControl<Member | null>(null);
+  fatherSearchControl = new FormControl<Member | null>(null);
+  motherSearchControl = new FormControl<Member | null>(null);
+  congregationSearchControl = new FormControl<OrganizationUnit | null>(null);
+
+  filteredMembers: Member[] = [];
+  filteredCongregations: OrganizationUnit[] = [];
+
+  churchRoleOptions: { label: string; value: string | null }[] = [];
+  maritalStatusOptions = [
+    { label: 'Não informado', value: null },
+    { label: 'Solteiro(a)', value: 'SINGLE' },
+    { label: 'Casado(a)', value: 'MARRIED' },
+    { label: 'Viúvo(a)', value: 'WIDOWED' },
+    { label: 'Divorciado(a)', value: 'DIVORCED' },
+    { label: 'Separado(a)', value: 'SEPARATED' },
+  ];
+  statusOptions = [
+    { label: 'Ativo', value: 'ACTIVE' },
+    { label: 'Inativo', value: 'INACTIVE' },
+    { label: 'Falecido', value: 'DECEASED' },
+  ];
 
   form = this.fb.group({
     fullName: ['', [Validators.required, Validators.maxLength(180)]],
@@ -143,157 +146,95 @@ export class MemberFormDialogComponent implements OnInit {
         motherId: member.family?.motherId,
         status: member.status,
       });
-
-      this.spouseSearchControl.setValue(member.family?.spouseName ?? '');
-      this.fatherSearchControl.setValue(member.family?.fatherName ?? '');
-      this.motherSearchControl.setValue(member.family?.motherName ?? '');
     }
-
-    this.handleMemberSearchChanges();
-  }
-
-  private handleMemberSearchChanges() {
-    this.spouseSearchControl.valueChanges
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((value) => {
-      if (typeof value === 'string') {
-        this.form.controls.spouseId.setValue(null);
-      }
-    });
-    this.fatherSearchControl.valueChanges
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((value) => {
-      if (typeof value === 'string') {
-        this.form.controls.fatherId.setValue(null);
-      }
-    });
-    this.motherSearchControl.valueChanges
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((value) => {
-        if (typeof value === 'string') {
-          this.form.controls.motherId.setValue(null);
-        }
-      });
 
     this.congregationSearchControl.valueChanges
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((value) => {
-        if (typeof value === 'string') {
+        if (value === null) {
           this.form.controls.organizationUnitId.setValue('');
         }
       });
   }
 
-  displayMember(option: Member | string | null): string {
-    if (!option) return '';
-    return typeof option === 'string' ? option : option.fullName;
-  }
-
-  filterMembers(search: Member | string | null): Member[] {
-    const value = typeof search === 'string' ? search : search?.fullName ?? '';
-    const term = value.trim().toLowerCase();
-
-    if (term.length < 2) {
-      return [];
-    }
-
-    return this.allMembers()
-      .filter((member) =>
-        member.fullName.toLowerCase().includes(term),
-      )
-      .slice(0, 20);
-  }
-
-  displayCongregation(option: OrganizationUnit | string | null): string {
-    if (!option) return '';
-    return typeof option === 'string' ? option : option.name;
-  }
-
-  filterCongregations(
-    search: OrganizationUnit | string | null,
-  ): OrganizationUnit[] {
-    const value = typeof search === 'string' ? search : search?.name ?? '';
-    const term = value.trim().toLowerCase();
-
+  searchCongregations(event: { query: string }): void {
+    const term = event.query.toLowerCase().trim();
     const source = this.congregations();
-
-    if (term.length < 2) {
-      return source.slice(0, 20);
-    }
-
-    return source
-      .filter((org) => org.name.toLowerCase().includes(term))
-      .slice(0, 20);
+    this.filteredCongregations = (term.length >= 2
+      ? source.filter((org) => org.name.toLowerCase().includes(term))
+      : source
+    ).slice(0, 20);
   }
 
-  onCongregationSelected(event: MatAutocompleteSelectedEvent) {
-    const org = event.option.value as OrganizationUnit;
-    this.form.controls.organizationUnitId.setValue(org.id);
+  searchMembersFor(field: 'spouse' | 'father' | 'mother', event: { query: string }): void {
+    const term = event.query.toLowerCase().trim();
+    this.filteredMembers = term.length >= 2
+      ? this.allMembers().filter((m) => m.fullName.toLowerCase().includes(term)).slice(0, 20)
+      : [];
   }
 
-  onSpouseSelected(event: MatAutocompleteSelectedEvent) {
-    const member = event.option.value as Member;
-    this.form.controls.spouseId.setValue(member.id);
+  onCongregationSelected(event: AutoCompleteSelectEvent): void {
+    this.form.controls.organizationUnitId.setValue((event.value as OrganizationUnit).id);
   }
 
-  onFatherSelected(event: MatAutocompleteSelectedEvent) {
-    const member = event.option.value as Member;
-    this.form.controls.fatherId.setValue(member.id);
+  onCongregationClear(): void {
+    this.form.controls.organizationUnitId.setValue('');
   }
 
-  onMotherSelected(event: MatAutocompleteSelectedEvent) {
-    const member = event.option.value as Member;
-    this.form.controls.motherId.setValue(member.id);
+  onSpouseSelected(event: AutoCompleteSelectEvent): void {
+    this.form.controls.spouseId.setValue((event.value as Member).id);
   }
+
+  onSpouseClear(): void { this.form.controls.spouseId.setValue(null); }
+
+  onFatherSelected(event: AutoCompleteSelectEvent): void {
+    this.form.controls.fatherId.setValue((event.value as Member).id);
+  }
+
+  onFatherClear(): void { this.form.controls.fatherId.setValue(null); }
+
+  onMotherSelected(event: AutoCompleteSelectEvent): void {
+    this.form.controls.motherId.setValue((event.value as Member).id);
+  }
+
+  onMotherClear(): void { this.form.controls.motherId.setValue(null); }
 
   private applyCepResult(result: CepLookupResult) {
-    if (result.street) {
-      this.form.controls.addressStreet.setValue(result.street);
-    }
-    if (result.neighborhood) {
-      this.form.controls.addressNeighborhood.setValue(result.neighborhood);
-    }
-    if (result.city) {
-      this.form.controls.addressCity.setValue(result.city);
-    }
-    if (result.state) {
-      this.form.controls.addressState.setValue(result.state);
-    }
+    if (result.street) this.form.controls.addressStreet.setValue(result.street);
+    if (result.neighborhood) this.form.controls.addressNeighborhood.setValue(result.neighborhood);
+    if (result.city) this.form.controls.addressCity.setValue(result.city);
+    if (result.state) this.form.controls.addressState.setValue(result.state);
   }
 
   lookupCep() {
     const cepValue = this.form.controls.addressZipCode.value ?? '';
-
     if (!this.cepLookupService.isValidCep(cepValue)) {
       this.notificationService.warn('Informe um CEP válido para buscar o endereço.');
       return;
     }
-
     if (this.isCepLookupLoading()) return;
-
     this.isCepLookupLoading.set(true);
-
-    this.cepLookupService
-      .lookup(cepValue)
-      .pipe(
-        take(1),
-        finalize(() => this.isCepLookupLoading.set(false)),
-      )
-      .subscribe((result) => {
-        if (!result) {
-          this.notificationService.warn('CEP não encontrado.');
-          return;
-        }
-
-        this.applyCepResult(result);
-        this.notificationService.success('Endereço preenchido com sucesso.');
-      });
+    this.cepLookupService.lookup(cepValue).pipe(
+      take(1),
+      finalize(() => this.isCepLookupLoading.set(false)),
+    ).subscribe((result) => {
+      if (!result) {
+        this.notificationService.warn('CEP não encontrado.');
+        return;
+      }
+      this.applyCepResult(result);
+      this.notificationService.success('Endereço preenchido com sucesso.');
+    });
   }
 
   loadChurchRoles() {
     this.churchRolesService.listAll(true).subscribe({
       next: (response) => {
         this.churchRoles.set(response.data);
+        this.churchRoleOptions = [
+          { label: 'Nenhum', value: null },
+          ...response.data.map((r: ChurchRole) => ({ label: r.name, value: r.id })),
+        ];
       },
     });
   }
@@ -302,40 +243,23 @@ export class MemberFormDialogComponent implements OnInit {
     this.organizationsService.listAll().subscribe({
       next: (response) => {
         const allOrgs = response.data || [];
-        console.log('[DEBUG] Estrutura hierárquica recebida:', allOrgs);
+        const rootChurch = allOrgs.find((org: OrganizationUnit) => org.type === 'CHURCH');
+        if (rootChurch) this.rootChurch.set(rootChurch);
 
-        // Busca a root church para obter os labels customizados
-        const rootChurch = allOrgs.find((org) => org.type === 'CHURCH');
-        if (rootChurch) {
-          this.rootChurch.set(rootChurch);
-        }
-
-        // Achatar a estrutura hierárquica recursivamente
-        const flattenOrganizations = (
-          orgs: OrganizationUnit[],
-        ): OrganizationUnit[] => {
+        const flattenOrganizations = (orgs: OrganizationUnit[]): OrganizationUnit[] => {
           const result: OrganizationUnit[] = [];
           for (const org of orgs) {
             result.push(org);
-            if (org.children && org.children.length > 0) {
-              result.push(...flattenOrganizations(org.children));
-            }
+            if (org.children?.length) result.push(...flattenOrganizations(org.children));
           }
           return result;
         };
 
-        const flatOrgs = flattenOrganizations(allOrgs);
-        console.log(
-          '[DEBUG] Total de organizações achatadas:',
-          flatOrgs.length,
-        );
-
-        // Filtra apenas congregações ativas
-        const congregations = flatOrgs.filter(
+        const congregations = flattenOrganizations(allOrgs).filter(
           (org) => org.type === 'CONGREGATION' && org.status === 'ACTIVE',
         );
-        console.log('[DEBUG] Congregações filtradas:', congregations);
         this.congregations.set(congregations);
+        this.filteredCongregations = congregations.slice(0, 20);
 
         if (this.data.mode === 'edit' && this.data.member) {
           const currentCongregation = congregations.find(
@@ -346,54 +270,62 @@ export class MemberFormDialogComponent implements OnInit {
           }
         }
       },
-      error: (err) => {
-        console.error('[MemberForm] Error loading organizations:', err);
-        this.congregations.set([]);
-      },
+      error: () => this.congregations.set([]),
     });
   }
 
   loadAllMembers() {
-    this.service
-      .listAll(undefined, undefined, undefined, undefined, 0, 1000)
-      .subscribe({
-        next: (response) => {
-          const currentMemberId = this.data.member?.id;
-          const members = currentMemberId
-            ? response.data.content.filter(
-                (m: Member) => m.id !== currentMemberId,
-              )
-            : response.data.content;
-          this.allMembers.set(members);
-        },
-      });
+    this.service.listAll(undefined, undefined, undefined, undefined, 0, 1000).subscribe({
+      next: (response) => {
+        const currentMemberId = this.data.member?.id;
+        const members = currentMemberId
+          ? response.data.content.filter((m: Member) => m.id !== currentMemberId)
+          : response.data.content;
+        this.allMembers.set(members);
+
+        if (this.data.mode === 'edit' && this.data.member) {
+          const member = this.data.member;
+          if (member.family?.spouseId) {
+            const spouse = members.find((m: Member) => m.id === member.family!.spouseId);
+            if (spouse) this.spouseSearchControl.setValue(spouse);
+          }
+          if (member.family?.fatherId) {
+            const father = members.find((m: Member) => m.id === member.family!.fatherId);
+            if (father) this.fatherSearchControl.setValue(father);
+          }
+          if (member.family?.motherId) {
+            const mother = members.find((m: Member) => m.id === member.family!.motherId);
+            if (mother) this.motherSearchControl.setValue(mother);
+          }
+        }
+      },
+    });
   }
 
   cancel() {
-    this.dialogRef.close();
+    this.ref.close();
   }
 
   save() {
-    if (this.form.invalid) return;
+    if (this.form.invalid) {
+      this.form.markAllAsTouched();
+      return;
+    }
 
     this.saving.set(true);
-
     const formValue = this.form.getRawValue();
 
-    const address =
-      formValue.addressStreet ||
-      formValue.addressNumber ||
-      formValue.addressCity
-        ? {
-            street: formValue.addressStreet || null,
-            number: formValue.addressNumber || null,
-            complement: formValue.addressComplement || null,
-            neighborhood: formValue.addressNeighborhood || null,
-            city: formValue.addressCity || null,
-            state: formValue.addressState || null,
-            zipCode: formValue.addressZipCode || null,
-          }
-        : null;
+    const address = formValue.addressStreet || formValue.addressNumber || formValue.addressCity
+      ? {
+          street: formValue.addressStreet || null,
+          number: formValue.addressNumber || null,
+          complement: formValue.addressComplement || null,
+          neighborhood: formValue.addressNeighborhood || null,
+          city: formValue.addressCity || null,
+          state: formValue.addressState || null,
+          zipCode: formValue.addressZipCode || null,
+        }
+      : null;
 
     const request = {
       fullName: formValue.fullName!,
@@ -403,12 +335,8 @@ export class MemberFormDialogComponent implements OnInit {
       document: formValue.document || null,
       gender: formValue.gender || null,
       maritalStatus: formValue.maritalStatus || null,
-      birthDate: formValue.birthDate
-        ? formValue.birthDate.toISOString().split('T')[0]
-        : null,
-      baptismDate: formValue.baptismDate
-        ? formValue.baptismDate.toISOString().split('T')[0]
-        : null,
+      birthDate: formValue.birthDate ? (formValue.birthDate as Date).toISOString().split('T')[0] : null,
+      baptismDate: formValue.baptismDate ? (formValue.baptismDate as Date).toISOString().split('T')[0] : null,
       baptismChurch: formValue.baptismChurch || null,
       baptismLocation: formValue.baptismLocation || null,
       address,
@@ -419,18 +347,14 @@ export class MemberFormDialogComponent implements OnInit {
       ...(this.data.mode === 'edit' && { status: formValue.status }),
     };
 
-    const operation =
-      this.data.mode === 'create'
-        ? this.service.create(request as any)
-        : this.service.update(this.data.member!.id, request as any);
+    const operation = this.data.mode === 'create'
+      ? this.service.create(request as any)
+      : this.service.update(this.data.member!.id, request as any);
 
     operation.subscribe({
-      next: () => {
-        this.dialogRef.close(true);
-      },
+      next: () => this.ref.close(true),
       error: (error) => {
-        const message =
-          error?.error?.message ?? 'Não foi possível salvar o membro.';
+        const message = error?.error?.message ?? 'Não foi possível salvar o membro.';
         this.notificationService.error(message);
         this.saving.set(false);
       },
@@ -439,13 +363,5 @@ export class MemberFormDialogComponent implements OnInit {
 
   getCongregationLabel(): string {
     return this.rootChurch()?.congregationLabel ?? 'Congregação';
-  }
-
-  getCongregationLabelPlural(): string {
-    const label = this.getCongregationLabel();
-    if (label.endsWith('ão')) {
-      return label.slice(0, -2) + 'ões';
-    }
-    return label + 's';
   }
 }
