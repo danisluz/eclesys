@@ -1,5 +1,4 @@
 <section class="page">
-
   <header class="page__header">
     <div class="page__heading">
       <div class="page-breadcrumb">
@@ -28,7 +27,10 @@
       @if (detailStore.eventSignal(); as event) {
         <p class="page__subtitle">
           {{ formatDate(event.eventDate) }} ·
-          {{ detailStore.congregationNameSignal() || detailStore.congregationLabelSignal() }}
+          {{
+            detailStore.congregationNameSignal() ||
+              detailStore.congregationLabelSignal()
+          }}
         </p>
       } @else {
         <p class="page__subtitle">Detalhes do evento</p>
@@ -42,7 +44,9 @@
           icon="pi pi-play"
           [outlined]="true"
           severity="secondary"
-          [disabled]="event.status !== 'DRAFT' || detailStore.isStatusUpdatingSignal()"
+          [disabled]="
+            event.status !== 'DRAFT' || detailStore.isStatusUpdatingSignal()
+          "
           (onClick)="openEvent()"
         />
         <p-button
@@ -50,10 +54,12 @@
           icon="pi pi-check-circle"
           [outlined]="true"
           severity="secondary"
-          [disabled]="event.status !== 'OPEN' || detailStore.isStatusUpdatingSignal()"
+          [disabled]="
+            event.status !== 'OPEN' || detailStore.isStatusUpdatingSignal()
+          "
           (onClick)="closeEvent()"
         />
-        @if (event.status === 'DRAFT') {
+        @if (event.status === "DRAFT") {
           <p-button
             label="Exportar lista (PDF)"
             icon="pi pi-download"
@@ -72,9 +78,14 @@
         <p-progressspinner class="w-10 h-10" />
         <p class="state-container__label">Carregando evento…</p>
       </div>
-    } @else if (!detailStore.eventSignal() && detailStore.errorMessageSignal(); as errorMessage) {
+    } @else if (
+      !detailStore.eventSignal() && detailStore.errorMessageSignal();
+      as errorMessage
+    ) {
       <div class="state-container">
-        <i class="pi pi-exclamation-circle state-container__icon state-container__icon--error"></i>
+        <i
+          class="pi pi-exclamation-circle state-container__icon state-container__icon--error"
+        ></i>
         <p class="state-container__label">Não foi possível carregar o evento</p>
         <p class="state-container__hint">{{ errorMessage }}</p>
       </div>
@@ -85,8 +96,12 @@
           <span class="summary-value">{{ formatDate(event.eventDate) }}</span>
         </div>
         <div class="summary-item">
-          <span class="summary-label">{{ detailStore.congregationLabelSignal() }}</span>
-          <span class="summary-value">{{ detailStore.congregationNameSignal() || '—' }}</span>
+          <span class="summary-label">{{
+            detailStore.congregationLabelSignal()
+          }}</span>
+          <span class="summary-value">{{
+            detailStore.congregationNameSignal() || "—"
+          }}</span>
         </div>
         <div class="summary-item">
           <span class="summary-label">Status</span>
@@ -98,7 +113,7 @@
         <div class="info-banner">
           <i class="pi pi-lock"></i>
           <span>
-            @if (event.status === 'DRAFT') {
+            @if (event.status === "DRAFT") {
               Evento em rascunho. Abra o evento para lançar presenças.
             } @else {
               Evento fechado. Edição de presenças está bloqueada.
@@ -107,12 +122,20 @@
         </div>
       }
 
-      @if (event.status === 'CLOSED') {
+      @if (event.status === "CLOSED") {
         <div class="attendance-summary">
-          <div class="summary-pill">Presenças: {{ detailStore.attendanceSummarySignal().present }}</div>
-          <div class="summary-pill">Faltas: {{ detailStore.attendanceSummarySignal().absent }}</div>
-          <div class="summary-pill">Justificadas: {{ detailStore.attendanceSummarySignal().justified }}</div>
-          <div class="summary-pill summary-pill--muted">Total: {{ detailStore.attendanceSummarySignal().total }}</div>
+          <div class="summary-pill">
+            Presenças: {{ detailStore.attendanceSummarySignal().present }}
+          </div>
+          <div class="summary-pill">
+            Faltas: {{ detailStore.attendanceSummarySignal().absent }}
+          </div>
+          <div class="summary-pill">
+            Justificadas: {{ detailStore.attendanceSummarySignal().justified }}
+          </div>
+          <div class="summary-pill summary-pill--muted">
+            Total: {{ detailStore.attendanceSummarySignal().total }}
+          </div>
         </div>
       }
     }
@@ -142,7 +165,8 @@
 
       @if (detailStore.pendingChangesCountSignal() > 0) {
         <div class="pending-chip">
-          {{ detailStore.pendingChangesCountSignal() }} alteração(ões) não salvas
+          {{ detailStore.pendingChangesCountSignal() }} alteração(ões) não
+          salvas
         </div>
       }
 
@@ -178,11 +202,16 @@
         [sortField]="detailStore.sortStateSignal().active"
         [sortOrder]="detailStore.sortStateSignal().direction === 'asc' ? 1 : -1"
         (onSort)="onSortChange($event)"
+        [rowTrackBy]="trackMember"
         class="p-datatable-sm"
       >
         <ng-template pTemplate="header">
           <tr>
-            <th scope="col" pSortableColumn="registrationNumber" style="width: 130px">
+            <th
+              scope="col"
+              pSortableColumn="registrationNumber"
+              style="width: 130px"
+            >
               Matrícula <p-sortIcon field="registrationNumber" />
             </th>
             <th scope="col" pSortableColumn="fullName">
@@ -198,39 +227,40 @@
         </ng-template>
 
         <ng-template pTemplate="body" let-member>
+          @let status = getAttendanceStatus(member);
           <tr>
-            <td><span class="text-secondary">{{ member.registrationNumber }}</span></td>
-            <td><span class="member-name">{{ member.fullName }}</span></td>
+            <td>
+              <span class="text-secondary">{{
+                member.registrationNumber
+              }}</span>
+            </td>
+            <td>
+              <span class="member-name">{{ member.fullName }}</span>
+            </td>
             <td>
               <div class="status-toggle">
                 <p-button
                   label="P"
                   size="small"
-                  [severity]="getAttendanceStatus(member) === 'PRESENT' ? 'success' : 'secondary'"
-                  [outlined]="getAttendanceStatus(member) !== 'PRESENT'"
+                  [severity]="status === 'PRESENT' ? 'success' : 'secondary'"
+                  [outlined]="status !== 'PRESENT'"
                   [disabled]="detailStore.isEditingLockedSignal()"
-                  pTooltip="Presente"
-                  tooltipPosition="top"
                   (onClick)="updateAttendanceStatus(member, 'PRESENT')"
                 />
                 <p-button
                   label="A"
                   size="small"
-                  [severity]="getAttendanceStatus(member) === 'ABSENT' ? 'danger' : 'secondary'"
-                  [outlined]="getAttendanceStatus(member) !== 'ABSENT'"
+                  [severity]="status === 'ABSENT' ? 'danger' : 'secondary'"
+                  [outlined]="status !== 'ABSENT'"
                   [disabled]="detailStore.isEditingLockedSignal()"
-                  pTooltip="Ausente"
-                  tooltipPosition="top"
                   (onClick)="updateAttendanceStatus(member, 'ABSENT')"
                 />
                 <p-button
                   label="J"
                   size="small"
-                  [severity]="getAttendanceStatus(member) === 'JUSTIFIED' ? 'warn' : 'secondary'"
-                  [outlined]="getAttendanceStatus(member) !== 'JUSTIFIED'"
+                  [severity]="status === 'JUSTIFIED' ? 'warn' : 'secondary'"
+                  [outlined]="status !== 'JUSTIFIED'"
                   [disabled]="detailStore.isEditingLockedSignal()"
-                  pTooltip="Justificado"
-                  tooltipPosition="top"
                   (onClick)="updateAttendanceStatus(member, 'JUSTIFIED')"
                 />
               </div>
@@ -244,7 +274,7 @@
                   size="small"
                   [pTooltip]="getNotePreview(member.note)"
                   tooltipPosition="top"
-                  [disabled]="getAttendanceStatus(member) !== 'JUSTIFIED'"
+                  [disabled]="status !== 'JUSTIFIED'"
                   (onClick)="openNoteDialog(member)"
                 />
               </td>
@@ -254,5 +284,15 @@
       </p-table>
     }
   </div>
-
 </section>
+
+@if (noteDialogMember()) {
+  <app-attendance-note-dialog
+    [(visible)]="noteDialogVisible"
+    [memberName]="noteDialogMember()!.fullName"
+    [note]="noteDialogMember()!.note ?? null"
+    [canEdit]="!detailStore.isEditingLockedSignal()"
+    (saved)="onNoteSaved($event)"
+    (closed)="noteDialogMember.set(null)"
+  />
+}

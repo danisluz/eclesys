@@ -41,7 +41,9 @@
   text-decoration: none;
   font-weight: 500;
 
-  &:hover { color: #0f172a; }
+  &:hover {
+    color: #0f172a;
+  }
 }
 
 .breadcrumb-separator {
@@ -107,7 +109,9 @@
 .state-container__icon {
   font-size: 36px;
   color: #94a3b8;
-  &--error { color: #ef4444; }
+  &--error {
+    color: #ef4444;
+  }
 }
 
 // ─── Summary Grid ──────────────────────────────────────────────────────────
@@ -217,4 +221,17 @@
 .status-toggle {
   display: flex;
   gap: 4px;
+
+  // Elimina transição de cor e ripple nos botões P/A/J para resposta visual imediata
+  ::ng-deep .p-button {
+    transition: none !important;
+
+    .p-button-label {
+      transition: none !important;
+    }
+
+    .p-ink {
+      display: none !important;
+    }
+  }
 }

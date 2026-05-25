@@ -42,6 +42,13 @@ export const appConfig: ApplicationConfig = {
         options: { darkModeSelector: '.dark' },
       },
       ripple: true,
+      zIndex: {
+        modal: 1100,
+        overlay: 1000,
+        menu: 1000,
+        tooltip: 1100,
+        toast: 1200,
+      },
     }),
     provideEnvironmentNgxMask(),
   ],

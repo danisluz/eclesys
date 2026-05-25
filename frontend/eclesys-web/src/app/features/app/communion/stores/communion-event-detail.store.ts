@@ -38,15 +38,18 @@ export class CommunionEventDetailStore {
 
   private initialPresenceMapSignal = signal<Map<string, boolean>>(new Map());
   private initialNoteMapSignal = signal<Map<string, string | null>>(new Map());
-  private initialStatusMapSignal = signal<Map<string, AttendanceStatus>>(new Map());
-  sortStateSignal = signal<{ active: 'registrationNumber' | 'fullName' | 'status'; direction: 'asc' | 'desc' }>({
+  private initialStatusMapSignal = signal<Map<string, AttendanceStatus>>(
+    new Map(),
+  );
+  sortStateSignal = signal<{
+    active: 'registrationNumber' | 'fullName' | 'status';
+    direction: 'asc' | 'desc';
+  }>({
     active: 'fullName',
     direction: 'asc',
   });
 
-  isEditingLockedSignal = computed(
-    () => this.eventSignal()?.status !== 'OPEN',
-  );
+  isEditingLockedSignal = computed(() => this.eventSignal()?.status !== 'OPEN');
   isClosedSignal = computed(() => this.eventSignal()?.status === 'CLOSED');
   congregationLabelSignal = computed(() => {
     return this.rootChurchSignal()?.congregationLabel ?? 'Congregação';
@@ -86,14 +89,24 @@ export class CommunionEventDetailStore {
     members.sort((a, b) => {
       switch (active) {
         case 'registrationNumber':
-          return multiplier * a.registrationNumber.localeCompare(b.registrationNumber);
+          return (
+            multiplier *
+            a.registrationNumber.localeCompare(b.registrationNumber)
+          );
         case 'status': {
-          const order = this.getStatusOrder(this.getStatus(a)) - this.getStatusOrder(this.getStatus(b));
+          const order =
+            this.getStatusOrder(this.getStatus(a)) -
+            this.getStatusOrder(this.getStatus(b));
           return multiplier * order;
         }
         case 'fullName':
         default:
-          return multiplier * a.fullName.localeCompare(b.fullName, 'pt-BR', { sensitivity: 'base' });
+          return (
+            multiplier *
+            a.fullName.localeCompare(b.fullName, 'pt-BR', {
+              sensitivity: 'base',
+            })
+          );
       }
     });
     return members;
@@ -143,11 +156,17 @@ export class CommunionEventDetailStore {
     this.errorMessageSignal.set(null);
     this.memberSearchTermSignal.set('');
     this.showOnlyPresentSignal.set(false);
+    this.eventSignal.set(null);
+    this.membersSignal.set([]);
+    this.membersOriginalSignal.set([]);
+    this.congregationNameSignal.set(null);
 
     try {
       const response = await this.communionApi.getEvent(eventId);
       this.eventSignal.set(response.event);
-      const members = response.members.map((member) => this.normalizeMember(member));
+      const members = response.members.map((member) =>
+        this.normalizeMember(member),
+      );
       this.membersSignal.set(members);
       this.membersOriginalSignal.set(this.cloneMembers(members));
       this.congregationNameSignal.set(null);
@@ -156,9 +175,7 @@ export class CommunionEventDetailStore {
         this.loadOrganizationLabels(),
       ]);
       this.initialPresenceMapSignal.set(
-        new Map(
-          members.map((member) => [member.memberId, member.present]),
-        ),
+        new Map(members.map((member) => [member.memberId, member.present])),
       );
       this.initialNoteMapSignal.set(
         new Map(
@@ -213,7 +230,10 @@ export class CommunionEventDetailStore {
     this.memberSearchTermSignal.set(term);
   }
 
-  setSort(active: 'registrationNumber' | 'fullName' | 'status', direction: 'asc' | 'desc' | ''): void {
+  setSort(
+    active: 'registrationNumber' | 'fullName' | 'status',
+    direction: 'asc' | 'desc' | '',
+  ): void {
     this.sortStateSignal.set({
       active,
       direction: direction === '' ? 'asc' : direction,
@@ -249,7 +269,7 @@ export class CommunionEventDetailStore {
               ...member,
               status,
               present,
-              note: status === 'JUSTIFIED' ? member.note ?? null : null,
+              note: status === 'JUSTIFIED' ? (member.note ?? null) : null,
             }
           : member,
       ),
@@ -280,10 +300,7 @@ export class CommunionEventDetailStore {
       return result.updatedCount ?? items.length;
     } catch (error: any) {
       this.errorMessageSignal.set(
-        this.parseErrorMessage(
-          error,
-          'Não foi possível salvar as presenças.',
-        ),
+        this.parseErrorMessage(error, 'Não foi possível salvar as presenças.'),
       );
       return 0;
     } finally {
@@ -313,10 +330,7 @@ export class CommunionEventDetailStore {
       return record;
     } catch (error: any) {
       this.errorMessageSignal.set(
-        this.parseErrorMessage(
-          error,
-          'Não foi possível registrar a presença.',
-        ),
+        this.parseErrorMessage(error, 'Não foi possível registrar a presença.'),
       );
       return null;
     } finally {

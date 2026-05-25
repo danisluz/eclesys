@@ -1,44 +1,57 @@
-import { Component, inject } from '@angular/core';
+import {
+  Component,
+  Input,
+  Output,
+  EventEmitter,
+  OnChanges,
+} from '@angular/core';
 import { ReactiveFormsModule, FormControl } from '@angular/forms';
-import { DynamicDialogRef, DynamicDialogConfig } from 'primeng/dynamicdialog';
 import { ButtonModule } from 'primeng/button';
 import { TextareaModule } from 'primeng/textarea';
-
-export interface AttendanceNoteDialogData {
-  memberName: string;
-  note: string | null;
-  canEdit: boolean;
-}
+import { DialogModule } from 'primeng/dialog';
 
 @Component({
   selector: 'app-attendance-note-dialog',
   standalone: true,
-  imports: [ReactiveFormsModule, ButtonModule, TextareaModule],
+  imports: [ReactiveFormsModule, ButtonModule, TextareaModule, DialogModule],
   templateUrl: './attendance-note-dialog.component.html',
   styleUrl: './attendance-note-dialog.component.scss',
 })
-export class AttendanceNoteDialogComponent {
-  private readonly ref = inject(DynamicDialogRef);
-  readonly data = inject(DynamicDialogConfig).data as AttendanceNoteDialogData;
+export class AttendanceNoteDialogComponent implements OnChanges {
+  @Input() visible = false;
+  @Input() memberName = '';
+  @Input() note: string | null = null;
+  @Input() canEdit = true;
+  @Output() visibleChange = new EventEmitter<boolean>();
+  @Output() saved = new EventEmitter<string | null>();
+  @Output() closed = new EventEmitter<void>();
 
-  noteControl = new FormControl<string>(this.data.note ?? '', { nonNullable: true });
+  noteControl = new FormControl<string>('', { nonNullable: true });
+
+  ngOnChanges(): void {
+    if (this.visible) {
+      this.noteControl.setValue(this.note ?? '');
+    }
+  }
 
   close(): void {
-    this.ref.close();
+    this.visibleChange.emit(false);
+    this.closed.emit();
   }
 
   save(): void {
-    if (!this.data.canEdit) {
-      this.ref.close();
+    if (!this.canEdit) {
+      this.close();
       return;
     }
     const note = this.normalizeNote(this.noteControl.value);
-    this.ref.close(note.length > 0 ? note : null);
+    this.saved.emit(note.length > 0 ? note : null);
+    this.visibleChange.emit(false);
   }
 
   canSave(): boolean {
-    if (!this.data.canEdit) return false;
-    const original = this.normalizeNote(this.data.note ?? '');
+    if (!this.canEdit) return false;
+    const original = this.normalizeNote(this.note ?? '');
     const current = this.normalizeNote(this.noteControl.value);
     return original !== current;
   }

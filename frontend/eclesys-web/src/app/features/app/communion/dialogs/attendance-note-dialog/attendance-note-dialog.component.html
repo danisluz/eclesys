@@ -1,6 +1,12 @@
-<div class="dialog-content">
-  <p class="member-name">{{ data.memberName }}</p>
-
+<p-dialog
+  [header]="'Justificativa — ' + memberName"
+  [(visible)]="visible"
+  (visibleChange)="visibleChange.emit($event)"
+  [modal]="true"
+  [style]="{ width: '520px' }"
+  [closable]="true"
+  (onHide)="closed.emit()"
+>
   <div class="field">
     <label for="note">Justificativa</label>
     <textarea
@@ -9,21 +15,22 @@
       [formControl]="noteControl"
       rows="5"
       maxlength="500"
-      [readonly]="!data.canEdit"
+      [readonly]="!canEdit"
       placeholder="Descreva o motivo (opcional)"
+      class="w-full"
     ></textarea>
     <small class="hint-text">Até 500 caracteres</small>
   </div>
 
-  <div class="dialog-actions">
+  <ng-template pTemplate="footer">
     <p-button
-      [label]="data.canEdit ? 'Cancelar' : 'Fechar'"
+      [label]="canEdit ? 'Cancelar' : 'Fechar'"
       [outlined]="true"
       severity="secondary"
       (onClick)="close()"
     />
-    @if (data.canEdit) {
+    @if (canEdit) {
       <p-button label="Salvar" [disabled]="!canSave()" (onClick)="save()" />
     }
-  </div>
-</div>
+  </ng-template>
+</p-dialog>

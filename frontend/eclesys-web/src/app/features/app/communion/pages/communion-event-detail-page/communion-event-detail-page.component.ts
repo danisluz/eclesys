@@ -1,5 +1,13 @@
-import { Component, inject, afterNextRender } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  inject,
+  DestroyRef,
+  signal,
+} from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { Subject, debounceTime } from 'rxjs';
 import { FormsModule } from '@angular/forms';
 import { ConfirmationService } from 'primeng/api';
 import { TableModule } from 'primeng/table';
@@ -16,12 +24,8 @@ import {
   CommunionMemberAttendance,
 } from '../../models/communion.models';
 import { CommunionStatusChipComponent } from '../../components/communion-status-chip/communion-status-chip.component';
-import { DialogService } from 'primeng/dynamicdialog';
 import { NotificationService } from '../../../../../shared/services/notification.service';
-import {
-  AttendanceNoteDialogComponent,
-  AttendanceNoteDialogData,
-} from '../../dialogs/attendance-note-dialog/attendance-note-dialog.component';
+import { AttendanceNoteDialogComponent } from '../../dialogs/attendance-note-dialog/attendance-note-dialog.component';
 
 @Component({
   selector: 'app-communion-event-detail-page',
@@ -38,28 +42,41 @@ import {
     ProgressSpinnerModule,
     TooltipModule,
     CommunionStatusChipComponent,
+    AttendanceNoteDialogComponent,
   ],
   templateUrl: './communion-event-detail-page.component.html',
   styleUrl: './communion-event-detail-page.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CommunionEventDetailPageComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
-  private readonly dialogService = inject(DialogService);
   private readonly confirmationService = inject(ConfirmationService);
   private readonly notificationService = inject(NotificationService);
+  private readonly destroyRef = inject(DestroyRef);
 
   readonly detailStore = inject(CommunionEventDetailStore);
 
+  noteDialogVisible = signal(false);
+  noteDialogMember = signal<CommunionMemberAttendance | null>(null);
+
+  private readonly searchSubject = new Subject<string>();
+
   constructor() {
-    afterNextRender(() => {
-      const eventId = this.route.snapshot.paramMap.get('eventId');
-      if (!eventId) {
-        this.router.navigate(['/app/santa-ceia']);
-        return;
-      }
-      this.detailStore.loadEvent(eventId);
-    });
+    this.searchSubject
+      .pipe(debounceTime(200), takeUntilDestroyed(this.destroyRef))
+      .subscribe((term) => this.detailStore.setMemberSearchTerm(term));
+
+    this.route.paramMap
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((params) => {
+        const eventId = params.get('eventId');
+        if (!eventId) {
+          this.router.navigate(['/app/santa-ceia']);
+          return;
+        }
+        this.detailStore.loadEvent(eventId);
+      });
   }
 
   formatDate(date: string): string {
@@ -82,6 +99,10 @@ export class CommunionEventDetailPageComponent {
     return member.status ?? (member.present ? 'PRESENT' : 'ABSENT');
   }
 
+  trackMember(_index: number, member: CommunionMemberAttendance): string {
+    return member.memberId;
+  }
+
   onSortChange(event: { field: string; order: number }): void {
     const active = event.field as 'registrationNumber' | 'fullName' | 'status';
     if (!active) return;
@@ -91,24 +112,15 @@ export class CommunionEventDetailPageComponent {
   openNoteDialog(member: CommunionMemberAttendance): void {
     if (!this.detailStore.notesEnabledSignal()) return;
     if (this.getAttendanceStatus(member) !== 'JUSTIFIED') return;
+    this.noteDialogMember.set(member);
+    this.noteDialogVisible.set(true);
+  }
 
-    const canEdit = !this.detailStore.isEditingLockedSignal();
-    const data: AttendanceNoteDialogData = {
-      memberName: member.fullName,
-      note: member.note ?? null,
-      canEdit,
-    };
-
-    this.dialogService
-      ?.open(AttendanceNoteDialogComponent, {
-        header: 'Anotação de Presença',
-        width: '520px',
-        data,
-      })
-      ?.onClose.subscribe((note: string | null | undefined) => {
-        if (note === undefined) return;
-        this.detailStore.updateNote(member.memberId, note);
-      });
+  onNoteSaved(note: string | null): void {
+    const member = this.noteDialogMember();
+    if (!member) return;
+    this.detailStore.updateNote(member.memberId, note);
+    this.noteDialogMember.set(null);
   }
 
   getNotePreview(note: string | null | undefined): string {
@@ -182,7 +194,7 @@ export class CommunionEventDetailPageComponent {
   }
 
   onMemberSearch(term: string): void {
-    this.detailStore.setMemberSearchTerm(term);
+    this.searchSubject.next(term);
   }
 
   private isAttendanceStatus(value: string): value is AttendanceStatus {
