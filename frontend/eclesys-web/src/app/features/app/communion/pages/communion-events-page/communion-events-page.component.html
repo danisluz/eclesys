@@ -18,7 +18,7 @@
       <p-button
         label="Novo Evento"
         icon="pi pi-plus"
-        (onClick)="openCreateDialog()"
+        (onClick)="openCreateDrawer()"
       />
     </div>
   </header>
@@ -244,3 +244,19 @@
     }
   </div>
 </div>
+
+<p-drawer
+  [(visible)]="createDrawerVisible"
+  position="right"
+  [style]="{ width: '480px' }"
+  header="Novo Evento de Santa Ceia"
+>
+  <app-create-communion-event-dialog
+    [congregations]="eventsStore.congregationsSignal()"
+    [defaultCongregationId]="eventsStore.selectedCongregationIdSignal()"
+    [congregationLabel]="eventsStore.congregationLabelSignal()"
+    (saved)="onEventCreated($event)"
+    (cancelled)="createDrawerVisible.set(false)"
+  />
+</p-drawer>
+

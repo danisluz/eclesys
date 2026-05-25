@@ -1,19 +1,12 @@
-import { Component, DestroyRef, computed, inject } from '@angular/core';
+import { Component, DestroyRef, computed, inject, Input, Output, EventEmitter, OnInit } from '@angular/core';
 import { FormBuilder, FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { DynamicDialogRef, DynamicDialogConfig } from 'primeng/dynamicdialog';
 import { AutoCompleteModule, AutoCompleteSelectEvent } from 'primeng/autocomplete';
 import { DatePickerModule } from 'primeng/datepicker';
 import { ButtonModule } from 'primeng/button';
 import { OrganizationUnit } from '../../../../../shared/api/organization-unit.model';
 import { CommunionEventsStore } from '../../stores/communion-events.store';
 import { CommunionEvent } from '../../models/communion.models';
-
-interface CreateCommunionEventDialogData {
-  congregations: OrganizationUnit[];
-  defaultCongregationId?: string | null;
-  congregationLabel: string;
-}
 
 @Component({
   selector: 'app-create-communion-event-dialog',
@@ -27,13 +20,16 @@ interface CreateCommunionEventDialogData {
   templateUrl: './create-communion-event-dialog.component.html',
   styleUrl: './create-communion-event-dialog.component.scss',
 })
-export class CreateCommunionEventDialogComponent {
-  private formBuilder = inject(FormBuilder);
-  private ref = inject(DynamicDialogRef);
-  private eventsStore = inject(CommunionEventsStore);
-  private destroyRef = inject(DestroyRef);
+export class CreateCommunionEventDialogComponent implements OnInit {
+  private readonly formBuilder = inject(FormBuilder);
+  private readonly eventsStore = inject(CommunionEventsStore);
+  private readonly destroyRef = inject(DestroyRef);
 
-  data = inject(DynamicDialogConfig).data as CreateCommunionEventDialogData;
+  @Input() congregations: OrganizationUnit[] = [];
+  @Input() defaultCongregationId: string | null = null;
+  @Input() congregationLabel = 'Congregação';
+  @Output() saved = new EventEmitter<CommunionEvent>();
+  @Output() cancelled = new EventEmitter<void>();
 
   isCreatingSignal = this.eventsStore.isCreatingSignal;
   errorMessageSignal = computed(() => this.eventsStore.createErrorMessageSignal());
@@ -46,9 +42,9 @@ export class CreateCommunionEventDialogComponent {
     eventDate: [null as Date | null, [Validators.required]],
   });
 
-  constructor() {
-    const defaultCongregation = this.data.congregations.find(
-      (c) => c.id === this.data.defaultCongregationId,
+  ngOnInit() {
+    const defaultCongregation = this.congregations.find(
+      (c) => c.id === this.defaultCongregationId,
     );
 
     if (defaultCongregation) {
@@ -56,7 +52,7 @@ export class CreateCommunionEventDialogComponent {
       this.form.controls.congregationId.setValue(defaultCongregation.id);
     }
 
-    this.filteredCongregations = [...this.data.congregations];
+    this.filteredCongregations = [...this.congregations];
 
     this.congregationSearchControl.valueChanges
       .pipe(takeUntilDestroyed(this.destroyRef))
@@ -68,7 +64,7 @@ export class CreateCommunionEventDialogComponent {
   }
 
   cancel(): void {
-    this.ref.close();
+    this.cancelled.emit();
   }
 
   async save(): Promise<void> {
@@ -86,7 +82,7 @@ export class CreateCommunionEventDialogComponent {
     });
 
     if (created) {
-      this.ref.close(created as CommunionEvent);
+      this.saved.emit(created);
     }
   }
 
@@ -102,8 +98,8 @@ export class CreateCommunionEventDialogComponent {
   searchCongregations(event: { query: string }): void {
     const term = event.query.toLowerCase().trim();
     this.filteredCongregations = term
-      ? this.data.congregations.filter((c) => c.name.toLowerCase().includes(term))
-      : [...this.data.congregations];
+      ? this.congregations.filter((c) => c.name.toLowerCase().includes(term))
+      : [...this.congregations];
   }
 
   private formatDateOnly(date: Date): string {

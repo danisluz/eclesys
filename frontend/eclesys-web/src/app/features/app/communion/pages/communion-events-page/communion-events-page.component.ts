@@ -9,6 +9,7 @@ import {
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { DialogService } from 'primeng/dynamicdialog';
+import { DrawerModule } from 'primeng/drawer';
 import { TableModule, TablePageEvent } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
 import { TagModule } from 'primeng/tag';
@@ -17,7 +18,7 @@ import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { TooltipModule } from 'primeng/tooltip';
 import { DatePickerModule } from 'primeng/datepicker';
 import { CommunionEventsStore } from '../../stores/communion-events.store';
-import { CommunionEventListItem } from '../../models/communion.models';
+import { CommunionEvent, CommunionEventListItem } from '../../models/communion.models';
 import { CreateCommunionEventDialogComponent } from '../../dialogs/create-communion-event-dialog/create-communion-event-dialog.component';
 import { ConfirmDialogComponent } from '../../../../../shared/ui/confirm-dialog/confirm-dialog.component';
 import { NotificationService } from '../../../../../shared/services/notification.service';
@@ -27,6 +28,7 @@ import { NotificationService } from '../../../../../shared/services/notification
   standalone: true,
   imports: [
     FormsModule,
+    DrawerModule,
     DatePickerModule,
     TableModule,
     ButtonModule,
@@ -34,6 +36,7 @@ import { NotificationService } from '../../../../../shared/services/notification
     SelectModule,
     ProgressSpinnerModule,
     TooltipModule,
+    CreateCommunionEventDialogComponent,
   ],
   templateUrl: './communion-events-page.component.html',
   styleUrl: './communion-events-page.component.scss',
@@ -48,14 +51,11 @@ export class CommunionEventsPageComponent {
   pageIndexSignal = signal(0);
   pageSizeSignal = signal(25);
   pageSizeOptions = [25, 50, 100, 200];
+  createDrawerVisible = signal(false);
 
-  eventsTotalSignal = computed(
-    () => this.eventsStore.eventsViewSignal().length,
-  );
+  eventsTotalSignal = computed(() => this.eventsStore.eventsViewSignal().length);
   eventsOpenSignal = computed(
-    () =>
-      this.eventsStore.eventsViewSignal().filter((e) => e.status === 'OPEN')
-        .length,
+    () => this.eventsStore.eventsViewSignal().filter((e) => e.status === 'OPEN').length,
   );
   averageAttendancePercentSignal = computed(() => {
     const events = this.eventsStore.eventsViewSignal();
@@ -63,9 +63,7 @@ export class CommunionEventsPageComponent {
       .map((e) => this.getAttendancePercent(e))
       .filter((v): v is number => typeof v === 'number');
     if (percentages.length === 0) return null;
-    return Math.round(
-      percentages.reduce((sum, v) => sum + v, 0) / percentages.length,
-    );
+    return Math.round(percentages.reduce((sum, v) => sum + v, 0) / percentages.length);
   });
 
   statusOptions = [
@@ -90,24 +88,17 @@ export class CommunionEventsPageComponent {
     });
   }
 
-  async openCreateDialog(): Promise<void> {
+  openCreateDrawer(): void {
     this.eventsStore.clearCreateError();
-    const ref = this.dialogService.open(CreateCommunionEventDialogComponent, {
-      header: 'Novo evento de Santa Ceia',
-      width: '520px',
-      data: {
-        congregations: this.eventsStore.congregationsSignal(),
-        defaultCongregationId: this.eventsStore.selectedCongregationIdSignal(),
-        congregationLabel: this.eventsStore.congregationLabelSignal(),
-      },
-    });
+    this.createDrawerVisible.set(true);
+  }
 
-    ref?.onClose.subscribe((createdEvent) => {
-      if (createdEvent?.id) {
-        this.notificationService.success('Evento criado com sucesso');
-        this.router.navigate(['/app/santa-ceia', createdEvent.id]);
-      }
-    });
+  onEventCreated(createdEvent: CommunionEvent): void {
+    this.createDrawerVisible.set(false);
+    if (createdEvent?.id) {
+      this.notificationService.success('Evento criado com sucesso');
+      this.router.navigate(['/app/santa-ceia', createdEvent.id]);
+    }
   }
 
   onCongregationChange(value: string | null): void {
@@ -188,9 +179,7 @@ export class CommunionEventsPageComponent {
 
     const result = await this.eventsStore.exportBlankListPdf(event.id);
     if (!result.blob) {
-      this.notificationService.error(
-        result.errorMessage ?? 'Não foi possível exportar a lista em branco.',
-      );
+      this.notificationService.error(result.errorMessage ?? 'Não foi possível exportar a lista em branco.');
       return;
     }
 
@@ -214,9 +203,7 @@ export class CommunionEventsPageComponent {
     return event.status === 'OPEN';
   }
 
-  getStatusSeverity(
-    status: CommunionEventListItem['status'],
-  ): 'success' | 'info' | 'secondary' {
+  getStatusSeverity(status: CommunionEventListItem['status']): 'success' | 'info' | 'secondary' {
     if (status === 'OPEN') return 'success';
     if (status === 'DRAFT') return 'info';
     return 'secondary';
@@ -238,8 +225,7 @@ export class CommunionEventsPageComponent {
     if (typeof event.presentCount !== 'number') return null;
     if (typeof event.totalMembers !== 'number') return null;
     if (event.totalMembers <= 0) return null;
-    if (typeof event.attendancePercent === 'number')
-      return Math.round(event.attendancePercent);
+    if (typeof event.attendancePercent === 'number') return Math.round(event.attendancePercent);
     return Math.round((event.presentCount / event.totalMembers) * 100);
   }
 
@@ -256,31 +242,19 @@ export class CommunionEventsPageComponent {
   private openConfirmDialog(title: string, message: string): Promise<boolean> {
     return new Promise((resolve) => {
       const ref = this.dialogService.open(ConfirmDialogComponent, {
-        data: {
-          title,
-          message,
-          confirmLabel: 'Confirmar',
-          cancelLabel: 'Cancelar',
-        },
+        data: { title, message, confirmLabel: 'Confirmar', cancelLabel: 'Cancelar' },
       });
-
       if (!ref) {
         resolve(false);
         return;
       }
-
       ref.onClose.subscribe((confirmed) => resolve(Boolean(confirmed)));
     });
   }
 
   private buildPdfFileName(event: CommunionEventListItem): string {
     const safe = (s: string) =>
-      s
-        .normalize('NFD')
-        .replace(/[̀-ͯ]/g, '')
-        .replace(/[^a-zA-Z0-9]+/g, '-')
-        .replace(/^-+|-+$/g, '')
-        .toLowerCase();
+      s.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-zA-Z0-9]+/g, '-').replace(/^-+|-+$/g, '').toLowerCase();
     return `santa-ceia-${safe(event.congregationName ?? '')}-${event.eventDate}.pdf`;
   }
 }

@@ -1,23 +1,25 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, Output, EventEmitter } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
-import { DynamicDialogRef } from 'primeng/dynamicdialog';
 import { InputTextModule } from 'primeng/inputtext';
 import { ButtonModule } from 'primeng/button';
 import { SelectModule } from 'primeng/select';
 import { PasswordModule } from 'primeng/password';
 import { UsersStore } from '../../data/users.store';
-import { CreateUserRequest, UserRole } from '../../models/user.models';
+import { CreateUserRequest, UserDto, UserRole } from '../../models/user.models';
 
 @Component({
+  selector: 'app-user-form-dialog',
   standalone: true,
   imports: [ReactiveFormsModule, InputTextModule, ButtonModule, SelectModule, PasswordModule],
   templateUrl: './user-form-dialog.component.html',
   styleUrls: ['./user-form-dialog.component.scss'],
 })
 export class UserFormDialogComponent {
-  usersStore = inject(UsersStore);
-  private ref = inject(DynamicDialogRef);
-  private formBuilder = inject(FormBuilder);
+  readonly usersStore = inject(UsersStore);
+  private readonly formBuilder = inject(FormBuilder);
+
+  @Output() saved = new EventEmitter<UserDto>();
+  @Output() cancelled = new EventEmitter<void>();
 
   isSubmitting = signal(false);
 
@@ -51,11 +53,11 @@ export class UserFormDialogComponent {
     const createdUser = await this.usersStore.createUser(request);
     this.isSubmitting.set(false);
     if (createdUser) {
-      this.ref.close(createdUser);
+      this.saved.emit(createdUser);
     }
   }
 
   close(): void {
-    this.ref.close(null);
+    this.cancelled.emit();
   }
 }

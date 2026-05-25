@@ -1,6 +1,8 @@
 import { Component, OnInit, inject, signal, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { DialogService } from 'primeng/dynamicdialog';
+import { DrawerModule } from 'primeng/drawer';
 import { Table, TableLazyLoadEvent, TableModule } from 'primeng/table';
 import { SelectModule } from 'primeng/select';
 import { InputTextModule } from 'primeng/inputtext';
@@ -14,7 +16,6 @@ import {
   Member,
   MemberStatus,
 } from '../../../../../shared/models/member.model';
-import { MemberFormDialogComponent } from '../../dialogs/member-form-dialog/member-form-dialog.component';
 import { TransferDialogComponent } from '../../dialogs/transfer-dialog/transfer-dialog.component';
 import { MemberViewDialogComponent } from '../../dialogs/member-view-dialog/member-view-dialog.component';
 import { OrganizationsService } from '../../../../../shared/api/organizations.service';
@@ -29,6 +30,7 @@ import { NotificationService } from '../../../../../shared/services/notification
   standalone: true,
   imports: [
     FormsModule,
+    DrawerModule,
     TableModule,
     SelectModule,
     InputTextModule,
@@ -37,6 +39,8 @@ import { NotificationService } from '../../../../../shared/services/notification
     IconFieldModule,
     InputIconModule,
     TooltipModule,
+    MemberViewDialogComponent,
+    TransferDialogComponent,
   ],
   templateUrl: './members.component.html',
   styleUrls: ['./members.component.scss'],
@@ -46,7 +50,8 @@ export class MembersComponent implements OnInit {
   private readonly organizationsService = inject(OrganizationsService);
   private readonly churchRolesService = inject(ChurchRolesService);
   private readonly dialogService = inject(DialogService);
-  private readonly notificationService = inject(NotificationService);
+  readonly notificationService = inject(NotificationService);
+  readonly router = inject(Router);
 
   @ViewChild('membersTable') membersTable?: Table;
 
@@ -64,6 +69,11 @@ export class MembersComponent implements OnInit {
     'registrationNumber' | 'fullName' | 'email' | 'phone' | 'status'
   >('fullName');
   sortDir = signal<'asc' | 'desc'>('asc');
+
+  // Drawer state
+  viewDrawerVisible = signal(false);
+  transferDrawerVisible = signal(false);
+  selectedMember = signal<Member | null>(null);
 
   searchTerm = '';
   selectedStatus: MemberStatus | null = null;
@@ -211,53 +221,21 @@ export class MembersComponent implements OnInit {
   }
 
   openCreateDialog() {
-    const ref = this.dialogService.open(MemberFormDialogComponent, {
-      header: 'Novo Membro',
-      width: '95vw',
-      data: { mode: 'create' },
-    });
-    ref?.onClose.subscribe((result) => {
-      if (result) {
-        this.loadMembers();
-        this.notificationService.success('Membro criado com sucesso');
-      }
-    });
+    this.router.navigate(['/app/members/new']);
   }
 
   openViewDialog(member: Member) {
-    this.dialogService.open(MemberViewDialogComponent, {
-      header: member.fullName,
-      width: '95vw',
-      data: { member },
-    });
+    this.selectedMember.set(member);
+    this.viewDrawerVisible.set(true);
   }
 
   openTransferDialog(member: Member) {
-    const ref = this.dialogService.open(TransferDialogComponent, {
-      header: 'Transferir Membro',
-      width: '800px',
-      data: { member },
-    });
-    ref?.onClose.subscribe((result) => {
-      if (result) {
-        this.loadMembers();
-        this.notificationService.success('Transferência realizada com sucesso');
-      }
-    });
+    this.selectedMember.set(member);
+    this.transferDrawerVisible.set(true);
   }
 
   openEditDialog(member: Member) {
-    const ref = this.dialogService.open(MemberFormDialogComponent, {
-      header: 'Editar Membro',
-      width: '95vw',
-      data: { mode: 'edit', member },
-    });
-    ref?.onClose.subscribe((result) => {
-      if (result) {
-        this.loadMembers();
-        this.notificationService.success('Membro atualizado com sucesso');
-      }
-    });
+    this.router.navigate(['/app/members', member.id, 'edit']);
   }
 
   openCongregationFilterDialog() {

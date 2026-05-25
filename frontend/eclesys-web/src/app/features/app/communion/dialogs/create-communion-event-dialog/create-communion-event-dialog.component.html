@@ -1,7 +1,7 @@
 <form [formGroup]="form" class="flex flex-col gap-4 p-2">
 
   <div class="flex flex-col gap-1">
-    <label for="congregation-autocomplete" class="text-sm font-medium">{{ data.congregationLabel }}</label>
+    <label for="congregation-autocomplete" class="text-sm font-medium">{{ congregationLabel }}</label>
     <p-autocomplete
       inputId="congregation-autocomplete"
       [formControl]="congregationSearchControl"
@@ -12,11 +12,11 @@
       (completeMethod)="searchCongregations($event)"
       (onSelect)="onCongregationSelected($event)"
       (onClear)="onCongregationClear()"
-      [placeholder]="'Digite para buscar ' + data.congregationLabel"
+      [placeholder]="'Digite para buscar ' + congregationLabel"
       styleClass="w-full"
     />
     @if (form.controls.congregationId.hasError('required') && form.controls.congregationId.touched) {
-      <small class="text-red-500">Selecione uma {{ data.congregationLabel }}</small>
+      <small class="text-red-500">Selecione uma {{ congregationLabel }}</small>
     }
   </div>
 

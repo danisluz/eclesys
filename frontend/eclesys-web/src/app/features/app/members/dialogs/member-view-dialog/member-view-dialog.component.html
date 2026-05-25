@@ -11,30 +11,30 @@
         <div>
           <h3 class="font-semibold text-sm text-gray-500 uppercase mb-2">Informações Básicas</h3>
           <div class="grid grid-cols-2 gap-3">
-            <div><label class="text-xs text-gray-500">Nome Completo</label><p class="font-medium">{{ data.member.fullName }}</p></div>
-            @if (data.member.email) {
-              <div><label class="text-xs text-gray-500">E-mail</label><p>{{ data.member.email }}</p></div>
+            <div><label class="text-xs text-gray-500">Nome Completo</label><p class="font-medium">{{ member.fullName }}</p></div>
+            @if (member.email) {
+              <div><label class="text-xs text-gray-500">E-mail</label><p>{{ member.email }}</p></div>
             }
-            @if (data.member.phone) {
-              <div><label class="text-xs text-gray-500">Telefone</label><p>{{ data.member.phone }}</p></div>
+            @if (member.phone) {
+              <div><label class="text-xs text-gray-500">Telefone</label><p>{{ member.phone }}</p></div>
             }
-            @if (data.member.document) {
-              <div><label class="text-xs text-gray-500">CPF</label><p>{{ data.member.document }}</p></div>
+            @if (member.document) {
+              <div><label class="text-xs text-gray-500">CPF</label><p>{{ member.document }}</p></div>
             }
-            <div><label class="text-xs text-gray-500">Matrícula</label><p>{{ formatRegistrationNumber(data.member.registrationNumber) }}</p></div>
-            @if (data.member.birthDate) {
-              <div><label class="text-xs text-gray-500">Data de Nascimento</label><p>{{ formatDate(data.member.birthDate) }}</p></div>
+            <div><label class="text-xs text-gray-500">Matrícula</label><p>{{ formatRegistrationNumber(member.registrationNumber) }}</p></div>
+            @if (member.birthDate) {
+              <div><label class="text-xs text-gray-500">Data de Nascimento</label><p>{{ formatDate(member.birthDate) }}</p></div>
             }
-            @if (data.member.gender) {
-              <div><label class="text-xs text-gray-500">Gênero</label><p>{{ formatGender(data.member.gender) }}</p></div>
+            @if (member.gender) {
+              <div><label class="text-xs text-gray-500">Gênero</label><p>{{ formatGender(member.gender) }}</p></div>
             }
-            @if (data.member.maritalStatus) {
-              <div><label class="text-xs text-gray-500">Estado Civil</label><p>{{ formatMaritalStatus(data.member.maritalStatus) }}</p></div>
+            @if (member.maritalStatus) {
+              <div><label class="text-xs text-gray-500">Estado Civil</label><p>{{ formatMaritalStatus(member.maritalStatus) }}</p></div>
             }
             <div>
               <label class="text-xs text-gray-500">Status</label>
               <div class="mt-1">
-                <p-tag [value]="getStatusLabel(data.member.status)" [severity]="getStatusSeverity(data.member.status)" />
+                <p-tag [value]="getStatusLabel(member.status)" [severity]="getStatusSeverity(member.status)" />
               </div>
             </div>
           </div>
@@ -45,56 +45,74 @@
         <div>
           <h3 class="font-semibold text-sm text-gray-500 uppercase mb-2">Informações Eclesiásticas</h3>
           <div class="grid grid-cols-2 gap-3">
-            @if (data.member.organizationUnitName) {
-              <div><label class="text-xs text-gray-500">{{ getCongregationLabel() }}</label><p>{{ data.member.organizationUnitName }}</p></div>
+            @if (member.organizationUnitName) {
+              <div><label class="text-xs text-gray-500">{{ getCongregationLabel() }}</label><p>{{ member.organizationUnitName }}</p></div>
             }
-            @if (data.member.churchRoleName) {
-              <div><label class="text-xs text-gray-500">Cargo/Função</label><p>{{ data.member.churchRoleName }}</p></div>
+            @if (member.churchRoleName) {
+              <div><label class="text-xs text-gray-500">Cargo/Função</label><p>{{ member.churchRoleName }}</p></div>
             }
-            @if (data.member.baptismDate) {
-              <div><label class="text-xs text-gray-500">Data de Batismo</label><p>{{ formatDate(data.member.baptismDate) }}</p></div>
+            @if (member.baptismDate) {
+              <div><label class="text-xs text-gray-500">Data de Batismo</label><p>{{ formatDate(member.baptismDate) }}</p></div>
             }
           </div>
         </div>
 
-        @if (data.member.address) {
+        @if (member.address) {
           <p-divider />
           <div>
             <h3 class="font-semibold text-sm text-gray-500 uppercase mb-2">Endereço</h3>
             <div class="grid grid-cols-2 gap-3">
-              @if (data.member.address.street) {
-                <div><label class="text-xs text-gray-500">Rua</label><p>{{ data.member.address.street }}@if (data.member.address.number) {, {{ data.member.address.number }}}</p></div>
+              @if (member.address.street) {
+                <div><label class="text-xs text-gray-500">Rua</label><p>{{ member.address.street }}@if (member.address.number) {, {{ member.address.number }}}</p></div>
               }
-              @if (data.member.address.neighborhood) {
-                <div><label class="text-xs text-gray-500">Bairro</label><p>{{ data.member.address.neighborhood }}</p></div>
+              @if (member.address.neighborhood) {
+                <div><label class="text-xs text-gray-500">Bairro</label><p>{{ member.address.neighborhood }}</p></div>
               }
-              @if (data.member.address.city) {
-                <div><label class="text-xs text-gray-500">Cidade</label><p>{{ data.member.address.city }}@if (data.member.address.state) { - {{ data.member.address.state }}}</p></div>
+              @if (member.address.city) {
+                <div><label class="text-xs text-gray-500">Cidade</label><p>{{ member.address.city }}@if (member.address.state) { - {{ member.address.state }}}</p></div>
               }
-              @if (data.member.address.zipCode) {
-                <div><label class="text-xs text-gray-500">CEP</label><p>{{ data.member.address.zipCode }}</p></div>
+              @if (member.address.zipCode) {
+                <div><label class="text-xs text-gray-500">CEP</label><p>{{ member.address.zipCode }}</p></div>
               }
             </div>
           </div>
         }
 
-        @if (data.member.family) {
+        @if (member.family) {
           <p-divider />
           <div>
             <h3 class="font-semibold text-sm text-gray-500 uppercase mb-2">Relacionamentos Familiares</h3>
             <div class="grid grid-cols-2 gap-3">
-              @if (data.member.family.spouseName) {
-                <div><label class="text-xs text-gray-500">Cônjuge</label><p>{{ data.member.family.spouseName }}</p></div>
+              @if (member.family.spouseName) {
+                <div><label class="text-xs text-gray-500">Cônjuge</label><p>{{ member.family.spouseName }}</p></div>
               }
-              @if (data.member.family.fatherName) {
-                <div><label class="text-xs text-gray-500">Pai</label><p>{{ data.member.family.fatherName }}</p></div>
+              @if (member.family.fatherName) {
+                <div><label class="text-xs text-gray-500">Pai</label><p>{{ member.family.fatherName }}</p></div>
               }
-              @if (data.member.family.motherName) {
-                <div><label class="text-xs text-gray-500">Mãe</label><p>{{ data.member.family.motherName }}</p></div>
+              @if (member.family.motherName) {
+                <div><label class="text-xs text-gray-500">Mãe</label><p>{{ member.family.motherName }}</p></div>
               }
             </div>
           </div>
         }
+
+        <p-divider />
+        <div class="flex gap-2">
+          <p-button
+            label="Editar"
+            icon="pi pi-pencil"
+            severity="secondary"
+            [outlined]="true"
+            (onClick)="editRequested.emit(member)"
+          />
+          <p-button
+            label="Transferir"
+            icon="pi pi-arrow-right-arrow-left"
+            severity="secondary"
+            [outlined]="true"
+            (onClick)="transferRequested.emit(member)"
+          />
+        </div>
       </div>
     </p-tabpanel>
 
@@ -149,7 +167,3 @@
     </p-tabpanel>
   </p-tabpanels>
 </p-tabs>
-
-<div class="flex justify-end pt-2">
-  <p-button label="Fechar" severity="secondary" [outlined]="true" (onClick)="close()" />
-</div>

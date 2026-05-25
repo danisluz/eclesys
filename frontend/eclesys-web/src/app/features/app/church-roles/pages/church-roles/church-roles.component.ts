@@ -1,6 +1,6 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { DialogService } from 'primeng/dynamicdialog';
+import { DrawerModule } from 'primeng/drawer';
 import { TableModule } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
 import { ToggleSwitchModule } from 'primeng/toggleswitch';
@@ -15,21 +15,25 @@ import { NotificationService } from '../../../../../shared/services/notification
   standalone: true,
   imports: [
     FormsModule,
+    DrawerModule,
     TableModule,
     ButtonModule,
     ToggleSwitchModule,
     TooltipModule,
+    ChurchRoleFormDialogComponent,
   ],
   templateUrl: './church-roles.component.html',
   styleUrls: ['./church-roles.component.scss'],
 })
 export class ChurchRolesComponent implements OnInit {
   private readonly service = inject(ChurchRolesService);
-  private readonly dialogService = inject(DialogService);
   private readonly notificationService = inject(NotificationService);
 
   roles = signal<ChurchRole[]>([]);
   loading = signal(true);
+  drawerVisible = signal(false);
+  drawerMode = signal<'create' | 'edit'>('create');
+  selectedRole = signal<ChurchRole | undefined>(undefined);
 
   ngOnInit() {
     this.loadRoles();
@@ -42,47 +46,38 @@ export class ChurchRolesComponent implements OnInit {
         this.roles.set(response.data);
         this.loading.set(false);
       },
-      error: () => {
-        this.loading.set(false);
-      },
+      error: () => { this.loading.set(false); },
     });
   }
 
-  openCreateDialog() {
-    const ref = this.dialogService.open(ChurchRoleFormDialogComponent, {
-      header: 'Novo Cargo',
-      width: '500px',
-      data: { mode: 'create', maxSortOrder: this.getMaxSortOrder() },
-    });
-    ref?.onClose.subscribe((result) => {
-      if (result) {
-        this.loadRoles();
-        this.notificationService.success('Cargo criado com sucesso');
-      }
-    });
+  openCreateDrawer() {
+    this.drawerMode.set('create');
+    this.selectedRole.set(undefined);
+    this.drawerVisible.set(true);
   }
 
-  openEditDialog(role: ChurchRole) {
-    const ref = this.dialogService.open(ChurchRoleFormDialogComponent, {
-      header: 'Editar Cargo',
-      width: '500px',
-      data: { mode: 'edit', role },
-    });
-    ref?.onClose.subscribe((result) => {
-      if (result) {
-        this.loadRoles();
-        this.notificationService.success('Cargo atualizado com sucesso');
-      }
-    });
+  openEditDrawer(role: ChurchRole) {
+    this.drawerMode.set('edit');
+    this.selectedRole.set(role);
+    this.drawerVisible.set(true);
+  }
+
+  onSaved() {
+    this.drawerVisible.set(false);
+    this.loadRoles();
+    const msg = this.drawerMode() === 'create' ? 'Cargo criado com sucesso' : 'Cargo atualizado com sucesso';
+    this.notificationService.success(msg);
+  }
+
+  onCancelled() {
+    this.drawerVisible.set(false);
   }
 
   toggleActive(role: ChurchRole, isActive: boolean) {
     const originalValue = !isActive;
     this.service.update(role.id, { isActive }).subscribe({
       next: () => {
-        this.notificationService.success(
-          isActive ? 'Cargo ativado' : 'Cargo desativado',
-        );
+        this.notificationService.success(isActive ? 'Cargo ativado' : 'Cargo desativado');
       },
       error: () => {
         role.isActive = originalValue;
@@ -91,7 +86,7 @@ export class ChurchRolesComponent implements OnInit {
     });
   }
 
-  private getMaxSortOrder(): number {
+  get maxSortOrder(): number {
     const orders = this.roles().map((r) => r.sortOrder);
     return orders.length > 0 ? Math.max(...orders) : 0;
   }

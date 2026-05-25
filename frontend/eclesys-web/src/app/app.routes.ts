@@ -12,6 +12,7 @@ import { OrganizationsComponent } from './features/app/organizations/pages/organ
 import { ChurchRolesComponent } from './features/app/church-roles/pages/church-roles/church-roles.component';
 import { FunctionRolesComponent } from './features/app/function-roles/pages/function-roles/function-roles.component';
 import { MembersComponent } from './features/app/members/pages/members/members.component';
+import { MemberFormPageComponent } from './features/app/members/pages/member-form-page/member-form-page.component';
 import { PendingApprovalsComponent } from './features/app/pending-approvals/pages/pending-approvals/pending-approvals.component';
 
 export const routes: Routes = [
@@ -36,6 +37,8 @@ export const routes: Routes = [
       { path: 'organizations', component: OrganizationsComponent },
       { path: 'church-roles', component: ChurchRolesComponent },
       { path: 'function-roles', component: FunctionRolesComponent },
+      { path: 'members/new', component: MemberFormPageComponent },
+      { path: 'members/:id/edit', component: MemberFormPageComponent },
       { path: 'members', component: MembersComponent },
       { path: 'pending-approvals', component: PendingApprovalsComponent },
       {

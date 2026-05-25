@@ -1,17 +1,10 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, Input, Output, EventEmitter, OnInit } from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
-import { DynamicDialogRef, DynamicDialogConfig } from 'primeng/dynamicdialog';
 import { InputTextModule } from 'primeng/inputtext';
 import { ButtonModule } from 'primeng/button';
 import { CheckboxModule } from 'primeng/checkbox';
 import { ChurchRole } from '../../../../../shared/models/church-role.model';
 import { ChurchRolesService } from '../../../../../shared/api/church-roles.service';
-
-interface DialogData {
-  mode: 'create' | 'edit';
-  role?: ChurchRole;
-  maxSortOrder?: number;
-}
 
 @Component({
   selector: 'app-church-role-form-dialog',
@@ -20,11 +13,15 @@ interface DialogData {
   templateUrl: './church-role-form-dialog.component.html',
   styleUrls: ['./church-role-form-dialog.component.scss'],
 })
-export class ChurchRoleFormDialogComponent {
-  private fb = inject(FormBuilder);
-  private service = inject(ChurchRolesService);
-  private ref = inject(DynamicDialogRef);
-  data = inject(DynamicDialogConfig).data as DialogData;
+export class ChurchRoleFormDialogComponent implements OnInit {
+  private readonly fb = inject(FormBuilder);
+  private readonly service = inject(ChurchRolesService);
+
+  @Input() mode: 'create' | 'edit' = 'create';
+  @Input() role: ChurchRole | undefined;
+  @Input() maxSortOrder = 0;
+  @Output() saved = new EventEmitter<void>();
+  @Output() cancelled = new EventEmitter<void>();
 
   saving = signal(false);
 
@@ -34,29 +31,29 @@ export class ChurchRoleFormDialogComponent {
     isActive: [true],
   });
 
-  constructor() {
-    if (this.data.mode === 'edit' && this.data.role) {
+  ngOnInit() {
+    if (this.mode === 'edit' && this.role) {
       this.form.patchValue({
-        name: this.data.role.name,
-        sortOrder: this.data.role.sortOrder,
-        isActive: this.data.role.isActive,
+        name: this.role.name,
+        sortOrder: this.role.sortOrder,
+        isActive: this.role.isActive,
       });
-    } else if (this.data.mode === 'create' && this.data.maxSortOrder !== undefined) {
-      this.form.patchValue({ sortOrder: this.data.maxSortOrder + 1 });
+    } else if (this.mode === 'create') {
+      this.form.patchValue({ sortOrder: this.maxSortOrder + 1 });
     }
   }
 
-  cancel() { this.ref.close(); }
+  cancel() { this.cancelled.emit(); }
 
   save() {
     if (this.form.invalid) return;
     this.saving.set(true);
     const request = this.form.value;
-    const operation = this.data.mode === 'create'
+    const operation = this.mode === 'create'
       ? this.service.create(request as any)
-      : this.service.update(this.data.role!.id, request as any);
+      : this.service.update(this.role!.id, request as any);
     operation.subscribe({
-      next: () => { this.ref.close(true); },
+      next: () => { this.saved.emit(); },
       error: () => { this.saving.set(false); },
     });
   }

@@ -15,7 +15,7 @@
     }
   </div>
 
-  @if (data.mode === 'create') {
+  @if (mode === 'create') {
     <div class="flex flex-col gap-1">
       <label class="font-medium text-sm">Tipo</label>
       <p-select [(ngModel)]="type" name="type" [options]="availableTypes()" optionLabel="label" optionValue="value" (onChange)="onTypeChange()" />
@@ -82,7 +82,7 @@
     </div>
   }
 
-  @if (data.mode === 'edit') {
+  @if (mode === 'edit') {
     <div class="flex flex-col gap-1">
       <label class="font-medium text-sm">Status</label>
       <p-select [(ngModel)]="status" name="status" [options]="statusOptions" optionLabel="label" optionValue="value" />
@@ -92,7 +92,7 @@
   <div class="flex justify-end gap-2 pt-2">
     <p-button label="Cancelar" severity="secondary" [outlined]="true" (onClick)="cancel()" />
     <p-button
-      [label]="data.mode === 'create' ? 'Criar' : 'Salvar'"
+      [label]="mode === 'create' ? 'Criar' : 'Salvar'"
       [disabled]="!isFormValid() || isSaving()"
       (onClick)="save()"
     />

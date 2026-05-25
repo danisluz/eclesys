@@ -8,6 +8,7 @@ import {
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { DialogService } from 'primeng/dynamicdialog';
+import { DrawerModule } from 'primeng/drawer';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { SelectModule } from 'primeng/select';
@@ -28,7 +29,6 @@ import {
 } from '../../../../../shared/api/organization-unit.model';
 import {
   OrganizationFormDialogComponent,
-  OrganizationFormDialogData,
 } from '../../dialogs/organization-form-dialog/organization-form-dialog.component';
 import {
   ManageRolesDialogComponent,
@@ -45,6 +45,7 @@ import { NotificationService } from '../../../../../shared/services/notification
   selector: 'app-organizations',
   imports: [
     FormsModule,
+    DrawerModule,
     ButtonModule,
     InputTextModule,
     SelectModule,
@@ -54,6 +55,7 @@ import { NotificationService } from '../../../../../shared/services/notification
     InputIconModule,
     MenuModule,
     ProgressSpinnerModule,
+    OrganizationFormDialogComponent,
   ],
   templateUrl: './organizations.component.html',
   styleUrls: ['./organizations.component.scss'],
@@ -70,20 +72,21 @@ export class OrganizationsComponent implements OnInit {
   errorMessage = signal<string | null>(null);
   searchTerm = signal('');
   typeFilter = signal<OrganizationUnitType | 'ALL'>('ALL');
-  headquartersFilter = signal<'ALL' | 'HEADQUARTERS' | 'NOT_HEADQUARTERS'>(
-    'ALL',
-  );
+  headquartersFilter = signal<'ALL' | 'HEADQUARTERS' | 'NOT_HEADQUARTERS'>('ALL');
 
   rowMenuItems: MenuItem[] = [];
+
+  drawerVisible = signal(false);
+  drawerMode = signal<'create' | 'edit'>('create');
+  drawerUnit = signal<OrganizationUnit | undefined>(undefined);
+  drawerParentId = signal<string | undefined>(undefined);
+  drawerParentType = signal<OrganizationUnitType | undefined>(undefined);
 
   typeOptions = computed(() => [
     { label: 'Todos', value: 'ALL' },
     { label: 'Igreja (Sede Principal)', value: OrganizationUnitType.CHURCH },
     { label: this.getSectorLabel(), value: OrganizationUnitType.SECTOR },
-    {
-      label: this.getCongregationLabel(),
-      value: OrganizationUnitType.CONGREGATION,
-    },
+    { label: this.getCongregationLabel(), value: OrganizationUnitType.CONGREGATION },
   ]);
 
   hqOptions = [
@@ -101,8 +104,7 @@ export class OrganizationsComponent implements OnInit {
 
     if (type !== 'ALL') units = units.filter((u) => u.type === type);
     if (hq === 'HEADQUARTERS') units = units.filter((u) => u.isHeadquarters);
-    else if (hq === 'NOT_HEADQUARTERS')
-      units = units.filter((u) => !u.isHeadquarters);
+    else if (hq === 'NOT_HEADQUARTERS') units = units.filter((u) => !u.isHeadquarters);
 
     if (term) {
       units = units.filter((u) => {
@@ -128,23 +130,19 @@ export class OrganizationsComponent implements OnInit {
   }
 
   private getRootChurch(): OrganizationUnit | undefined {
-    return this.organizations().find(
-      (org) => org.type === OrganizationUnitType.CHURCH,
-    );
+    return this.organizations().find((org) => org.type === OrganizationUnitType.CHURCH);
   }
 
   loadOrganizations() {
     this.isLoading.set(true);
     this.errorMessage.set(null);
-
     this.organizationsService.listAll().subscribe({
       next: (response) => {
         this.organizations.set(response.data);
         this.isLoading.set(false);
       },
       error: (error) => {
-        const message =
-          error?.error?.message ?? 'Erro ao carregar organizações';
+        const message = error?.error?.message ?? 'Erro ao carregar organizações';
         this.errorMessage.set(message);
         this.isLoading.set(false);
       },
@@ -156,8 +154,7 @@ export class OrganizationsComponent implements OnInit {
     const labels = {
       [OrganizationUnitType.CHURCH]: 'Sede Central',
       [OrganizationUnitType.SECTOR]: church?.sectorLabel ?? 'Setor',
-      [OrganizationUnitType.CONGREGATION]:
-        church?.congregationLabel ?? 'Congregação',
+      [OrganizationUnitType.CONGREGATION]: church?.congregationLabel ?? 'Congregação',
     };
     return labels[type] || type;
   }
@@ -196,18 +193,10 @@ export class OrganizationsComponent implements OnInit {
   getParentName(unit: OrganizationUnit): string {
     if (unit.type === OrganizationUnitType.CHURCH) return '—';
     for (const church of this.organizations()) {
-      if (
-        unit.type === OrganizationUnitType.SECTOR &&
-        unit.parentId === church.id
-      )
-        return church.name;
+      if (unit.type === OrganizationUnitType.SECTOR && unit.parentId === church.id) return church.name;
       if (church.children) {
         for (const sector of church.children) {
-          if (
-            unit.type === OrganizationUnitType.CONGREGATION &&
-            unit.parentId === sector.id
-          )
-            return sector.name;
+          if (unit.type === OrganizationUnitType.CONGREGATION && unit.parentId === sector.id) return sector.name;
         }
       }
     }
@@ -216,62 +205,29 @@ export class OrganizationsComponent implements OnInit {
 
   getHeadquartersLabel(type: OrganizationUnitType): string {
     if (type === OrganizationUnitType.CHURCH) return 'Sede Principal';
-    if (type === OrganizationUnitType.CONGREGATION)
-      return `Sede ${this.getSectorLabel()}`;
+    if (type === OrganizationUnitType.CONGREGATION) return `Sede ${this.getSectorLabel()}`;
     return 'Sede';
   }
 
   openRowMenu(event: Event, unit: OrganizationUnit) {
     const items: MenuItem[] = [
-      {
-        label: 'Visualizar Hierarquia',
-        icon: 'pi pi-eye',
-        command: () => this.openViewHierarchyDialog(unit.id),
-      },
-      {
-        label: 'Gerenciar Cargos',
-        icon: 'pi pi-id-card',
-        command: () => this.openManageRolesDialog(unit),
-      },
-      {
-        label: 'Editar',
-        icon: 'pi pi-pencil',
-        command: () => this.openEditDialog(unit),
-      },
+      { label: 'Visualizar Hierarquia', icon: 'pi pi-eye', command: () => this.openViewHierarchyDialog(unit.id) },
+      { label: 'Gerenciar Cargos', icon: 'pi pi-id-card', command: () => this.openManageRolesDialog(unit) },
+      { label: 'Editar', icon: 'pi pi-pencil', command: () => this.openEditDrawer(unit) },
     ];
-    const addSectorItem =
-      unit.type === OrganizationUnitType.CHURCH
-        ? [
-            {
-              label: `Adicionar ${this.getSectorLabel()}`,
-              icon: 'pi pi-plus',
-              command: () => this.openCreateDialog(unit.id, unit.type),
-            },
-          ]
-        : [];
-
-    const addCongregationItem =
-      unit.type === OrganizationUnitType.SECTOR
-        ? [
-            {
-              label: `Adicionar ${this.getCongregationLabel()}`,
-              icon: 'pi pi-plus',
-              command: () => this.openCreateDialog(unit.id, unit.type),
-            },
-          ]
-        : [];
+    const addSectorItem = unit.type === OrganizationUnitType.CHURCH
+      ? [{ label: `Adicionar ${this.getSectorLabel()}`, icon: 'pi pi-plus', command: () => this.openCreateDrawer(unit.id, unit.type) }]
+      : [];
+    const addCongregationItem = unit.type === OrganizationUnitType.SECTOR
+      ? [{ label: `Adicionar ${this.getCongregationLabel()}`, icon: 'pi pi-plus', command: () => this.openCreateDrawer(unit.id, unit.type) }]
+      : [];
 
     this.rowMenuItems = [
       ...items,
       ...addSectorItem,
       ...addCongregationItem,
       { separator: true },
-      {
-        label: 'Excluir',
-        icon: 'pi pi-trash',
-        styleClass: 'danger-item',
-        command: () => this.deleteUnit(unit),
-      },
+      { label: 'Excluir', icon: 'pi pi-trash', styleClass: 'danger-item', command: () => this.deleteUnit(unit) },
     ];
     this.rowMenu.toggle(event);
   }
@@ -282,22 +238,26 @@ export class OrganizationsComponent implements OnInit {
     this.headquartersFilter.set('ALL');
   }
 
-  openCreateDialog(parentId?: string, parentType?: OrganizationUnitType) {
-    const dialogData: OrganizationFormDialogData = {
-      mode: 'create',
-      parentId,
-      parentType,
-      allUnits: this.organizations(),
-    };
-    const ref = this.dialogService.open(OrganizationFormDialogComponent, {
-      header: 'Nova Unidade',
-      width: '500px',
-      data: dialogData,
-    });
-    if (!ref) return;
-    ref.onClose.subscribe((request: CreateOrganizationUnitRequest) => {
-      if (!request) return;
-      this.organizationsService.create(request).subscribe({
+  openCreateDrawer(parentId?: string, parentType?: OrganizationUnitType) {
+    this.drawerMode.set('create');
+    this.drawerUnit.set(undefined);
+    this.drawerParentId.set(parentId);
+    this.drawerParentType.set(parentType);
+    this.drawerVisible.set(true);
+  }
+
+  openEditDrawer(unit: OrganizationUnit) {
+    this.drawerMode.set('edit');
+    this.drawerUnit.set(unit);
+    this.drawerParentId.set(undefined);
+    this.drawerParentType.set(undefined);
+    this.drawerVisible.set(true);
+  }
+
+  onOrgSaved(request: CreateOrganizationUnitRequest | UpdateOrganizationUnitRequest) {
+    this.drawerVisible.set(false);
+    if (this.drawerMode() === 'create') {
+      this.organizationsService.create(request as unknown as CreateOrganizationUnitRequest).subscribe({
         next: () => {
           this.notificationService.success('Unidade criada com sucesso');
           this.loadOrganizations();
@@ -307,20 +267,8 @@ export class OrganizationsComponent implements OnInit {
           this.notificationService.error(message);
         },
       });
-    });
-  }
-
-  openEditDialog(unit: OrganizationUnit) {
-    const dialogData: OrganizationFormDialogData = { mode: 'edit', unit };
-    const ref = this.dialogService.open(OrganizationFormDialogComponent, {
-      header: 'Editar Unidade',
-      width: '500px',
-      data: dialogData,
-    });
-    if (!ref) return;
-    ref.onClose.subscribe((request: UpdateOrganizationUnitRequest) => {
-      if (!request) return;
-      this.organizationsService.update(unit.id, request).subscribe({
+    } else {
+      this.organizationsService.update(this.drawerUnit()!.id, request as UpdateOrganizationUnitRequest).subscribe({
         next: () => {
           this.notificationService.success('Unidade atualizada com sucesso');
           this.loadOrganizations();
@@ -330,7 +278,7 @@ export class OrganizationsComponent implements OnInit {
           this.notificationService.error(message);
         },
       });
-    });
+    }
   }
 
   deleteUnit(unit: OrganizationUnit) {

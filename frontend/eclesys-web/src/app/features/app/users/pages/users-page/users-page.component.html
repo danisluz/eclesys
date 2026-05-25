@@ -14,7 +14,7 @@
         [disabled]="usersStore.isListLoading()"
         (onClick)="reload()"
       />
-      <p-button label="Novo usuário" icon="pi pi-plus" (onClick)="openCreateDialog()" />
+      <p-button label="Novo usuário" icon="pi pi-plus" (onClick)="openCreateDrawer()" />
     </div>
   </header>
 
@@ -105,3 +105,31 @@
   </div>
 
 </section>
+
+<p-drawer
+  [(visible)]="createDrawerVisible"
+  position="right"
+  [style]="{ width: '520px' }"
+  header="Novo Usuário"
+>
+  <app-user-form-dialog
+    (saved)="onUserSaved()"
+    (cancelled)="createDrawerVisible.set(false)"
+  />
+</p-drawer>
+
+@if (selectedUser()) {
+  <p-drawer
+    [(visible)]="resetPasswordDrawerVisible"
+    position="right"
+    [style]="{ width: '480px' }"
+    header="Redefinir Senha"
+  >
+    <app-reset-password-dialog
+      [user]="selectedUser()!"
+      (saved)="resetPasswordDrawerVisible.set(false)"
+      (cancelled)="resetPasswordDrawerVisible.set(false)"
+    />
+  </p-drawer>
+}
+

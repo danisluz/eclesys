@@ -5,7 +5,7 @@
       <h1 class="page__title">Funções Administrativas</h1>
       <p class="page__subtitle">Gerencie as funções operacionais (Líder, Secretário, Tesoureiro, etc.)</p>
     </div>
-    <p-button label="Nova Função" icon="pi pi-plus" (onClick)="openCreateDialog()" />
+    <p-button label="Nova Função" icon="pi pi-plus" (onClick)="openCreateDrawer()" />
   </header>
 
   <div class="table-card">
@@ -45,7 +45,7 @@
               size="small"
               pTooltip="Editar"
               tooltipPosition="top"
-              (onClick)="openEditDialog(role)"
+              (onClick)="openEditDrawer(role)"
             />
           </td>
         </tr>
@@ -65,3 +65,19 @@
   </div>
 
 </div>
+
+<p-drawer
+  [(visible)]="drawerVisible"
+  position="right"
+  [style]="{ width: '480px' }"
+  [header]="drawerMode() === 'create' ? 'Nova Função' : 'Editar Função'"
+>
+  <app-function-role-form-dialog
+    [mode]="drawerMode()"
+    [role]="selectedRole()"
+    [maxSortOrder]="maxSortOrder"
+    (saved)="onSaved()"
+    (cancelled)="onCancelled()"
+  />
+</p-drawer>
+

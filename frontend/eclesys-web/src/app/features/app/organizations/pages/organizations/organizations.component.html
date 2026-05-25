@@ -12,7 +12,7 @@
         [outlined]="true"
         (onClick)="openViewHierarchyDialog()"
       />
-      <p-button label="Nova Unidade" icon="pi pi-plus" (onClick)="openCreateDialog()" />
+      <p-button label="Nova Unidade" icon="pi pi-plus" (onClick)="openCreateDrawer()" />
     </div>
   </header>
 
@@ -31,7 +31,7 @@
     <div class="state-container">
       <i class="pi pi-building state-container__icon"></i>
       <p class="state-container__label">Nenhuma organização cadastrada</p>
-      <p-button label="Cadastrar primeira unidade" icon="pi pi-plus" [outlined]="true" (onClick)="openCreateDialog()" />
+      <p-button label="Cadastrar primeira unidade" icon="pi pi-plus" [outlined]="true" (onClick)="openCreateDrawer()" />
     </div>
   } @else {
 
@@ -129,3 +129,21 @@
   }
 
 </div>
+
+<p-drawer
+  [(visible)]="drawerVisible"
+  position="right"
+  [style]="{ width: '540px' }"
+  [header]="drawerMode() === 'create' ? 'Nova Unidade' : 'Editar Unidade'"
+>
+  <app-organization-form-dialog
+    [mode]="drawerMode()"
+    [unit]="drawerUnit()"
+    [defaultParentId]="drawerParentId()"
+    [defaultParentType]="drawerParentType()"
+    [allUnits]="getAllUnitsFlat()"
+    (saved)="onOrgSaved($event)"
+    (cancelled)="drawerVisible.set(false)"
+  />
+</p-drawer>
+

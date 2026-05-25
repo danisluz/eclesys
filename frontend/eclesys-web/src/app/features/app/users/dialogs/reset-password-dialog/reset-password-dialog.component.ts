@@ -1,6 +1,5 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, inject, signal, Input, Output, EventEmitter } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { DynamicDialogRef, DynamicDialogConfig } from 'primeng/dynamicdialog';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { UsersStore } from '../../data/users.store';
@@ -8,19 +7,18 @@ import { UserDto } from '../../models/user.models';
 import { passwordMatchValidator } from '../../../../../shared/validators/password-match.validator';
 import { NotificationService } from '../../../../../shared/services/notification.service';
 
-export interface ResetPasswordDialogData {
-  user: UserDto;
-}
-
 @Component({
+  selector: 'app-reset-password-dialog',
   standalone: true,
   imports: [ReactiveFormsModule, ButtonModule, InputTextModule],
   templateUrl: './reset-password-dialog.component.html',
   styleUrls: ['./reset-password-dialog.component.scss'],
 })
 export class ResetPasswordDialogComponent {
-  private readonly ref = inject(DynamicDialogRef);
-  readonly dialogData = inject(DynamicDialogConfig).data as ResetPasswordDialogData;
+  @Input() user!: UserDto;
+  @Output() saved = new EventEmitter<void>();
+  @Output() cancelled = new EventEmitter<void>();
+
   private readonly formBuilder = inject(FormBuilder);
   private readonly notificationService = inject(NotificationService);
   readonly usersStore = inject(UsersStore);
@@ -54,15 +52,15 @@ export class ResetPasswordDialogComponent {
     }
     this.isSubmitting.set(true);
     const newPassword = this.formGroup.controls.newPassword.value!;
-    const success = await this.usersStore.resetUserPassword(this.dialogData.user.id, newPassword);
+    const success = await this.usersStore.resetUserPassword(this.user.id, newPassword);
     this.isSubmitting.set(false);
     if (success) {
-      this.notificationService.success(`Senha de ${this.dialogData.user.name} redefinida com sucesso`);
-      this.ref.close(true);
+      this.notificationService.success(`Senha de ${this.user.name} redefinida com sucesso`);
+      this.saved.emit();
     }
   }
 
   close(): void {
-    this.ref.close(false);
+    this.cancelled.emit();
   }
 }

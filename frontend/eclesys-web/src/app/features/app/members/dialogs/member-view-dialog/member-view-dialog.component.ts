@@ -1,6 +1,4 @@
-import { Component, inject, signal, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { DynamicDialogRef, DynamicDialogConfig } from 'primeng/dynamicdialog';
+import { Component, inject, signal, OnInit, Input, Output, EventEmitter } from '@angular/core';
 import { ButtonModule } from 'primeng/button';
 import { TabsModule } from 'primeng/tabs';
 import { TagModule } from 'primeng/tag';
@@ -15,15 +13,17 @@ import { OrganizationUnit } from '../../../../../shared/api/organization-unit.mo
 @Component({
   selector: 'app-member-view-dialog',
   standalone: true,
-  imports: [CommonModule, ButtonModule, TabsModule, TagModule, DividerModule, ProgressSpinnerModule, TableModule],
+  imports: [ButtonModule, TabsModule, TagModule, DividerModule, ProgressSpinnerModule, TableModule],
   templateUrl: './member-view-dialog.component.html',
   styleUrls: ['./member-view-dialog.component.scss'],
 })
 export class MemberViewDialogComponent implements OnInit {
-  private service = inject(MembersService);
-  private organizationsService = inject(OrganizationsService);
-  private ref = inject(DynamicDialogRef);
-  data = inject(DynamicDialogConfig).data as { member: Member };
+  private readonly service = inject(MembersService);
+  private readonly organizationsService = inject(OrganizationsService);
+
+  @Input() member!: Member;
+  @Output() editRequested = new EventEmitter<Member>();
+  @Output() transferRequested = new EventEmitter<Member>();
 
   transfers = signal<MemberTransfer[]>([]);
   loadingTransfers = signal(true);
@@ -45,7 +45,7 @@ export class MemberViewDialogComponent implements OnInit {
 
   loadTransferHistory() {
     this.loadingTransfers.set(true);
-    this.service.getMemberTransferHistory(this.data.member.id).subscribe({
+    this.service.getMemberTransferHistory(this.member.id).subscribe({
       next: (response) => {
         this.transfers.set(response.data);
         this.loadingTransfers.set(false);
@@ -94,5 +94,4 @@ export class MemberViewDialogComponent implements OnInit {
   }
 
   getCongregationLabel(): string { return this.rootChurch()?.congregationLabel ?? 'Congregação'; }
-  close() { this.ref.close(); }
 }

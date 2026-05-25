@@ -1,9 +1,9 @@
 <div class="flex flex-col gap-4 p-2" [formGroup]="form">
   <div class="text-sm text-gray-700">
-    <p><strong>Membro:</strong> {{ data.member.fullName }}</p>
+    <p><strong>Membro:</strong> {{ member.fullName }}</p>
     <p>
       <strong>{{ getCongregationLabel() }} Atual:</strong>
-      {{ data.member.organizationUnitName || "Não definida" }}
+      {{ member.organizationUnitName || "Não definida" }}
     </p>
   </div>
 
@@ -48,7 +48,7 @@
       } @else {
         <p-select
           formControlName="toCongregationId"
-          [options]="congregations().filter(c => c.id !== data.member.organizationUnitId)"
+          [options]="congregations().filter(c => c.id !== member.organizationUnitId)"
           optionLabel="name"
           optionValue="id"
           [placeholder]="'Selecione ' + getCongregationLabel().toLowerCase()"

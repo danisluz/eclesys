@@ -1,7 +1,6 @@
-import { Component, inject, signal, computed } from '@angular/core';
+import { Component, signal, computed, OnInit, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { DynamicDialogRef, DynamicDialogConfig } from 'primeng/dynamicdialog';
 import { InputTextModule } from 'primeng/inputtext';
 import { ButtonModule } from 'primeng/button';
 import { SelectModule } from 'primeng/select';
@@ -15,14 +14,6 @@ import {
   UpdateOrganizationUnitRequest,
 } from '../../../../../shared/api/organization-unit.model';
 
-export interface OrganizationFormDialogData {
-  mode: 'create' | 'edit';
-  unit?: OrganizationUnit;
-  parentId?: string;
-  parentType?: OrganizationUnitType;
-  allUnits?: OrganizationUnit[];
-}
-
 @Component({
   standalone: true,
   selector: 'app-organization-form-dialog',
@@ -30,44 +21,72 @@ export interface OrganizationFormDialogData {
   templateUrl: './organization-form-dialog.component.html',
   styleUrls: ['./organization-form-dialog.component.scss'],
 })
-export class OrganizationFormDialogComponent {
-  private dialogRef = inject(DynamicDialogRef);
-  data = inject(DynamicDialogConfig).data as OrganizationFormDialogData;
+export class OrganizationFormDialogComponent implements OnInit {
+  @Input() mode: 'create' | 'edit' = 'create';
+  @Input() unit: OrganizationUnit | undefined;
+  @Input() defaultParentId: string | undefined;
+  @Input() defaultParentType: OrganizationUnitType | undefined;
+  @Input() allUnits: OrganizationUnit[] = [];
+  @Output() saved = new EventEmitter<CreateOrganizationUnitRequest | UpdateOrganizationUnitRequest>();
+  @Output() cancelled = new EventEmitter<void>();
 
-  name = this.data.unit?.name ?? '';
-  code = this.data.unit?.code ?? '';
-  type = this.data.unit?.type ?? this.getInitialType();
-  parentId = this.data.parentId ?? this.data.unit?.parentId ?? null;
-  isHeadquarters = this.data.unit?.isHeadquarters ?? false;
-  status = this.data.unit?.status ?? OrganizationUnitStatus.ACTIVE;
-  sectorLabel = this.data.unit?.sectorLabel ?? '';
-  congregationLabel = this.data.unit?.congregationLabel ?? '';
-  contactEmail = this.data.unit?.contactEmail ?? '';
-  contactPhone = this.data.unit?.contactPhone ?? '';
-  website = this.data.unit?.website ?? '';
-  address = this.data.unit?.address ?? '';
+  name = '';
+  code = '';
+  type = OrganizationUnitType.CHURCH;
+  parentId: string | null = null;
+  isHeadquarters = false;
+  status = OrganizationUnitStatus.ACTIVE;
+  sectorLabel = '';
+  congregationLabel = '';
+  contactEmail = '';
+  contactPhone = '';
+  website = '';
+  address = '';
 
   isSaving = signal(false);
   OrganizationUnitType = OrganizationUnitType;
   OrganizationUnitStatus = OrganizationUnitStatus;
+
+  private readonly allUnitsSignal = signal<OrganizationUnit[]>([]);
+  private readonly parentTypeSignal = signal<OrganizationUnitType | undefined>(undefined);
+  private readonly typeSignal = signal<OrganizationUnitType>(OrganizationUnitType.CHURCH);
 
   statusOptions = [
     { label: 'Ativa', value: OrganizationUnitStatus.ACTIVE },
     { label: 'Inativa', value: OrganizationUnitStatus.INACTIVE },
   ];
 
+  ngOnInit() {
+    this.allUnitsSignal.set(this.allUnits);
+    this.parentTypeSignal.set(this.defaultParentType);
+    this.name = this.unit?.name ?? '';
+    this.code = this.unit?.code ?? '';
+    this.type = this.unit?.type ?? this.getInitialType();
+    this.typeSignal.set(this.type);
+    this.parentId = this.defaultParentId ?? this.unit?.parentId ?? null;
+    this.isHeadquarters = this.unit?.isHeadquarters ?? false;
+    this.status = this.unit?.status ?? OrganizationUnitStatus.ACTIVE;
+    this.sectorLabel = this.unit?.sectorLabel ?? '';
+    this.congregationLabel = this.unit?.congregationLabel ?? '';
+    this.contactEmail = this.unit?.contactEmail ?? '';
+    this.contactPhone = this.unit?.contactPhone ?? '';
+    this.website = this.unit?.website ?? '';
+    this.address = this.unit?.address ?? '';
+  }
+
   private getInitialType(): OrganizationUnitType {
-    if (this.data.parentType === OrganizationUnitType.CHURCH) return OrganizationUnitType.SECTOR;
-    if (this.data.parentType === OrganizationUnitType.SECTOR) return OrganizationUnitType.CONGREGATION;
+    if (this.defaultParentType === OrganizationUnitType.CHURCH) return OrganizationUnitType.SECTOR;
+    if (this.defaultParentType === OrganizationUnitType.SECTOR) return OrganizationUnitType.CONGREGATION;
     return OrganizationUnitType.CHURCH;
   }
 
   availableTypes = computed(() => {
-    const church = this.data.allUnits?.find((u) => u.type === OrganizationUnitType.CHURCH);
-    if (this.data.parentType === OrganizationUnitType.CHURCH) {
+    const church = this.allUnitsSignal().find((u) => u.type === OrganizationUnitType.CHURCH);
+    const parentType = this.parentTypeSignal();
+    if (parentType === OrganizationUnitType.CHURCH) {
       return [{ value: OrganizationUnitType.SECTOR, label: church?.sectorLabel ?? 'Setor' }];
     }
-    if (this.data.parentType === OrganizationUnitType.SECTOR) {
+    if (parentType === OrganizationUnitType.SECTOR) {
       return [{ value: OrganizationUnitType.CONGREGATION, label: church?.congregationLabel ?? 'Congregação' }];
     }
     return [
@@ -78,14 +97,15 @@ export class OrganizationFormDialogComponent {
   });
 
   availableParents = computed(() => {
-    if (!this.data.allUnits) return [];
-    if (this.type === OrganizationUnitType.SECTOR) return this.data.allUnits.filter((u) => u.type === OrganizationUnitType.CHURCH);
-    if (this.type === OrganizationUnitType.CONGREGATION) return this.data.allUnits.filter((u) => u.type === OrganizationUnitType.SECTOR);
+    const type = this.typeSignal();
+    if (type === OrganizationUnitType.SECTOR) return this.allUnitsSignal().filter((u) => u.type === OrganizationUnitType.CHURCH);
+    if (type === OrganizationUnitType.CONGREGATION) return this.allUnitsSignal().filter((u) => u.type === OrganizationUnitType.SECTOR);
     return [];
   });
 
   onTypeChange() {
-    if (!this.data.parentId) this.parentId = null;
+    this.typeSignal.set(this.type);
+    if (!this.defaultParentId) this.parentId = null;
     this.isHeadquarters = false;
   }
 
@@ -103,10 +123,10 @@ export class OrganizationFormDialogComponent {
     return true;
   }
 
-  cancel() { this.dialogRef.close(); }
+  cancel() { this.cancelled.emit(); }
 
   save() {
-    if (this.data.mode === 'create') {
+    if (this.mode === 'create') {
       const request: CreateOrganizationUnitRequest = {
         name: this.name,
         code: this.code,
@@ -120,7 +140,7 @@ export class OrganizationFormDialogComponent {
         website: this.type === OrganizationUnitType.CHURCH ? this.website : undefined,
         address: this.type === OrganizationUnitType.CHURCH ? this.address : undefined,
       };
-      this.dialogRef.close(request);
+      this.saved.emit(request);
     } else {
       const request: UpdateOrganizationUnitRequest = {
         name: this.name,
@@ -131,7 +151,7 @@ export class OrganizationFormDialogComponent {
         website: this.type === OrganizationUnitType.CHURCH ? this.website : undefined,
         address: this.type === OrganizationUnitType.CHURCH ? this.address : undefined,
       };
-      this.dialogRef.close(request);
+      this.saved.emit(request);
     }
   }
 }

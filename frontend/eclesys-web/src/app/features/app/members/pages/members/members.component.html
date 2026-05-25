@@ -155,4 +155,26 @@
     </p-table>
   </div>
 
+  <!-- Drawer: visualização do membro -->
+  <p-drawer [(visible)]="viewDrawerVisible" position="right" [style]="{width: '600px'}" [header]="selectedMember()?.fullName ?? 'Membro'">
+    @if (selectedMember()) {
+      <app-member-view-dialog
+        [member]="selectedMember()!"
+        (editRequested)="viewDrawerVisible.set(false); router.navigate(['/app/members', $event['id'], 'edit'])"
+        (transferRequested)="viewDrawerVisible.set(false); selectedMember.set($event); transferDrawerVisible.set(true)"
+      />
+    }
+  </p-drawer>
+
+  <!-- Drawer: transferência -->
+  <p-drawer [(visible)]="transferDrawerVisible" position="right" [style]="{width: '560px'}" header="Transferir Membro">
+    @if (selectedMember()) {
+      <app-transfer-dialog
+        [member]="selectedMember()!"
+        (saved)="transferDrawerVisible.set(false); loadMembers(); notificationService.success('Transferência realizada com sucesso')"
+        (cancelled)="transferDrawerVisible.set(false)"
+      />
+    }
+  </p-drawer>
+
 </div>

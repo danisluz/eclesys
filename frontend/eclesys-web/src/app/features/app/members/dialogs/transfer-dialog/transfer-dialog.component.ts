@@ -1,12 +1,10 @@
-import { Component, inject, signal, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, inject, signal, OnInit, Input, Output, EventEmitter } from '@angular/core';
 import {
   FormBuilder,
   FormGroup,
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
-import { DynamicDialogRef, DynamicDialogConfig } from 'primeng/dynamicdialog';
 import { ButtonModule } from 'primeng/button';
 import { InputTextModule } from 'primeng/inputtext';
 import { SelectModule } from 'primeng/select';
@@ -22,7 +20,6 @@ import { OrganizationUnit } from '../../../../../shared/api/organization-unit.mo
   selector: 'app-transfer-dialog',
   standalone: true,
   imports: [
-    CommonModule,
     ReactiveFormsModule,
     ButtonModule,
     InputTextModule,
@@ -38,8 +35,10 @@ export class TransferDialogComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly membersService = inject(MembersService);
   private readonly organizationsService = inject(OrganizationsService);
-  private readonly ref = inject(DynamicDialogRef);
-  data = inject(DynamicDialogConfig).data as { member: Member };
+
+  @Input() member!: Member;
+  @Output() saved = new EventEmitter<void>();
+  @Output() cancelled = new EventEmitter<void>();
 
   form: FormGroup;
   congregations = signal<OrganizationUnit[]>([]);
@@ -63,9 +62,7 @@ export class TransferDialogComponent implements OnInit {
       } else {
         this.form.get('toCongregationId')?.clearValidators();
         this.form.get('toCongregationId')?.setValue(null);
-        this.form
-          .get('externalDestination')
-          ?.setValidators([Validators.required]);
+        this.form.get('externalDestination')?.setValidators([Validators.required]);
       }
       this.form.get('toCongregationId')?.updateValueAndValidity();
       this.form.get('externalDestination')?.updateValueAndValidity();
@@ -83,9 +80,7 @@ export class TransferDialogComponent implements OnInit {
         const rootChurch = response.data.find((org) => org.type === 'CHURCH');
         if (rootChurch) this.rootChurch.set(rootChurch);
 
-        const extractCongregations = (
-          orgs: OrganizationUnit[],
-        ): OrganizationUnit[] => {
+        const extractCongregations = (orgs: OrganizationUnit[]): OrganizationUnit[] => {
           let result: OrganizationUnit[] = [];
           for (const org of orgs) {
             if (org.type === 'CONGREGATION') result.push(org);
@@ -107,8 +102,9 @@ export class TransferDialogComponent implements OnInit {
   getCongregationLabel(): string {
     return this.rootChurch()?.congregationLabel ?? 'Congregação';
   }
+
   cancel() {
-    this.ref.close();
+    this.cancelled.emit();
   }
 
   save() {
@@ -120,18 +116,14 @@ export class TransferDialogComponent implements OnInit {
     const formValue = this.form.value;
     const request = {
       toCongregationId:
-        formValue.transferType === 'internal'
-          ? formValue.toCongregationId
-          : null,
+        formValue.transferType === 'internal' ? formValue.toCongregationId : null,
       externalDestination:
-        formValue.transferType === 'external'
-          ? formValue.externalDestination
-          : null,
+        formValue.transferType === 'external' ? formValue.externalDestination : null,
       reason: formValue.reason,
     };
-    this.membersService.transferMember(this.data.member.id, request).subscribe({
+    this.membersService.transferMember(this.member.id, request).subscribe({
       next: () => {
-        this.ref.close(true);
+        this.saved.emit();
       },
       error: () => {
         this.saving.set(false);

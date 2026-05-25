@@ -1,6 +1,7 @@
-import { Component, inject, ViewChild, afterNextRender } from '@angular/core';
+import { Component, inject, ViewChild, afterNextRender, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { DialogService } from 'primeng/dynamicdialog';
+import { DrawerModule } from 'primeng/drawer';
 import { TableModule } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
 import { TagModule } from 'primeng/tag';
@@ -23,6 +24,7 @@ import { NotificationService } from '../../../../../shared/services/notification
   standalone: true,
   imports: [
     FormsModule,
+    DrawerModule,
     TableModule,
     ButtonModule,
     TagModule,
@@ -31,6 +33,8 @@ import { NotificationService } from '../../../../../shared/services/notification
     MenuModule,
     ProgressSpinnerModule,
     UserAvatarComponent,
+    UserFormDialogComponent,
+    ResetPasswordDialogComponent,
   ],
   templateUrl: './users-page.component.html',
   styleUrls: ['./users-page.component.scss'],
@@ -43,6 +47,10 @@ export class UsersPageComponent {
 
   @ViewChild('userMenu') userMenu!: Menu;
   userMenuItems: MenuItem[] = [];
+
+  createDrawerVisible = signal(false);
+  resetPasswordDrawerVisible = signal(false);
+  selectedUser = signal<UserDto | undefined>(undefined);
 
   constructor() {
     afterNextRender(() => {
@@ -65,18 +73,20 @@ export class UsersPageComponent {
       {
         label: 'Redefinir senha',
         icon: 'pi pi-lock',
-        command: () => this.openResetPasswordDialog(user),
+        command: () => this.openResetPasswordDrawer(user),
       },
     ];
     this.userMenu.toggle(event);
   }
 
-  openCreateDialog(): void {
+  openCreateDrawer(): void {
     this.usersStore.clearCreateError();
-    this.dialogService.open(UserFormDialogComponent, {
-      header: 'Novo Usuário',
-      width: '640px',
-    });
+    this.createDrawerVisible.set(true);
+  }
+
+  onUserSaved(): void {
+    this.createDrawerVisible.set(false);
+    this.notificationService.success('Usuário criado com sucesso');
   }
 
   reload(): void {
@@ -105,28 +115,20 @@ export class UsersPageComponent {
         user.isActive = previousValue;
         return;
       }
-
       const success = await this.usersStore.updateStatus(user.id, newValue);
-
       if (!success) {
         user.isActive = previousValue;
         return;
       }
-
       this.notificationService.success(
-        newValue
-          ? `Usuário ${user.name} ativado com sucesso`
-          : `Usuário ${user.name} desativado com sucesso`,
+        newValue ? `Usuário ${user.name} ativado com sucesso` : `Usuário ${user.name} desativado com sucesso`,
       );
     });
   }
 
-  openResetPasswordDialog(user: UserDto): void {
+  openResetPasswordDrawer(user: UserDto): void {
     this.usersStore.clearResetPasswordError();
-    this.dialogService.open(ResetPasswordDialogComponent, {
-      header: 'Redefinir Senha',
-      width: '640px',
-      data: { user },
-    });
+    this.selectedUser.set(user);
+    this.resetPasswordDrawerVisible.set(true);
   }
 }
