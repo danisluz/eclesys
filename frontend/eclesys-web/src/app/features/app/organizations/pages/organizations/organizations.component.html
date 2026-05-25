@@ -10,7 +10,7 @@
         label="Visualizar Hierarquia"
         icon="pi pi-eye"
         [outlined]="true"
-        (onClick)="openViewHierarchyDialog()"
+        (onClick)="openHierarchyDrawer()"
       />
       <p-button label="Nova Unidade" icon="pi pi-plus" (onClick)="openCreateDrawer()" />
     </div>
@@ -131,19 +131,47 @@
 </div>
 
 <p-drawer
+  [(visible)]="hierarchyDrawerVisible"
+  position="right"
+  [style]="{ width: '680px' }"
+  [closable]="false"
+  [blockScroll]="true"
+>
+  <div class="drawer-panel">
+    <div class="drawer-panel__header">
+      <span class="drawer-panel__title">Hierarquia e Cargos</span>
+      <p-button icon="pi pi-times" [text]="true" [rounded]="true" size="small" (onClick)="hierarchyDrawerVisible.set(false)" />
+    </div>
+    @if (hierarchyDrawerVisible()) {
+      <app-view-hierarchy-dialog
+        [rootOrganizationId]="hierarchyRootId()"
+        (closed)="hierarchyDrawerVisible.set(false)"
+      />
+    }
+  </div>
+</p-drawer>
+
+<p-drawer
   [(visible)]="drawerVisible"
   position="right"
   [style]="{ width: '540px' }"
-  [header]="drawerMode() === 'create' ? 'Nova Unidade' : 'Editar Unidade'"
+  [closable]="false"
+  [blockScroll]="true"
 >
-  <app-organization-form-dialog
-    [mode]="drawerMode()"
-    [unit]="drawerUnit()"
-    [defaultParentId]="drawerParentId()"
-    [defaultParentType]="drawerParentType()"
-    [allUnits]="getAllUnitsFlat()"
-    (saved)="onOrgSaved($event)"
-    (cancelled)="drawerVisible.set(false)"
-  />
+  <div class="drawer-panel">
+    <div class="drawer-panel__header">
+      <span class="drawer-panel__title">{{ drawerMode() === 'create' ? 'Nova Unidade' : 'Editar Unidade' }}</span>
+      <p-button icon="pi pi-times" [text]="true" [rounded]="true" size="small" (onClick)="drawerVisible.set(false)" />
+    </div>
+    <app-organization-form-dialog
+      [mode]="drawerMode()"
+      [unit]="drawerUnit()"
+      [defaultParentId]="drawerParentId()"
+      [defaultParentType]="drawerParentType()"
+      [allUnits]="getAllUnitsFlat()"
+      (saved)="onOrgSaved($event)"
+      (cancelled)="drawerVisible.set(false)"
+    />
+  </div>
 </p-drawer>
 

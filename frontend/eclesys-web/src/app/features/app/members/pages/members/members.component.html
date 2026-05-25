@@ -156,25 +156,37 @@
   </div>
 
   <!-- Drawer: visualização do membro -->
-  <p-drawer [(visible)]="viewDrawerVisible" position="right" [style]="{width: '600px'}" [header]="selectedMember()?.fullName ?? 'Membro'">
-    @if (selectedMember()) {
-      <app-member-view-dialog
-        [member]="selectedMember()!"
-        (editRequested)="viewDrawerVisible.set(false); router.navigate(['/app/members', $event['id'], 'edit'])"
-        (transferRequested)="viewDrawerVisible.set(false); selectedMember.set($event); transferDrawerVisible.set(true)"
-      />
-    }
+  <p-drawer [(visible)]="viewDrawerVisible" position="right" [style]="{width: '600px'}" [closable]="false" [blockScroll]="true">
+    <div class="drawer-panel">
+      <div class="drawer-panel__header">
+        <span class="drawer-panel__title">{{ selectedMember()?.fullName ?? 'Membro' }}</span>
+        <p-button icon="pi pi-times" [text]="true" [rounded]="true" size="small" (onClick)="viewDrawerVisible.set(false)" />
+      </div>
+      @if (selectedMember()) {
+        <app-member-view-dialog
+          [member]="selectedMember()!"
+          (editRequested)="viewDrawerVisible.set(false); router.navigate(['/app/members', $event['id'], 'edit'])"
+          (transferRequested)="viewDrawerVisible.set(false); selectedMember.set($event); transferDrawerVisible.set(true)"
+        />
+      }
+    </div>
   </p-drawer>
 
   <!-- Drawer: transferência -->
-  <p-drawer [(visible)]="transferDrawerVisible" position="right" [style]="{width: '560px'}" header="Transferir Membro">
-    @if (selectedMember()) {
-      <app-transfer-dialog
-        [member]="selectedMember()!"
-        (saved)="transferDrawerVisible.set(false); loadMembers(); notificationService.success('Transferência realizada com sucesso')"
-        (cancelled)="transferDrawerVisible.set(false)"
-      />
-    }
+  <p-drawer [(visible)]="transferDrawerVisible" position="right" [style]="{width: '560px'}" [closable]="false" [blockScroll]="true">
+    <div class="drawer-panel">
+      <div class="drawer-panel__header">
+        <span class="drawer-panel__title">Transferir Membro</span>
+        <p-button icon="pi pi-times" [text]="true" [rounded]="true" size="small" (onClick)="transferDrawerVisible.set(false)" />
+      </div>
+      @if (selectedMember()) {
+        <app-transfer-dialog
+          [member]="selectedMember()!"
+          (saved)="transferDrawerVisible.set(false); loadMembers(); notificationService.success('Transferência realizada com sucesso')"
+          (cancelled)="transferDrawerVisible.set(false)"
+        />
+      }
+    </div>
   </p-drawer>
 
 </div>

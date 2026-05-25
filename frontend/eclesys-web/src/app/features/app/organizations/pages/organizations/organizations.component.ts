@@ -34,10 +34,7 @@ import {
   ManageRolesDialogComponent,
   ManageRolesDialogData,
 } from '../../dialogs/manage-roles-dialog/manage-roles-dialog.component';
-import {
-  ViewHierarchyDialogComponent,
-  ViewHierarchyDialogData,
-} from '../../dialogs/view-hierarchy-dialog/view-hierarchy-dialog.component';
+import { ViewHierarchyDialogComponent } from '../../dialogs/view-hierarchy-dialog/view-hierarchy-dialog.component';
 import { NotificationService } from '../../../../../shared/services/notification.service';
 
 @Component({
@@ -56,6 +53,7 @@ import { NotificationService } from '../../../../../shared/services/notification
     MenuModule,
     ProgressSpinnerModule,
     OrganizationFormDialogComponent,
+    ViewHierarchyDialogComponent,
   ],
   templateUrl: './organizations.component.html',
   styleUrls: ['./organizations.component.scss'],
@@ -81,6 +79,9 @@ export class OrganizationsComponent implements OnInit {
   drawerUnit = signal<OrganizationUnit | undefined>(undefined);
   drawerParentId = signal<string | undefined>(undefined);
   drawerParentType = signal<OrganizationUnitType | undefined>(undefined);
+
+  hierarchyDrawerVisible = signal(false);
+  hierarchyRootId = signal<string | undefined>(undefined);
 
   typeOptions = computed(() => [
     { label: 'Todos', value: 'ALL' },
@@ -211,7 +212,7 @@ export class OrganizationsComponent implements OnInit {
 
   openRowMenu(event: Event, unit: OrganizationUnit) {
     const items: MenuItem[] = [
-      { label: 'Visualizar Hierarquia', icon: 'pi pi-eye', command: () => this.openViewHierarchyDialog(unit.id) },
+      { label: 'Visualizar Hierarquia', icon: 'pi pi-eye', command: () => this.openHierarchyDrawer(unit.id) },
       { label: 'Gerenciar Cargos', icon: 'pi pi-id-card', command: () => this.openManageRolesDialog(unit) },
       { label: 'Editar', icon: 'pi pi-pencil', command: () => this.openEditDrawer(unit) },
     ];
@@ -309,12 +310,8 @@ export class OrganizationsComponent implements OnInit {
     ref.onClose.subscribe(() => this.loadOrganizations());
   }
 
-  openViewHierarchyDialog(rootOrganizationId?: string) {
-    const dialogData: ViewHierarchyDialogData = { rootOrganizationId };
-    this.dialogService.open(ViewHierarchyDialogComponent, {
-      header: 'Hierarquia e Cargos',
-      width: '900px',
-      data: dialogData,
-    });
+  openHierarchyDrawer(rootOrganizationId?: string) {
+    this.hierarchyRootId.set(rootOrganizationId);
+    this.hierarchyDrawerVisible.set(true);
   }
 }

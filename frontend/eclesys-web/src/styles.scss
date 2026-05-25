@@ -39,6 +39,10 @@ body {
   background: #fff;
 }
 
+body.p-overflow-hidden .content {
+  overflow-y: hidden;
+}
+
 /* =========================
    ECLESYS – Form Layout (GLOBAL)
 ========================= */

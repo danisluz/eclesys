@@ -8,7 +8,9 @@
         (onClick)="cancel()"
         class="back-button"
       />
-      <h1 class="page__title">{{ mode() === 'create' ? 'Novo Membro' : 'Editar Membro' }}</h1>
+      <h1 class="page__title">
+        {{ mode() === "create" ? "Novo Membro" : "Editar Membro" }}
+      </h1>
     </div>
     <div class="page__actions">
       <p-button
@@ -29,26 +31,39 @@
   </header>
 
   <form [formGroup]="form" class="form-card flex flex-col gap-4">
-
     <!-- Dados Básicos -->
     <div class="flex flex-col gap-1">
       <label for="fullName" class="text-sm font-medium">Nome Completo *</label>
-      <input pInputText id="fullName" formControlName="fullName" placeholder="Nome completo do membro" class="w-full" />
-      @if (form.controls.fullName.hasError('required') && form.controls.fullName.touched) {
+      <input
+        pInputText
+        id="fullName"
+        formControlName="fullName"
+        placeholder="Nome completo do membro"
+        class="w-full"
+      />
+      @if (
+        form.controls.fullName.hasError("required") &&
+        form.controls.fullName.touched
+      ) {
         <small class="text-red-500">Nome é obrigatório</small>
       }
-      @if (form.controls.fullName.hasError('maxlength') && form.controls.fullName.touched) {
+      @if (
+        form.controls.fullName.hasError("maxlength") &&
+        form.controls.fullName.touched
+      ) {
         <small class="text-red-500">Máximo 180 caracteres</small>
       }
     </div>
 
     <div class="flex flex-col gap-1">
-      <label for="congregation-search" class="text-sm font-medium">{{ getCongregationLabel() }} *</label>
+      <label for="congregation-search" class="text-sm font-medium"
+        >{{ getCongregationLabel() }} *</label
+      >
       <p-autocomplete
         inputId="congregation-search"
         [formControl]="congregationSearchControl"
         [suggestions]="filteredCongregations"
-        field="name"
+        optionLabel="name"
         [forceSelection]="true"
         [dropdown]="true"
         (completeMethod)="searchCongregations($event)"
@@ -56,39 +71,80 @@
         (onClear)="onCongregationClear()"
         [placeholder]="'Digite para buscar ' + getCongregationLabel()"
         styleClass="w-full"
-      />
-      @if (form.controls.organizationUnitId.hasError('required') && form.controls.organizationUnitId.touched) {
-        <small class="text-red-500">{{ getCongregationLabel() }} é obrigatória</small>
+      >
+        <ng-template #selecteditem let-unit>{{ unit.name }}</ng-template>
+        <ng-template #item let-unit>
+          <span>{{ unit.name }}</span>
+        </ng-template>
+      </p-autocomplete>
+      @if (
+        form.controls.organizationUnitId.hasError("required") &&
+        form.controls.organizationUnitId.touched
+      ) {
+        <small class="text-red-500"
+          >{{ getCongregationLabel() }} é obrigatória</small
+        >
       }
     </div>
 
     <div class="grid grid-cols-2 gap-3">
       <div class="flex flex-col gap-1">
         <label for="email" class="text-sm font-medium">Email</label>
-        <input pInputText id="email" type="email" formControlName="email" placeholder="email@exemplo.com" />
-        @if (form.controls.email.hasError('email') && form.controls.email.touched) {
+        <input
+          pInputText
+          id="email"
+          type="email"
+          formControlName="email"
+          placeholder="email@exemplo.com"
+        />
+        @if (
+          form.controls.email.hasError("email") && form.controls.email.touched
+        ) {
           <small class="text-red-500">Email inválido</small>
         }
       </div>
       <div class="flex flex-col gap-1">
         <label for="phone" class="text-sm font-medium">Telefone</label>
-        <input pInputText id="phone" formControlName="phone" mask="(00) 0000-0000||(00) 0 0000-0000" placeholder="(00) 00000-0000" />
+        <input
+          pInputText
+          id="phone"
+          formControlName="phone"
+          mask="(00) 0000-0000||(00) 0 0000-0000"
+          placeholder="(00) 00000-0000"
+        />
       </div>
     </div>
 
     <div class="grid grid-cols-2 gap-3">
       <div class="flex flex-col gap-1">
-        <label for="document" class="text-sm font-medium">CPF/Documento *</label>
-        <input pInputText id="document" formControlName="document" mask="000.000.000-00" placeholder="000.000.000-00" [readonly]="mode() === 'edit'" />
-        @if (form.controls.document.hasError('required') && form.controls.document.touched) {
+        <label for="document" class="text-sm font-medium"
+          >CPF/Documento *</label
+        >
+        <input
+          pInputText
+          id="document"
+          formControlName="document"
+          mask="000.000.000-00"
+          placeholder="000.000.000-00"
+          [readonly]="mode() === 'edit'"
+        />
+        @if (
+          form.controls.document.hasError("required") &&
+          form.controls.document.touched
+        ) {
           <small class="text-red-500">CPF é obrigatório</small>
         }
-        @if (form.controls.document.hasError('cpfInvalido') && form.controls.document.touched) {
+        @if (
+          form.controls.document.hasError("cpfInvalido") &&
+          form.controls.document.touched
+        ) {
           <small class="text-red-500">CPF inválido</small>
         }
       </div>
       <div class="flex flex-col gap-1">
-        <label for="churchRole" class="text-sm font-medium">Cargo Eclesiástico</label>
+        <label for="churchRole" class="text-sm font-medium"
+          >Cargo Eclesiástico</label
+        >
         <p-select
           inputId="churchRole"
           formControlName="churchRoleId"
@@ -107,17 +163,27 @@
         <label class="text-sm font-medium">Sexo</label>
         <div class="flex gap-4">
           <div class="flex items-center gap-2">
-            <p-radiobutton inputId="genderM" formControlName="gender" value="M" />
+            <p-radiobutton
+              inputId="genderM"
+              formControlName="gender"
+              value="M"
+            />
             <label for="genderM">Masculino</label>
           </div>
           <div class="flex items-center gap-2">
-            <p-radiobutton inputId="genderF" formControlName="gender" value="F" />
+            <p-radiobutton
+              inputId="genderF"
+              formControlName="gender"
+              value="F"
+            />
             <label for="genderF">Feminino</label>
           </div>
         </div>
       </div>
       <div class="flex flex-col gap-1">
-        <label for="maritalStatus" class="text-sm font-medium">Estado Civil</label>
+        <label for="maritalStatus" class="text-sm font-medium"
+          >Estado Civil</label
+        >
         <p-select
           inputId="maritalStatus"
           formControlName="maritalStatus"
@@ -132,49 +198,93 @@
 
     <div class="grid grid-cols-2 gap-3">
       <div class="flex flex-col gap-1">
-        <label for="birthDate" class="text-sm font-medium">Data de Nascimento</label>
-        <p-datepicker inputId="birthDate" formControlName="birthDate" dateFormat="dd/mm/yy" [showIcon]="true" [showButtonBar]="true" placeholder="dd/mm/aaaa" styleClass="w-full" />
+        <label for="birthDate" class="text-sm font-medium"
+          >Data de Nascimento</label
+        >
+        <p-datepicker
+          inputId="birthDate"
+          formControlName="birthDate"
+          dateFormat="dd/mm/yy"
+          [showIcon]="true"
+          [showButtonBar]="true"
+          placeholder="dd/mm/aaaa"
+          styleClass="w-full"
+        />
       </div>
       <div class="flex flex-col gap-1">
-        <label for="baptismDate" class="text-sm font-medium">Data de Batismo</label>
-        <p-datepicker inputId="baptismDate" formControlName="baptismDate" dateFormat="dd/mm/yy" [showIcon]="true" [showButtonBar]="true" placeholder="dd/mm/aaaa" styleClass="w-full" />
+        <label for="baptismDate" class="text-sm font-medium"
+          >Data de Batismo</label
+        >
+        <p-datepicker
+          inputId="baptismDate"
+          formControlName="baptismDate"
+          dateFormat="dd/mm/yy"
+          [showIcon]="true"
+          [showButtonBar]="true"
+          placeholder="dd/mm/aaaa"
+          styleClass="w-full"
+        />
       </div>
     </div>
 
     <div class="grid grid-cols-2 gap-3">
       <div class="flex flex-col gap-1">
-        <label for="baptismChurch" class="text-sm font-medium">Igreja do Batismo</label>
+        <label for="baptismChurch" class="text-sm font-medium"
+          >Igreja do Batismo</label
+        >
         <input pInputText id="baptismChurch" formControlName="baptismChurch" />
       </div>
       <div class="flex flex-col gap-1">
-        <label for="baptismLocation" class="text-sm font-medium">Local do Batismo</label>
-        <input pInputText id="baptismLocation" formControlName="baptismLocation" />
+        <label for="baptismLocation" class="text-sm font-medium"
+          >Local do Batismo</label
+        >
+        <input
+          pInputText
+          id="baptismLocation"
+          formControlName="baptismLocation"
+        />
       </div>
     </div>
 
     <!-- Endereço -->
-    <h3 class="font-semibold text-sm text-gray-600 uppercase border-t pt-3">Endereço</h3>
+    <h3 class="font-semibold text-sm text-gray-600 uppercase border-t pt-3">
+      Endereço
+    </h3>
 
-    <div class="flex gap-3 items-end">
-      <div class="flex flex-col gap-1 flex-1">
+    <div class="cep-row">
+      <div class="cep-field">
         <label for="addressZipCode" class="text-sm font-medium">CEP</label>
-        <input pInputText id="addressZipCode" formControlName="addressZipCode" mask="00000-000" placeholder="00000-000" />
-        <small class="text-gray-400">Digite o CEP para preencher o endereço</small>
+        <div class="cep-input-group">
+          <input
+            pInputText
+            id="addressZipCode"
+            formControlName="addressZipCode"
+            mask="00000-000"
+            placeholder="00000-000"
+            class="w-full"
+          />
+          <p-button
+            label="Buscar CEP"
+            icon="pi pi-search"
+            severity="secondary"
+            [outlined]="true"
+            type="button"
+            class="cep-button"
+            [loading]="isCepLookupLoading()"
+            (onClick)="lookupCep()"
+          />
+        </div>
+        <small class="text-gray-400"
+          >Digite o CEP para preencher o endereço</small
+        >
       </div>
-      <p-button
-        label="Buscar CEP"
-        icon="pi pi-search"
-        severity="secondary"
-        [outlined]="true"
-        type="button"
-        [loading]="isCepLookupLoading()"
-        (onClick)="lookupCep()"
-      />
     </div>
 
     <div class="grid grid-cols-3 gap-3">
       <div class="col-span-2 flex flex-col gap-1">
-        <label for="addressStreet" class="text-sm font-medium">Rua/Avenida</label>
+        <label for="addressStreet" class="text-sm font-medium"
+          >Rua/Avenida</label
+        >
         <input pInputText id="addressStreet" formControlName="addressStreet" />
       </div>
       <div class="flex flex-col gap-1">
@@ -185,12 +295,24 @@
 
     <div class="grid grid-cols-2 gap-3">
       <div class="flex flex-col gap-1">
-        <label for="addressComplement" class="text-sm font-medium">Complemento</label>
-        <input pInputText id="addressComplement" formControlName="addressComplement" />
+        <label for="addressComplement" class="text-sm font-medium"
+          >Complemento</label
+        >
+        <input
+          pInputText
+          id="addressComplement"
+          formControlName="addressComplement"
+        />
       </div>
       <div class="flex flex-col gap-1">
-        <label for="addressNeighborhood" class="text-sm font-medium">Bairro</label>
-        <input pInputText id="addressNeighborhood" formControlName="addressNeighborhood" />
+        <label for="addressNeighborhood" class="text-sm font-medium"
+          >Bairro</label
+        >
+        <input
+          pInputText
+          id="addressNeighborhood"
+          formControlName="addressNeighborhood"
+        />
       </div>
     </div>
 
@@ -201,12 +323,19 @@
       </div>
       <div class="flex flex-col gap-1">
         <label for="addressState" class="text-sm font-medium">Estado</label>
-        <input pInputText id="addressState" formControlName="addressState" maxlength="2" />
+        <input
+          pInputText
+          id="addressState"
+          formControlName="addressState"
+          maxlength="2"
+        />
       </div>
     </div>
 
     <!-- Família -->
-    <h3 class="font-semibold text-sm text-gray-600 uppercase border-t pt-3">Família</h3>
+    <h3 class="font-semibold text-sm text-gray-600 uppercase border-t pt-3">
+      Família
+    </h3>
 
     <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
       <div class="flex flex-col gap-1">
@@ -215,7 +344,7 @@
           inputId="spouse-search"
           [formControl]="spouseSearchControl"
           [suggestions]="filteredMembers"
-          field="fullName"
+          optionLabel="fullName"
           [forceSelection]="true"
           [dropdown]="true"
           (completeMethod)="searchMembersFor('spouse', $event)"
@@ -223,7 +352,14 @@
           (onClear)="onSpouseClear()"
           placeholder="Digite para buscar"
           styleClass="w-full"
-        />
+        >
+          <ng-template #selecteditem let-member>{{
+            member.fullName
+          }}</ng-template>
+          <ng-template #item let-member>
+            <span>{{ member.fullName }}</span>
+          </ng-template>
+        </p-autocomplete>
       </div>
       <div class="flex flex-col gap-1">
         <label for="father-search" class="text-sm font-medium">Pai</label>
@@ -231,7 +367,7 @@
           inputId="father-search"
           [formControl]="fatherSearchControl"
           [suggestions]="filteredMembers"
-          field="fullName"
+          optionLabel="fullName"
           [forceSelection]="true"
           [dropdown]="true"
           (completeMethod)="searchMembersFor('father', $event)"
@@ -239,7 +375,14 @@
           (onClear)="onFatherClear()"
           placeholder="Digite para buscar"
           styleClass="w-full"
-        />
+        >
+          <ng-template #selecteditem let-member>{{
+            member.fullName
+          }}</ng-template>
+          <ng-template #item let-member>
+            <span>{{ member.fullName }}</span>
+          </ng-template>
+        </p-autocomplete>
       </div>
       <div class="flex flex-col gap-1">
         <label for="mother-search" class="text-sm font-medium">Mãe</label>
@@ -247,7 +390,7 @@
           inputId="mother-search"
           [formControl]="motherSearchControl"
           [suggestions]="filteredMembers"
-          field="fullName"
+          optionLabel="fullName"
           [forceSelection]="true"
           [dropdown]="true"
           (completeMethod)="searchMembersFor('mother', $event)"
@@ -255,11 +398,18 @@
           (onClear)="onMotherClear()"
           placeholder="Digite para buscar"
           styleClass="w-full"
-        />
+        >
+          <ng-template #selecteditem let-member>{{
+            member.fullName
+          }}</ng-template>
+          <ng-template #item let-member>
+            <span>{{ member.fullName }}</span>
+          </ng-template>
+        </p-autocomplete>
       </div>
     </div>
 
-    @if (mode() === 'edit') {
+    @if (mode() === "edit") {
       <div class="flex flex-col gap-1">
         <label for="status" class="text-sm font-medium">Status</label>
         <p-select
@@ -272,6 +422,5 @@
         />
       </div>
     }
-
   </form>
 </div>

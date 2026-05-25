@@ -40,3 +40,34 @@
   padding: 24px;
   max-width: 860px;
 }
+
+.cep-row {
+  width: 100%;
+}
+
+.cep-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.cep-input-group {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: end;
+}
+
+.cep-button {
+  white-space: nowrap;
+}
+
+@media (max-width: 640px) {
+  .cep-input-group {
+    grid-template-columns: 1fr;
+  }
+
+  .cep-button {
+    width: 100%;
+  }
+}

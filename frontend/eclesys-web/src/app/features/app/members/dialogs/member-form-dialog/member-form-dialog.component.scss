@@ -38,19 +38,34 @@
 }
 
 .cep-row {
+  width: 100%;
+}
+
+.cep-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.cep-input-group {
   display: grid;
-  grid-template-columns: minmax(240px, 340px) auto;
+  grid-template-columns: minmax(0, 1fr) auto;
   gap: 12px;
-  align-items: center;
+  align-items: end;
 }
 
 .cep-button {
-  height: 56px;
-  width: 240px;
-  align-self: stretch;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
+  white-space: nowrap;
+}
+
+@media (max-width: 640px) {
+  .cep-input-group {
+    grid-template-columns: 1fr;
+  }
+
+  .cep-button {
+    width: 100%;
+  }
 }
 
 .family-grid {

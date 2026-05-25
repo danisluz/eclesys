@@ -249,14 +249,21 @@
   [(visible)]="createDrawerVisible"
   position="right"
   [style]="{ width: '480px' }"
-  header="Novo Evento de Santa Ceia"
+  [closable]="false"
+  [blockScroll]="true"
 >
-  <app-create-communion-event-dialog
-    [congregations]="eventsStore.congregationsSignal()"
-    [defaultCongregationId]="eventsStore.selectedCongregationIdSignal()"
-    [congregationLabel]="eventsStore.congregationLabelSignal()"
-    (saved)="onEventCreated($event)"
-    (cancelled)="createDrawerVisible.set(false)"
-  />
+  <div class="drawer-panel">
+    <div class="drawer-panel__header">
+      <span class="drawer-panel__title">Novo Evento de Santa Ceia</span>
+      <p-button icon="pi pi-times" [text]="true" [rounded]="true" size="small" (onClick)="createDrawerVisible.set(false)" />
+    </div>
+    <app-create-communion-event-dialog
+      [congregations]="eventsStore.congregationsSignal()"
+      [defaultCongregationId]="eventsStore.selectedCongregationIdSignal()"
+      [congregationLabel]="eventsStore.congregationLabelSignal()"
+      (saved)="onEventCreated($event)"
+      (cancelled)="createDrawerVisible.set(false)"
+    />
+  </div>
 </p-drawer>
 

@@ -110,12 +110,19 @@
   [(visible)]="createDrawerVisible"
   position="right"
   [style]="{ width: '520px' }"
-  header="Novo Usuário"
+  [closable]="false"
+  [blockScroll]="true"
 >
-  <app-user-form-dialog
-    (saved)="onUserSaved()"
-    (cancelled)="createDrawerVisible.set(false)"
-  />
+  <div class="drawer-panel">
+    <div class="drawer-panel__header">
+      <span class="drawer-panel__title">Novo Usuário</span>
+      <p-button icon="pi pi-times" [text]="true" [rounded]="true" size="small" (onClick)="createDrawerVisible.set(false)" />
+    </div>
+    <app-user-form-dialog
+      (saved)="onUserSaved()"
+      (cancelled)="createDrawerVisible.set(false)"
+    />
+  </div>
 </p-drawer>
 
 @if (selectedUser()) {
@@ -123,13 +130,20 @@
     [(visible)]="resetPasswordDrawerVisible"
     position="right"
     [style]="{ width: '480px' }"
-    header="Redefinir Senha"
+    [closable]="false"
+    [blockScroll]="true"
   >
-    <app-reset-password-dialog
-      [user]="selectedUser()!"
-      (saved)="resetPasswordDrawerVisible.set(false)"
-      (cancelled)="resetPasswordDrawerVisible.set(false)"
-    />
+    <div class="drawer-panel">
+      <div class="drawer-panel__header">
+        <span class="drawer-panel__title">Redefinir Senha</span>
+        <p-button icon="pi pi-times" [text]="true" [rounded]="true" size="small" (onClick)="resetPasswordDrawerVisible.set(false)" />
+      </div>
+      <app-reset-password-dialog
+        [user]="selectedUser()!"
+        (saved)="resetPasswordDrawerVisible.set(false)"
+        (cancelled)="resetPasswordDrawerVisible.set(false)"
+      />
+    </div>
   </p-drawer>
 }
 

@@ -1,12 +1,13 @@
 <form [formGroup]="form" class="flex flex-col gap-4 p-2">
-
   <div class="flex flex-col gap-1">
-    <label for="congregation-autocomplete" class="text-sm font-medium">{{ congregationLabel }}</label>
+    <label for="congregation-autocomplete" class="text-sm font-medium">{{
+      congregationLabel
+    }}</label>
     <p-autocomplete
       inputId="congregation-autocomplete"
       [formControl]="congregationSearchControl"
       [suggestions]="filteredCongregations"
-      field="name"
+      optionLabel="name"
       [forceSelection]="true"
       [dropdown]="true"
       (completeMethod)="searchCongregations($event)"
@@ -14,14 +15,24 @@
       (onClear)="onCongregationClear()"
       [placeholder]="'Digite para buscar ' + congregationLabel"
       styleClass="w-full"
-    />
-    @if (form.controls.congregationId.hasError('required') && form.controls.congregationId.touched) {
+    >
+      <ng-template #selecteditem let-unit>{{ unit.name }}</ng-template>
+      <ng-template #item let-unit>
+        <span>{{ unit.name }}</span>
+      </ng-template>
+    </p-autocomplete>
+    @if (
+      form.controls.congregationId.hasError("required") &&
+      form.controls.congregationId.touched
+    ) {
       <small class="text-red-500">Selecione uma {{ congregationLabel }}</small>
     }
   </div>
 
   <div class="flex flex-col gap-1">
-    <label for="event-date" class="text-sm font-medium">Data da Santa Ceia</label>
+    <label for="event-date" class="text-sm font-medium"
+      >Data da Santa Ceia</label
+    >
     <p-datepicker
       inputId="event-date"
       formControlName="eventDate"
@@ -31,17 +42,30 @@
       placeholder="Escolha a data"
       styleClass="w-full"
     />
-    @if (form.controls.eventDate.hasError('required') && form.controls.eventDate.touched) {
+    @if (
+      form.controls.eventDate.hasError("required") &&
+      form.controls.eventDate.touched
+    ) {
       <small class="text-red-500">Informe a data do evento</small>
     }
   </div>
 
   @if (errorMessageSignal(); as message) {
-    <div class="text-red-500 text-sm p-2 bg-red-50 rounded border border-red-200">{{ message }}</div>
+    <div
+      class="text-red-500 text-sm p-2 bg-red-50 rounded border border-red-200"
+    >
+      {{ message }}
+    </div>
   }
 
   <div class="flex justify-end gap-2 pt-2">
-    <p-button label="Cancelar" severity="secondary" [outlined]="true" type="button" (onClick)="cancel()" />
+    <p-button
+      label="Cancelar"
+      severity="secondary"
+      [outlined]="true"
+      type="button"
+      (onClick)="cancel()"
+    />
     <p-button
       label="Criar evento"
       type="button"

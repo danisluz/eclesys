@@ -66,14 +66,21 @@
   [(visible)]="drawerVisible"
   position="right"
   [style]="{ width: '480px' }"
-  [header]="drawerMode() === 'create' ? 'Novo Cargo' : 'Editar Cargo'"
+  [closable]="false"
+  [blockScroll]="true"
 >
-  <app-church-role-form-dialog
-    [mode]="drawerMode()"
-    [role]="selectedRole()"
-    [maxSortOrder]="maxSortOrder"
-    (saved)="onSaved()"
-    (cancelled)="onCancelled()"
-  />
+  <div class="drawer-panel">
+    <div class="drawer-panel__header">
+      <span class="drawer-panel__title">{{ drawerMode() === 'create' ? 'Novo Cargo' : 'Editar Cargo' }}</span>
+      <p-button icon="pi pi-times" [text]="true" [rounded]="true" size="small" (onClick)="drawerVisible.set(false)" />
+    </div>
+    <app-church-role-form-dialog
+      [mode]="drawerMode()"
+      [role]="selectedRole()"
+      [maxSortOrder]="maxSortOrder"
+      (saved)="onSaved()"
+      (cancelled)="onCancelled()"
+    />
+  </div>
 </p-drawer>
 
