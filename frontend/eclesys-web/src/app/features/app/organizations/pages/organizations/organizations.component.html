@@ -1,5 +1,4 @@
 <div class="page">
-
   <header class="page__header">
     <div>
       <h1 class="page__title">Organizações</h1>
@@ -12,7 +11,11 @@
         [outlined]="true"
         (onClick)="openHierarchyDrawer()"
       />
-      <p-button label="Nova Unidade" icon="pi pi-plus" (onClick)="openCreateDrawer()" />
+      <p-button
+        label="Nova Unidade"
+        icon="pi pi-plus"
+        (onClick)="openCreateDrawer()"
+      />
     </div>
   </header>
 
@@ -23,18 +26,29 @@
     </div>
   } @else if (errorMessage()) {
     <div class="state-container">
-      <i class="pi pi-exclamation-circle state-container__icon state-container__icon--error"></i>
+      <i
+        class="pi pi-exclamation-circle state-container__icon state-container__icon--error"
+      ></i>
       <p class="state-container__label">{{ errorMessage() }}</p>
-      <p-button label="Tentar novamente" icon="pi pi-refresh" [outlined]="true" (onClick)="loadOrganizations()" />
+      <p-button
+        label="Tentar novamente"
+        icon="pi pi-refresh"
+        [outlined]="true"
+        (onClick)="loadOrganizations()"
+      />
     </div>
   } @else if (organizations().length === 0) {
     <div class="state-container">
       <i class="pi pi-building state-container__icon"></i>
       <p class="state-container__label">Nenhuma organização cadastrada</p>
-      <p-button label="Cadastrar primeira unidade" icon="pi pi-plus" [outlined]="true" (onClick)="openCreateDrawer()" />
+      <p-button
+        label="Cadastrar primeira unidade"
+        icon="pi pi-plus"
+        [outlined]="true"
+        (onClick)="openCreateDrawer()"
+      />
     </div>
   } @else {
-
     <!-- Filter Bar -->
     <div class="filter-bar">
       <p-iconfield class="filter-bar__search">
@@ -96,16 +110,27 @@
                   <i class="pi {{ getTypeIcon(unit.type) }} type-icon"></i>
                   <span class="unit-name">{{ unit.name }}</span>
                   @if (unit.isHeadquarters) {
-                    <p-tag [value]="getHeadquartersLabel(unit.type)" severity="info" />
+                    <p-tag
+                      [value]="getHeadquartersLabel(unit.type)"
+                      severity="info"
+                    />
                   }
                 </div>
               </td>
-              <td><span class="code-text">{{ unit.code }}</span></td>
-              <td><span class="text-muted">{{ getTypeLabel(unit.type) }}</span></td>
-              <td><span class="text-muted">{{ getParentName(unit) }}</span></td>
+              <td>
+                <span class="code-text">{{ unit.code }}</span>
+              </td>
+              <td>
+                <span class="text-muted">{{ getTypeLabel(unit.type) }}</span>
+              </td>
+              <td>
+                <span class="text-muted">{{ getParentName(unit) }}</span>
+              </td>
               <td>
                 @if (unit.assignmentsCount && unit.assignmentsCount > 0) {
-                  <span class="text-muted">{{ unit.assignmentsCount }} cargo(s)</span>
+                  <span class="text-muted"
+                    >{{ unit.assignmentsCount }} cargo(s)</span
+                  >
                 } @else {
                   <span class="text-muted">—</span>
                 }
@@ -127,7 +152,6 @@
       <p-menu #rowMenu [model]="rowMenuItems" [popup]="true" />
     </div>
   }
-
 </div>
 
 <p-drawer
@@ -140,7 +164,13 @@
   <div class="drawer-panel">
     <div class="drawer-panel__header">
       <span class="drawer-panel__title">Hierarquia e Cargos</span>
-      <p-button icon="pi pi-times" [text]="true" [rounded]="true" size="small" (onClick)="hierarchyDrawerVisible.set(false)" />
+      <p-button
+        icon="pi pi-times"
+        [text]="true"
+        [rounded]="true"
+        size="small"
+        (onClick)="hierarchyDrawerVisible.set(false)"
+      />
     </div>
     @if (hierarchyDrawerVisible()) {
       <app-view-hierarchy-dialog
@@ -160,18 +190,27 @@
 >
   <div class="drawer-panel">
     <div class="drawer-panel__header">
-      <span class="drawer-panel__title">{{ drawerMode() === 'create' ? 'Nova Unidade' : 'Editar Unidade' }}</span>
-      <p-button icon="pi pi-times" [text]="true" [rounded]="true" size="small" (onClick)="drawerVisible.set(false)" />
+      <span class="drawer-panel__title">{{
+        drawerMode() === "create" ? "Nova Unidade" : "Editar Unidade"
+      }}</span>
+      <p-button
+        icon="pi pi-times"
+        [text]="true"
+        [rounded]="true"
+        size="small"
+        (onClick)="drawerVisible.set(false)"
+      />
     </div>
-    <app-organization-form-dialog
-      [mode]="drawerMode()"
-      [unit]="drawerUnit()"
-      [defaultParentId]="drawerParentId()"
-      [defaultParentType]="drawerParentType()"
-      [allUnits]="getAllUnitsFlat()"
-      (saved)="onOrgSaved($event)"
-      (cancelled)="drawerVisible.set(false)"
-    />
+    @if (drawerVisible()) {
+      <app-organization-form-dialog
+        [mode]="drawerMode()"
+        [unit]="drawerUnit()"
+        [defaultParentId]="drawerParentId()"
+        [defaultParentType]="drawerParentType()"
+        [allUnits]="getAllUnitsFlat()"
+        (saved)="onOrgSaved($event)"
+        (cancelled)="drawerVisible.set(false)"
+      />
+    }
   </div>
 </p-drawer>
-

@@ -1,7 +1,7 @@
 import { Component, inject, afterNextRender } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { DialogService } from 'primeng/dynamicdialog';
+import { ConfirmationService } from 'primeng/api';
 import { TableModule } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
 import { ToggleSwitchModule } from 'primeng/toggleswitch';
@@ -16,7 +16,7 @@ import {
   CommunionMemberAttendance,
 } from '../../models/communion.models';
 import { CommunionStatusChipComponent } from '../../components/communion-status-chip/communion-status-chip.component';
-import { ConfirmDialogComponent } from '../../../../../shared/ui/confirm-dialog/confirm-dialog.component';
+import { DialogService } from 'primeng/dynamicdialog';
 import { NotificationService } from '../../../../../shared/services/notification.service';
 import {
   AttendanceNoteDialogComponent,
@@ -46,6 +46,7 @@ export class CommunionEventDetailPageComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly dialogService = inject(DialogService);
+  private readonly confirmationService = inject(ConfirmationService);
   private readonly notificationService = inject(NotificationService);
 
   readonly detailStore = inject(CommunionEventDetailStore);
@@ -188,18 +189,16 @@ export class CommunionEventDetailPageComponent {
     return value === 'PRESENT' || value === 'ABSENT' || value === 'JUSTIFIED';
   }
 
-  private openConfirmDialog(title: string, message: string): Promise<boolean> {
+  private openConfirmDialog(header: string, message: string): Promise<boolean> {
     return new Promise((resolve) => {
-      this.dialogService
-        ?.open(ConfirmDialogComponent, {
-          data: {
-            title,
-            message,
-            confirmLabel: 'Confirmar',
-            cancelLabel: 'Cancelar',
-          },
-        })
-        ?.onClose.subscribe((confirmed) => resolve(Boolean(confirmed)));
+      this.confirmationService.confirm({
+        header,
+        message,
+        acceptLabel: 'Confirmar',
+        rejectLabel: 'Cancelar',
+        accept: () => resolve(true),
+        reject: () => resolve(false),
+      });
     });
   }
 

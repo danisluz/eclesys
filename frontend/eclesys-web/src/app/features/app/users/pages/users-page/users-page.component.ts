@@ -1,14 +1,19 @@
-import { Component, inject, ViewChild, afterNextRender, signal } from '@angular/core';
+import {
+  Component,
+  inject,
+  ViewChild,
+  afterNextRender,
+  signal,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { DialogService } from 'primeng/dynamicdialog';
-import { DrawerModule } from 'primeng/drawer';
+import { ConfirmationService, MenuItem } from 'primeng/api';
 import { TableModule } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
 import { TagModule } from 'primeng/tag';
 import { ToggleSwitchModule } from 'primeng/toggleswitch';
 import { TooltipModule } from 'primeng/tooltip';
 import { MenuModule, Menu } from 'primeng/menu';
-import { MenuItem } from 'primeng/api';
+import { DrawerModule } from 'primeng/drawer';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 
 import { UsersStore } from '../../data/users.store';
@@ -16,7 +21,6 @@ import { UserFormDialogComponent } from '../../dialogs/user-form-dialog/user-for
 import { UserAvatarComponent } from '../../../../../shared/ui/user-avatar/user-avatar.component';
 import { UserDto } from '../../models/user.models';
 import { AuthStore } from '../../../../../core/auth/auth.store';
-import { ConfirmDialogComponent } from '../../../../../shared/ui/confirm-dialog/confirm-dialog.component';
 import { ResetPasswordDialogComponent } from '../../dialogs/reset-password-dialog/reset-password-dialog.component';
 import { NotificationService } from '../../../../../shared/services/notification.service';
 
@@ -42,7 +46,7 @@ import { NotificationService } from '../../../../../shared/services/notification
 export class UsersPageComponent {
   readonly usersStore = inject(UsersStore);
   readonly authStore = inject(AuthStore);
-  private readonly dialogService = inject(DialogService);
+  private readonly confirmationService = inject(ConfirmationService);
   private readonly notificationService = inject(NotificationService);
 
   @ViewChild('userMenu') userMenu!: Menu;
@@ -96,33 +100,26 @@ export class UsersPageComponent {
   onToggleStatus(user: UserDto, newValue: boolean): void {
     const previousValue = !newValue;
 
-    const ref = this.dialogService.open(ConfirmDialogComponent, {
+    this.confirmationService.confirm({
       header: newValue ? 'Ativar usuário' : 'Desativar usuário',
-      data: {
-        title: newValue ? 'Ativar usuário' : 'Desativar usuário',
-        message: `Deseja ${newValue ? 'ativar' : 'desativar'} ${user.name}?`,
-        confirmColor: newValue ? 'primary' : 'warn',
+      message: `Deseja ${newValue ? 'ativar' : 'desativar'} ${user.name}?`,
+      acceptLabel: 'Confirmar',
+      rejectLabel: 'Cancelar',
+      accept: async () => {
+        const success = await this.usersStore.updateStatus(user.id, newValue);
+        if (!success) {
+          user.isActive = previousValue;
+          return;
+        }
+        this.notificationService.success(
+          newValue
+            ? `Usuário ${user.name} ativado com sucesso`
+            : `Usuário ${user.name} desativado com sucesso`,
+        );
       },
-    });
-
-    if (!ref) {
-      user.isActive = previousValue;
-      return;
-    }
-
-    ref.onClose.subscribe(async (confirmed) => {
-      if (!confirmed) {
+      reject: () => {
         user.isActive = previousValue;
-        return;
-      }
-      const success = await this.usersStore.updateStatus(user.id, newValue);
-      if (!success) {
-        user.isActive = previousValue;
-        return;
-      }
-      this.notificationService.success(
-        newValue ? `Usuário ${user.name} ativado com sucesso` : `Usuário ${user.name} desativado com sucesso`,
-      );
+      },
     });
   }
 

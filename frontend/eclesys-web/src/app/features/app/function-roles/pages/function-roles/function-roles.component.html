@@ -1,19 +1,20 @@
 <div class="page">
-
   <header class="page__header">
     <div>
       <h1 class="page__title">Funções Administrativas</h1>
-      <p class="page__subtitle">Gerencie as funções operacionais (Líder, Secretário, Tesoureiro, etc.)</p>
+      <p class="page__subtitle">
+        Gerencie as funções operacionais (Líder, Secretário, Tesoureiro, etc.)
+      </p>
     </div>
-    <p-button label="Nova Função" icon="pi pi-plus" (onClick)="openCreateDrawer()" />
+    <p-button
+      label="Nova Função"
+      icon="pi pi-plus"
+      (onClick)="openCreateDrawer()"
+    />
   </header>
 
   <div class="table-card">
-    <p-table
-      [value]="roles()"
-      [loading]="loading()"
-      class="p-datatable-sm"
-    >
+    <p-table [value]="roles()" [loading]="loading()" class="p-datatable-sm">
       <ng-template pTemplate="header">
         <tr>
           <th scope="col">Nome</th>
@@ -27,10 +28,21 @@
 
       <ng-template pTemplate="body" let-role>
         <tr>
-          <td><span class="role-name">{{ role.name }}</span></td>
-          <td><p-tag [value]="getScopeLabel(role.scopeType)" severity="secondary" /></td>
-          <td><span class="text-muted">{{ role.maxHolders ?? 'Ilimitado' }}</span></td>
-          <td><span class="text-muted">{{ role.sortOrder }}</span></td>
+          <td>
+            <span class="role-name">{{ role.name }}</span>
+          </td>
+          <td>
+            <p-tag
+              [value]="getScopeLabel(role.scopeType)"
+              severity="secondary"
+            />
+          </td>
+          <td>
+            <span class="text-muted">{{ role.maxHolders ?? "Ilimitado" }}</span>
+          </td>
+          <td>
+            <span class="text-muted">{{ role.sortOrder }}</span>
+          </td>
           <td>
             <p-toggleswitch
               [(ngModel)]="role.isActive"
@@ -63,7 +75,6 @@
       </ng-template>
     </p-table>
   </div>
-
 </div>
 
 <p-drawer
@@ -75,16 +86,25 @@
 >
   <div class="drawer-panel">
     <div class="drawer-panel__header">
-      <span class="drawer-panel__title">{{ drawerMode() === 'create' ? 'Nova Função' : 'Editar Função' }}</span>
-      <p-button icon="pi pi-times" [text]="true" [rounded]="true" size="small" (onClick)="drawerVisible.set(false)" />
+      <span class="drawer-panel__title">{{
+        drawerMode() === "create" ? "Nova Função" : "Editar Função"
+      }}</span>
+      <p-button
+        icon="pi pi-times"
+        [text]="true"
+        [rounded]="true"
+        size="small"
+        (onClick)="drawerVisible.set(false)"
+      />
     </div>
-    <app-function-role-form-dialog
-      [mode]="drawerMode()"
-      [role]="selectedRole()"
-      [maxSortOrder]="maxSortOrder"
-      (saved)="onSaved()"
-      (cancelled)="onCancelled()"
-    />
+    @if (drawerVisible()) {
+      <app-function-role-form-dialog
+        [mode]="drawerMode()"
+        [role]="selectedRole()"
+        [maxSortOrder]="maxSortOrder"
+        (saved)="onSaved()"
+        (cancelled)="onCancelled()"
+      />
+    }
   </div>
 </p-drawer>
-

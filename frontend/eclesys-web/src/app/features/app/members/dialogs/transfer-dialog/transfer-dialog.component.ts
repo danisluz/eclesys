@@ -1,4 +1,12 @@
-import { Component, inject, signal, OnInit, Input, Output, EventEmitter } from '@angular/core';
+import {
+  Component,
+  inject,
+  signal,
+  OnInit,
+  Input,
+  Output,
+  EventEmitter,
+} from '@angular/core';
 import {
   FormBuilder,
   FormGroup,
@@ -62,7 +70,9 @@ export class TransferDialogComponent implements OnInit {
       } else {
         this.form.get('toCongregationId')?.clearValidators();
         this.form.get('toCongregationId')?.setValue(null);
-        this.form.get('externalDestination')?.setValidators([Validators.required]);
+        this.form
+          .get('externalDestination')
+          ?.setValidators([Validators.required]);
       }
       this.form.get('toCongregationId')?.updateValueAndValidity();
       this.form.get('externalDestination')?.updateValueAndValidity();
@@ -80,7 +90,9 @@ export class TransferDialogComponent implements OnInit {
         const rootChurch = response.data.find((org) => org.type === 'CHURCH');
         if (rootChurch) this.rootChurch.set(rootChurch);
 
-        const extractCongregations = (orgs: OrganizationUnit[]): OrganizationUnit[] => {
+        const extractCongregations = (
+          orgs: OrganizationUnit[],
+        ): OrganizationUnit[] => {
           let result: OrganizationUnit[] = [];
           for (const org of orgs) {
             if (org.type === 'CONGREGATION') result.push(org);
@@ -116,13 +128,18 @@ export class TransferDialogComponent implements OnInit {
     const formValue = this.form.value;
     const request = {
       toCongregationId:
-        formValue.transferType === 'internal' ? formValue.toCongregationId : null,
+        formValue.transferType === 'internal'
+          ? formValue.toCongregationId
+          : null,
       externalDestination:
-        formValue.transferType === 'external' ? formValue.externalDestination : null,
+        formValue.transferType === 'external'
+          ? formValue.externalDestination
+          : null,
       reason: formValue.reason,
     };
     this.membersService.transferMember(this.member.id, request).subscribe({
       next: () => {
+        this.saving.set(false);
         this.saved.emit();
       },
       error: () => {

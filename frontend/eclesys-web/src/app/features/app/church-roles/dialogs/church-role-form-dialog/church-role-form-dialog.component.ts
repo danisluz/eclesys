@@ -1,4 +1,12 @@
-import { Component, inject, signal, Input, Output, EventEmitter, OnInit } from '@angular/core';
+import {
+  Component,
+  inject,
+  signal,
+  Input,
+  Output,
+  EventEmitter,
+  OnChanges,
+} from '@angular/core';
 import { ReactiveFormsModule, FormBuilder, Validators } from '@angular/forms';
 import { InputTextModule } from 'primeng/inputtext';
 import { ButtonModule } from 'primeng/button';
@@ -13,7 +21,7 @@ import { ChurchRolesService } from '../../../../../shared/api/church-roles.servi
   templateUrl: './church-role-form-dialog.component.html',
   styleUrls: ['./church-role-form-dialog.component.scss'],
 })
-export class ChurchRoleFormDialogComponent implements OnInit {
+export class ChurchRoleFormDialogComponent implements OnChanges {
   private readonly fb = inject(FormBuilder);
   private readonly service = inject(ChurchRolesService);
 
@@ -31,7 +39,11 @@ export class ChurchRoleFormDialogComponent implements OnInit {
     isActive: [true],
   });
 
-  ngOnInit() {
+  ngOnChanges(): void {
+    this.populateForm();
+  }
+
+  private populateForm(): void {
     if (this.mode === 'edit' && this.role) {
       this.form.patchValue({
         name: this.role.name,
@@ -39,22 +51,34 @@ export class ChurchRoleFormDialogComponent implements OnInit {
         isActive: this.role.isActive,
       });
     } else if (this.mode === 'create') {
-      this.form.patchValue({ sortOrder: this.maxSortOrder + 1 });
+      this.form.reset({
+        name: '',
+        sortOrder: this.maxSortOrder + 1,
+        isActive: true,
+      });
     }
   }
 
-  cancel() { this.cancelled.emit(); }
+  cancel(): void {
+    this.cancelled.emit();
+  }
 
-  save() {
+  save(): void {
     if (this.form.invalid) return;
     this.saving.set(true);
     const request = this.form.value;
-    const operation = this.mode === 'create'
-      ? this.service.create(request as any)
-      : this.service.update(this.role!.id, request as any);
+    const operation =
+      this.mode === 'create'
+        ? this.service.create(request as any)
+        : this.service.update(this.role!.id, request as any);
     operation.subscribe({
-      next: () => { this.saved.emit(); },
-      error: () => { this.saving.set(false); },
+      next: () => {
+        this.saving.set(false);
+        this.saved.emit();
+      },
+      error: () => {
+        this.saving.set(false);
+      },
     });
   }
 }

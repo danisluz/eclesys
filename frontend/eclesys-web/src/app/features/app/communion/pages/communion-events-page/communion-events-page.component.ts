@@ -8,6 +8,7 @@ import {
 } from '@angular/core';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { ConfirmationService } from 'primeng/api';
 import { DialogService } from 'primeng/dynamicdialog';
 import { DrawerModule } from 'primeng/drawer';
 import { TableModule, TablePageEvent } from 'primeng/table';
@@ -18,9 +19,11 @@ import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { TooltipModule } from 'primeng/tooltip';
 import { DatePickerModule } from 'primeng/datepicker';
 import { CommunionEventsStore } from '../../stores/communion-events.store';
-import { CommunionEvent, CommunionEventListItem } from '../../models/communion.models';
+import {
+  CommunionEvent,
+  CommunionEventListItem,
+} from '../../models/communion.models';
 import { CreateCommunionEventDialogComponent } from '../../dialogs/create-communion-event-dialog/create-communion-event-dialog.component';
-import { ConfirmDialogComponent } from '../../../../../shared/ui/confirm-dialog/confirm-dialog.component';
 import { NotificationService } from '../../../../../shared/services/notification.service';
 
 @Component({
@@ -43,6 +46,7 @@ import { NotificationService } from '../../../../../shared/services/notification
 })
 export class CommunionEventsPageComponent {
   private readonly dialogService = inject(DialogService);
+  private readonly confirmationService = inject(ConfirmationService);
   private readonly router = inject(Router);
   private readonly notificationService = inject(NotificationService);
 
@@ -53,9 +57,13 @@ export class CommunionEventsPageComponent {
   pageSizeOptions = [25, 50, 100, 200];
   createDrawerVisible = signal(false);
 
-  eventsTotalSignal = computed(() => this.eventsStore.eventsViewSignal().length);
+  eventsTotalSignal = computed(
+    () => this.eventsStore.eventsViewSignal().length,
+  );
   eventsOpenSignal = computed(
-    () => this.eventsStore.eventsViewSignal().filter((e) => e.status === 'OPEN').length,
+    () =>
+      this.eventsStore.eventsViewSignal().filter((e) => e.status === 'OPEN')
+        .length,
   );
   averageAttendancePercentSignal = computed(() => {
     const events = this.eventsStore.eventsViewSignal();
@@ -63,7 +71,9 @@ export class CommunionEventsPageComponent {
       .map((e) => this.getAttendancePercent(e))
       .filter((v): v is number => typeof v === 'number');
     if (percentages.length === 0) return null;
-    return Math.round(percentages.reduce((sum, v) => sum + v, 0) / percentages.length);
+    return Math.round(
+      percentages.reduce((sum, v) => sum + v, 0) / percentages.length,
+    );
   });
 
   statusOptions = [
@@ -179,7 +189,9 @@ export class CommunionEventsPageComponent {
 
     const result = await this.eventsStore.exportBlankListPdf(event.id);
     if (!result.blob) {
-      this.notificationService.error(result.errorMessage ?? 'Não foi possível exportar a lista em branco.');
+      this.notificationService.error(
+        result.errorMessage ?? 'Não foi possível exportar a lista em branco.',
+      );
       return;
     }
 
@@ -203,7 +215,9 @@ export class CommunionEventsPageComponent {
     return event.status === 'OPEN';
   }
 
-  getStatusSeverity(status: CommunionEventListItem['status']): 'success' | 'info' | 'secondary' {
+  getStatusSeverity(
+    status: CommunionEventListItem['status'],
+  ): 'success' | 'info' | 'secondary' {
     if (status === 'OPEN') return 'success';
     if (status === 'DRAFT') return 'info';
     return 'secondary';
@@ -225,7 +239,8 @@ export class CommunionEventsPageComponent {
     if (typeof event.presentCount !== 'number') return null;
     if (typeof event.totalMembers !== 'number') return null;
     if (event.totalMembers <= 0) return null;
-    if (typeof event.attendancePercent === 'number') return Math.round(event.attendancePercent);
+    if (typeof event.attendancePercent === 'number')
+      return Math.round(event.attendancePercent);
     return Math.round((event.presentCount / event.totalMembers) * 100);
   }
 
@@ -239,22 +254,27 @@ export class CommunionEventsPageComponent {
     return new Date(date + 'T00:00:00').toLocaleDateString('pt-BR');
   }
 
-  private openConfirmDialog(title: string, message: string): Promise<boolean> {
+  private openConfirmDialog(header: string, message: string): Promise<boolean> {
     return new Promise((resolve) => {
-      const ref = this.dialogService.open(ConfirmDialogComponent, {
-        data: { title, message, confirmLabel: 'Confirmar', cancelLabel: 'Cancelar' },
+      this.confirmationService.confirm({
+        header,
+        message,
+        acceptLabel: 'Confirmar',
+        rejectLabel: 'Cancelar',
+        accept: () => resolve(true),
+        reject: () => resolve(false),
       });
-      if (!ref) {
-        resolve(false);
-        return;
-      }
-      ref.onClose.subscribe((confirmed) => resolve(Boolean(confirmed)));
     });
   }
 
   private buildPdfFileName(event: CommunionEventListItem): string {
     const safe = (s: string) =>
-      s.normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-zA-Z0-9]+/g, '-').replace(/^-+|-+$/g, '').toLowerCase();
+      s
+        .normalize('NFD')
+        .replace(/[̀-ͯ]/g, '')
+        .replace(/[^a-zA-Z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '')
+        .toLowerCase();
     return `santa-ceia-${safe(event.congregationName ?? '')}-${event.eventDate}.pdf`;
   }
 }
