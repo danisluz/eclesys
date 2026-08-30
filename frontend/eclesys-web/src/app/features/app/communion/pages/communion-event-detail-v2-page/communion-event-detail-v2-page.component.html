@@ -1,68 +1,54 @@
-<section class="detail-page">
-  <header class="hero-card">
-    <div class="hero-card__top">
-      <p-button
-        label="Voltar para a lista"
-        icon="pi pi-arrow-left"
-        severity="secondary"
-        [text]="true"
-        (onClick)="goBack()"
-      />
+<div class="page">
 
-      <a class="ghost-link" routerLink="/app/santa-ceia">
-        Abrir versão atual
-      </a>
-    </div>
+  <!-- ─── Navegação ────────────────────────────────────────────────────────── -->
+  <div class="page-nav">
+    <p-button
+      icon="pi pi-arrow-left"
+      label="Voltar"
+      severity="secondary"
+      [text]="true"
+      size="small"
+      (onClick)="goBack()"
+    />
+  </div>
 
-    <div class="hero-card__body">
+  <!-- ─── Cabeçalho do evento ──────────────────────────────────────────────── -->
+  <div class="event-header card">
+    <div class="event-header__left">
+      <div class="event-header__icon">
+        <i class="pi pi-star-fill"></i>
+      </div>
       <div>
-        <p class="hero-card__eyebrow">Santa Ceia V2</p>
-        <h1 class="hero-card__title">Detalhes do evento</h1>
+        <h1 class="event-header__title">Santa Ceia</h1>
         @if (detailStore.eventSignal(); as event) {
-          <p class="hero-card__subtitle">
-            {{ formatDate(event.eventDate) }} ·
-            {{ detailStore.congregationNameSignal() || '—' }}
+          <p class="event-header__meta">
+            {{ formatDate(event.eventDate) }}
+            @if (detailStore.congregationNameSignal()) {
+              · {{ detailStore.congregationNameSignal() }}
+            }
           </p>
         } @else {
-          <p class="hero-card__subtitle">Carregando evento...</p>
+          <p class="event-header__meta">Carregando evento...</p>
         }
       </div>
+    </div>
 
+    <div class="event-header__right">
       @if (detailStore.eventSignal(); as event) {
         <p-tag
           [value]="getStatusLabel(event.status)"
           [severity]="getStatusSeverity(event.status)"
         />
-      }
-    </div>
-  </header>
 
-  @if (detailStore.isLoadingSignal()) {
-    <section class="panel empty-state">
-      <p-progressspinner styleClass="v2-spinner" strokeWidth="4" />
-      <p>Carregando evento...</p>
-    </section>
-  } @else if (!detailStore.eventSignal() && detailStore.errorMessageSignal(); as errorMessage) {
-    <section class="panel empty-state empty-state--error">
-      <p>{{ errorMessage }}</p>
-    </section>
-  } @else if (detailStore.eventSignal(); as event) {
-    <section class="panel">
-      <div class="panel__header">
-        <div>
-          <h2 class="panel__title">Resumo</h2>
-          <p class="panel__subtitle">
-            Layout V2 com linguagem visual do PrimeNG e fluxo isolado da tela antiga.
-          </p>
-        </div>
-
-        <div class="toolbar">
+        <div class="event-header__actions">
           <p-button
             label="Abrir"
             icon="pi pi-play"
-            severity="secondary"
+            severity="success"
             [outlined]="true"
+            size="small"
             [disabled]="event.status !== 'DRAFT' || detailStore.isStatusUpdatingSignal()"
+            [loading]="detailStore.isStatusUpdatingSignal() && event.status === 'DRAFT'"
             (onClick)="openEvent()"
           />
           <p-button
@@ -70,134 +56,228 @@
             icon="pi pi-check-circle"
             severity="secondary"
             [outlined]="true"
+            size="small"
             [disabled]="event.status !== 'OPEN' || detailStore.isStatusUpdatingSignal()"
+            [loading]="detailStore.isStatusUpdatingSignal() && event.status === 'OPEN'"
             (onClick)="closeEvent()"
           />
           @if (event.status === 'DRAFT') {
             <p-button
               label="Exportar PDF"
-              icon="pi pi-download"
-              [disabled]="detailStore.isExportingSignal()"
+              icon="pi pi-file-pdf"
+              severity="secondary"
+              [outlined]="true"
+              size="small"
+              [loading]="detailStore.isExportingSignal()"
               (onClick)="exportBlankList()"
             />
           }
         </div>
-      </div>
+      }
+    </div>
+  </div>
 
+  <!-- ─── Estado: carregando ────────────────────────────────────────────────── -->
+  @if (detailStore.isLoadingSignal()) {
+    <div class="card state-box">
+      <p-progressspinner styleClass="spinner-sm" strokeWidth="4" />
+      <p class="state-box__text">Carregando evento...</p>
+    </div>
+  }
+
+  <!-- ─── Estado: erro ──────────────────────────────────────────────────────── -->
+  @else if (!detailStore.eventSignal() && detailStore.errorMessageSignal(); as err) {
+    <div class="card state-box state-box--error">
+      <i class="pi pi-exclamation-circle state-box__icon"></i>
+      <p class="state-box__text">{{ err }}</p>
+    </div>
+  }
+
+  <!-- ─── Conteúdo do evento ────────────────────────────────────────────────── -->
+  @else if (detailStore.eventSignal(); as event) {
+
+    <!-- Resumo -->
+    <div class="card">
       <div class="summary-grid">
         <div class="summary-item">
-          <span class="summary-item__label">Data</span>
-          <strong class="summary-item__value">{{ formatDate(event.eventDate) }}</strong>
+          <i class="pi pi-calendar summary-item__icon summary-item__icon--indigo"></i>
+          <div>
+            <span class="summary-item__label">Data</span>
+            <strong class="summary-item__value">{{ formatDate(event.eventDate) }}</strong>
+          </div>
         </div>
+
         <div class="summary-item">
-          <span class="summary-item__label">{{ detailStore.congregationLabelSignal() }}</span>
-          <strong class="summary-item__value">
-            {{ detailStore.congregationNameSignal() || '—' }}
-          </strong>
+          <i class="pi pi-building summary-item__icon summary-item__icon--emerald"></i>
+          <div>
+            <span class="summary-item__label">{{ detailStore.congregationLabelSignal() }}</span>
+            <strong class="summary-item__value">{{ detailStore.congregationNameSignal() || '—' }}</strong>
+          </div>
         </div>
+
         <div class="summary-item">
-          <span class="summary-item__label">Membros</span>
-          <strong class="summary-item__value">
-            {{ detailStore.attendanceSummarySignal().total }}
-          </strong>
+          <i class="pi pi-users summary-item__icon summary-item__icon--violet"></i>
+          <div>
+            <span class="summary-item__label">Membros</span>
+            <strong class="summary-item__value">{{ detailStore.attendanceSummarySignal().total }}</strong>
+          </div>
         </div>
       </div>
 
+      <!-- Banner de bloqueio -->
       @if (detailStore.isEditingLockedSignal()) {
-        <div class="info-banner">
+        <div class="lock-banner">
+          <i class="pi pi-lock"></i>
           @if (event.status === 'DRAFT') {
-            Evento em rascunho. Abra o evento para lançar presenças.
+            Evento em rascunho — abra o evento para lançar presenças.
           } @else {
-            Evento fechado. Edição de presenças está bloqueada.
+            Evento encerrado — edição de presenças bloqueada.
           }
         </div>
       }
 
+      <!-- Stats de presença (quando fechado) -->
       @if (event.status === 'CLOSED') {
-        <div class="stats-grid">
-          <div class="stat-card">
-            <span>Presentes</span>
-            <strong>{{ detailStore.attendanceSummarySignal().present }}</strong>
-          </div>
-          <div class="stat-card">
-            <span>Faltas</span>
-            <strong>{{ detailStore.attendanceSummarySignal().absent }}</strong>
-          </div>
-          <div class="stat-card">
-            <span>Justificadas</span>
-            <strong>{{ detailStore.attendanceSummarySignal().justified }}</strong>
-          </div>
-        </div>
-      }
-    </section>
-
-    <section class="panel">
-      @if (event.status === 'OPEN') {
-        <div class="quick-register">
-          <label class="field">
-            <span>Matrícula rápida</span>
-            <input
-              #registrationInputEl
-              class="p-inputtext p-component"
-              type="text"
-              autocomplete="off"
-              inputmode="numeric"
-              placeholder="Digite a matrícula e pressione Enter"
-              [value]="registrationInputSignal()"
-              (input)="registrationInputSignal.set($any($event.target).value)"
-              (keydown.enter)="onRegistrationSubmit(registrationInputEl)"
-            />
-          </label>
-        </div>
-      }
-
-      <div class="panel__header panel__header--compact">
-        <div class="filters-inline">
-          <label class="field field--wide">
-            <span>Buscar membro</span>
-            <div class="input-with-action">
-              <input
-                #searchInputEl
-                class="p-inputtext p-component"
-                type="text"
-                [value]="detailStore.memberSearchTermSignal()"
-                (input)="onMemberSearch($any($event.target).value)"
-                placeholder="Nome ou matrícula"
-              />
-              @if (detailStore.memberSearchTermSignal()) {
-                <p-button
-                  icon="pi pi-times"
-                  severity="secondary"
-                  [text]="true"
-                  [rounded]="true"
-                  (onClick)="clearSearch(searchInputEl)"
-                />
-              }
+        @let summary = detailStore.attendanceSummarySignal();
+        <div class="att-breakdown">
+          <div class="att-stat att-stat--present">
+            <div class="att-stat__head">
+              <i class="pi pi-check att-stat__icon"></i>
+              <span class="att-stat__label">Presentes</span>
+              <strong class="att-stat__count">{{ summary.present }}</strong>
+              <span class="att-stat__pct">
+                {{ formatPercent(summary.present, summary.total) }}%
+              </span>
             </div>
-          </label>
+            <div class="att-stat__track">
+              <div
+                class="att-stat__fill att-stat__fill--present"
+                [style.width.%]="summary.total ? (summary.present / summary.total * 100) : 0"
+              ></div>
+            </div>
+          </div>
 
-          <label class="checkbox-field">
+          <div class="att-stat att-stat--absent">
+            <div class="att-stat__head">
+              <i class="pi pi-times att-stat__icon"></i>
+              <span class="att-stat__label">Ausentes</span>
+              <strong class="att-stat__count">{{ summary.absent }}</strong>
+              <span class="att-stat__pct">
+                {{ formatPercent(summary.absent, summary.total) }}%
+              </span>
+            </div>
+            <div class="att-stat__track">
+              <div
+                class="att-stat__fill att-stat__fill--absent"
+                [style.width.%]="summary.total ? (summary.absent / summary.total * 100) : 0"
+              ></div>
+            </div>
+          </div>
+
+          <div class="att-stat att-stat--justified">
+            <div class="att-stat__head">
+              <i class="pi pi-info-circle att-stat__icon"></i>
+              <span class="att-stat__label">Justificadas</span>
+              <strong class="att-stat__count">{{ summary.justified }}</strong>
+              <span class="att-stat__pct">
+                {{ formatPercent(summary.justified, summary.total) }}%
+              </span>
+            </div>
+            <div class="att-stat__track">
+              <div
+                class="att-stat__fill att-stat__fill--justified"
+                [style.width.%]="summary.total ? (summary.justified / summary.total * 100) : 0"
+              ></div>
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- ─── Painel de presenças ───────────────────────────────────────────── -->
+    <div class="card">
+
+      <!-- Lançamento rápido por matrícula -->
+      @if (event.status === 'OPEN') {
+        <div class="scan-zone">
+          <div class="scan-zone__icon">
+            <i class="pi pi-qrcode"></i>
+          </div>
+          <div class="scan-zone__body">
+            <span class="scan-zone__label">Lançamento rápido por matrícula</span>
+            <p-iconfield class="scan-zone__field">
+              <p-inputicon styleClass="pi pi-hashtag" />
+              <input
+                #registrationInputEl
+                pInputText
+                type="text"
+                autocomplete="off"
+                inputmode="numeric"
+                placeholder="Digite a matrícula e pressione Enter"
+                [value]="registrationInputSignal()"
+                [disabled]="detailStore.isMarkingByRegistrationSignal()"
+                (input)="registrationInputSignal.set($any($event.target).value)"
+                (keydown.enter)="onRegistrationSubmit(registrationInputEl)"
+              />
+            </p-iconfield>
+          </div>
+        </div>
+      }
+
+      <!-- Barra de busca e filtros -->
+      <div class="search-bar">
+        <div class="search-bar__left">
+          <p-iconfield class="search-field">
+            <p-inputicon styleClass="pi pi-search" />
             <input
-              type="checkbox"
+              #searchInputEl
+              pInputText
+              type="text"
+              [value]="detailStore.memberSearchTermSignal()"
+              (input)="onMemberSearch($any($event.target).value)"
+              placeholder="Buscar por nome ou matrícula"
+            />
+          </p-iconfield>
+          @if (detailStore.memberSearchTermSignal()) {
+            <p-button
+              icon="pi pi-times"
+              severity="secondary"
+              [text]="true"
+              [rounded]="true"
+              size="small"
+              pTooltip="Limpar busca"
+              tooltipPosition="top"
+              (onClick)="clearSearch(searchInputEl)"
+            />
+          }
+
+          <div class="toggle-filter">
+            <p-toggleswitch
               [ngModel]="detailStore.showOnlyPresentSignal()"
               (ngModelChange)="detailStore.setShowOnlyPresent($event)"
             />
-            <span>Somente presentes</span>
-          </label>
+            <span class="toggle-filter__label">Somente presentes</span>
+          </div>
         </div>
 
+        <!-- Indicador de salvamento -->
         <div class="save-area">
           @if (isAutoSavingSignal() || detailStore.isSavingSignal()) {
-            <span class="save-status">Salvando...</span>
+            <span class="save-chip save-chip--saving">
+              <i class="pi pi-spin pi-spinner"></i>
+              Salvando...
+            </span>
           } @else if (detailStore.pendingChangesCountSignal() > 0) {
-            <span class="save-status">
-              {{ detailStore.pendingChangesCountSignal() }} alteração(ões) pendentes
+            <span class="save-chip save-chip--pending">
+              <span class="save-chip__dot"></span>
+              {{ detailStore.pendingChangesCountSignal() }} pendente(s)
             </span>
             <p-button
               label="Salvar"
               icon="pi pi-save"
               severity="secondary"
               [outlined]="true"
+              size="small"
               [disabled]="detailStore.isEditingLockedSignal()"
               (onClick)="saveChanges()"
             />
@@ -205,40 +285,30 @@
         </div>
       </div>
 
+      <!-- Tabela de membros -->
       @if (detailStore.tableMembersSignal().length === 0) {
-        <div class="empty-state">
-          <p>Nenhum membro encontrado.</p>
+        <div class="state-box">
+          <i class="pi pi-users state-box__icon"></i>
+          <p class="state-box__text">Nenhum membro encontrado.</p>
         </div>
       } @else {
         <div class="table-wrapper">
-          <table class="data-table">
+          <table class="members-table">
             <thead>
               <tr>
                 <th>
-                  <button
-                    type="button"
-                    class="sort-button"
-                    (click)="toggleSort('registrationNumber')"
-                  >
-                    Matrícula {{ sortIcon('registrationNumber') }}
+                  <button type="button" class="sort-btn" (click)="toggleSort('registrationNumber')">
+                    Matrícula <i class="pi {{ sortIcon('registrationNumber') }}"></i>
                   </button>
                 </th>
                 <th>
-                  <button
-                    type="button"
-                    class="sort-button"
-                    (click)="toggleSort('fullName')"
-                  >
-                    Nome {{ sortIcon('fullName') }}
+                  <button type="button" class="sort-btn" (click)="toggleSort('fullName')">
+                    Nome <i class="pi {{ sortIcon('fullName') }}"></i>
                   </button>
                 </th>
                 <th>
-                  <button
-                    type="button"
-                    class="sort-button"
-                    (click)="toggleSort('status')"
-                  >
-                    Presença {{ sortIcon('status') }}
+                  <button type="button" class="sort-btn" (click)="toggleSort('status')">
+                    Presença <i class="pi {{ sortIcon('status') }}"></i>
                   </button>
                 </th>
                 @if (detailStore.notesEnabledSignal()) {
@@ -249,49 +319,32 @@
             <tbody>
               @for (member of detailStore.tableMembersSignal(); track member.memberId) {
                 @let status = getAttendanceStatus(member);
-                <tr>
-                  <td>{{ member.registrationNumber }}</td>
-                  <td>{{ member.fullName }}</td>
-                  <td>
-                    <div class="status-actions">
-                      <button
-                        type="button"
-                        class="status-button"
-                        [class.status-button--present]="status === 'PRESENT'"
-                        [disabled]="detailStore.isEditingLockedSignal()"
-                        (click)="updateAttendanceStatus(member, 'PRESENT')"
-                      >
-                        P
-                      </button>
-                      <button
-                        type="button"
-                        class="status-button"
-                        [class.status-button--absent]="status === 'ABSENT'"
-                        [disabled]="detailStore.isEditingLockedSignal()"
-                        (click)="updateAttendanceStatus(member, 'ABSENT')"
-                      >
-                        A
-                      </button>
-                      <button
-                        type="button"
-                        class="status-button"
-                        [class.status-button--justified]="status === 'JUSTIFIED'"
-                        [disabled]="detailStore.isEditingLockedSignal()"
-                        (click)="updateAttendanceStatus(member, 'JUSTIFIED')"
-                      >
-                        J
-                      </button>
-                    </div>
+                <tr [class.row--present]="status === 'PRESENT'"
+                    [class.row--absent]="status === 'ABSENT'"
+                    [class.row--justified]="status === 'JUSTIFIED'">
+                  <td class="col-reg">{{ member.registrationNumber }}</td>
+                  <td class="col-name">{{ member.fullName }}</td>
+                  <td class="col-status">
+                    <p-selectbutton
+                      [options]="attendanceOptions"
+                      [ngModel]="status"
+                      (ngModelChange)="onAttendanceChange(member, $event)"
+                      optionLabel="label"
+                      optionValue="value"
+                      [disabled]="detailStore.isEditingLockedSignal()"
+                      [allowEmpty]="false"
+                    />
                   </td>
                   @if (detailStore.notesEnabledSignal()) {
-                    <td>
+                    <td class="col-note">
                       <p-button
-                        [label]="member.note ? 'Editar' : 'Anotar'"
+                        [label]="member.note ? 'Editar nota' : 'Anotar'"
                         size="small"
                         severity="secondary"
                         [outlined]="true"
                         [disabled]="status !== 'JUSTIFIED'"
-                        [attr.title]="notePreview(member.note)"
+                        [pTooltip]="notePreview(member.note)"
+                        tooltipPosition="top"
                         (onClick)="openNoteDialog(member)"
                       />
                     </td>
@@ -302,9 +355,11 @@
           </table>
         </div>
       }
-    </section>
+    </div>
+
   }
 
+  <!-- ─── Dialog de justificativa ─────────────────────────────────────────── -->
   @if (noteDialogVisibleSignal() && noteMemberSignal(); as member) {
     <p-dialog
       [visible]="true"
@@ -317,39 +372,48 @@
       (visibleChange)="!$event && closeNoteDialog()"
     >
       <ng-template pTemplate="header">
-        <div class="panel__header">
+        <div class="dialog-header">
           <div>
-            <h2 class="panel__title">Justificativa</h2>
-            <p class="panel__subtitle">{{ member.fullName }}</p>
+            <h2 class="dialog-header__title">Justificativa</h2>
+            <p class="dialog-header__sub">{{ member.fullName }}</p>
           </div>
           <p-button
             icon="pi pi-times"
             [text]="true"
             [rounded]="true"
+            severity="secondary"
             (onClick)="closeNoteDialog()"
           />
         </div>
       </ng-template>
 
-      <label class="field">
-        <span>Anotação</span>
+      <div class="note-field">
+        <label class="note-field__label" for="note-textarea">Anotação</label>
         <textarea
-          class="p-inputtext p-component"
+          pTextarea
+          id="note-textarea"
           rows="5"
+          class="note-field__textarea"
           [ngModel]="noteDraftSignal()"
           (ngModelChange)="noteDraftSignal.set($event)"
+          placeholder="Descreva o motivo da ausência justificada..."
         ></textarea>
-      </label>
+      </div>
 
-      <div class="toolbar toolbar--end">
+      <div class="dialog-footer">
         <p-button
           label="Cancelar"
           severity="secondary"
           [outlined]="true"
           (onClick)="closeNoteDialog()"
         />
-        <p-button label="Salvar" icon="pi pi-save" (onClick)="saveNote()" />
+        <p-button
+          label="Salvar"
+          icon="pi pi-check"
+          (onClick)="saveNote()"
+        />
       </div>
     </p-dialog>
   }
-</section>
+
+</div>

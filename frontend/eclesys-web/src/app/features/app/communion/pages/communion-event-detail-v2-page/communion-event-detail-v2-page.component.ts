@@ -7,13 +7,20 @@ import {
   signal,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { debounceTime, distinctUntilChanged, filter, map } from 'rxjs';
 import { ButtonModule } from 'primeng/button';
 import { TagModule } from 'primeng/tag';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
 import { Dialog } from 'primeng/dialog';
+import { SelectButtonModule } from 'primeng/selectbutton';
+import { ToggleSwitchModule } from 'primeng/toggleswitch';
+import { IconFieldModule } from 'primeng/iconfield';
+import { InputIconModule } from 'primeng/inputicon';
+import { InputTextModule } from 'primeng/inputtext';
+import { TextareaModule } from 'primeng/textarea';
+import { TooltipModule } from 'primeng/tooltip';
 import { AppConfirmService } from '../../../../../core/services/app-confirm.service';
 import { NotificationService } from '../../../../../shared/services/notification.service';
 import { CommunionEventDetailStore } from '../../stores/communion-event-detail.store';
@@ -26,12 +33,18 @@ import {
   selector: 'app-communion-event-detail-v2-page',
   standalone: true,
   imports: [
-    RouterLink,
     FormsModule,
     ButtonModule,
     TagModule,
     ProgressSpinnerModule,
     Dialog,
+    SelectButtonModule,
+    ToggleSwitchModule,
+    IconFieldModule,
+    InputIconModule,
+    InputTextModule,
+    TextareaModule,
+    TooltipModule,
   ],
   templateUrl: './communion-event-detail-v2-page.component.html',
   styleUrl: './communion-event-detail-v2-page.component.scss',
@@ -51,6 +64,12 @@ export class CommunionEventDetailV2PageComponent implements OnInit {
   readonly noteDialogVisibleSignal = signal(false);
   readonly noteDraftSignal = signal('');
   readonly noteMemberSignal = signal<CommunionMemberAttendance | null>(null);
+
+  readonly attendanceOptions: { label: string; value: AttendanceStatus }[] = [
+    { label: 'P', value: 'PRESENT' },
+    { label: 'A', value: 'ABSENT' },
+    { label: 'J', value: 'JUSTIFIED' },
+  ];
 
   constructor() {
     toObservable(this.detailStore.pendingChangesCountSignal)
@@ -77,7 +96,7 @@ export class CommunionEventDetailV2PageComponent implements OnInit {
         distinctUntilChanged(),
         takeUntilDestroyed(this.destroyRef),
       )
-      .subscribe((eventId) => {
+      .subscribe((eventId: string | null) => {
         if (!eventId) {
           void this.router.navigate(['/app/santa-ceia/v2']);
           return;
@@ -96,8 +115,8 @@ export class CommunionEventDetailV2PageComponent implements OnInit {
   }
 
   getStatusLabel(status: string | undefined): string {
-    if (status === 'OPEN') return 'Aberto';
-    if (status === 'CLOSED') return 'Fechado';
+    if (status === 'OPEN') return 'Em andamento';
+    if (status === 'CLOSED') return 'Encerrado';
     return 'Rascunho';
   }
 
@@ -109,31 +128,31 @@ export class CommunionEventDetailV2PageComponent implements OnInit {
     return 'info';
   }
 
-  updateAttendanceStatus(
-    member: CommunionMemberAttendance,
-    status: AttendanceStatus,
-  ): void {
-    this.detailStore.updateAttendanceStatus(member.memberId, status);
-  }
-
   getAttendanceStatus(member: CommunionMemberAttendance): AttendanceStatus {
     return member.status ?? (member.present ? 'PRESENT' : 'ABSENT');
+  }
+
+  onAttendanceChange(
+    member: CommunionMemberAttendance,
+    value: AttendanceStatus | null,
+  ): void {
+    if (!value) return;
+    this.detailStore.updateAttendanceStatus(member.memberId, value);
   }
 
   toggleSort(active: 'registrationNumber' | 'fullName' | 'status'): void {
     const current = this.detailStore.sortStateSignal();
     const nextDirection =
       current.active === active && current.direction === 'asc' ? 'desc' : 'asc';
-
     this.detailStore.setSort(active, nextDirection);
   }
 
   sortIcon(active: 'registrationNumber' | 'fullName' | 'status'): string {
     const current = this.detailStore.sortStateSignal();
-    if (current.active !== active) {
-      return '↕';
-    }
-    return current.direction === 'asc' ? '↑' : '↓';
+    if (current.active !== active) return 'pi pi-sort-alt';
+    return current.direction === 'asc'
+      ? 'pi pi-sort-amount-up'
+      : 'pi pi-sort-amount-down';
   }
 
   onMemberSearch(term: string): void {
@@ -148,9 +167,7 @@ export class CommunionEventDetailV2PageComponent implements OnInit {
 
   async onRegistrationSubmit(input: HTMLInputElement): Promise<void> {
     const registrationNumber = this.registrationInputSignal().trim();
-    if (!registrationNumber) {
-      return;
-    }
+    if (!registrationNumber) return;
 
     const record = await this.detailStore.markAttendanceByRegistration(
       registrationNumber,
@@ -176,9 +193,7 @@ export class CommunionEventDetailV2PageComponent implements OnInit {
   }
 
   openNoteDialog(member: CommunionMemberAttendance): void {
-    if (this.getAttendanceStatus(member) !== 'JUSTIFIED') {
-      return;
-    }
+    if (this.getAttendanceStatus(member) !== 'JUSTIFIED') return;
 
     this.noteMemberSignal.set(member);
     this.noteDraftSignal.set(member.note ?? '');
@@ -193,9 +208,7 @@ export class CommunionEventDetailV2PageComponent implements OnInit {
 
   saveNote(): void {
     const member = this.noteMemberSignal();
-    if (!member) {
-      return;
-    }
+    if (!member) return;
 
     const value = this.noteDraftSignal().trim();
     this.detailStore.updateNote(member.memberId, value.length > 0 ? value : null);
@@ -255,9 +268,7 @@ export class CommunionEventDetailV2PageComponent implements OnInit {
           return;
         }
 
-        if (globalThis.window === undefined) {
-          return;
-        }
+        if (globalThis.window === undefined) return;
 
         const url = URL.createObjectURL(blob);
         const anchor = document.createElement('a');
@@ -270,11 +281,13 @@ export class CommunionEventDetailV2PageComponent implements OnInit {
     });
   }
 
-  notePreview(note: string | null | undefined): string {
-    if (!note) {
-      return 'Sem justificativa';
-    }
+  formatPercent(value: number, total: number): number {
+    if (!total) return 0;
+    return Math.round((value / total) * 100);
+  }
 
+  notePreview(note: string | null | undefined): string {
+    if (!note) return 'Sem justificativa';
     const trimmed = note.trim();
     return trimmed.length <= 80 ? trimmed : `${trimmed.slice(0, 80)}…`;
   }
