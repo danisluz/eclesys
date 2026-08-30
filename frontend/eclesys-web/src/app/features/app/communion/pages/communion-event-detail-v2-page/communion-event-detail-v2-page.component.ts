@@ -1,47 +1,43 @@
 import {
   ChangeDetectionStrategy,
   Component,
-  inject,
   DestroyRef,
-  signal,
+  inject,
   OnInit,
+  signal,
 } from '@angular/core';
-import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { debounceTime, distinctUntilChanged, filter, map } from 'rxjs';
 import { FormsModule } from '@angular/forms';
-import { AppConfirmService } from '../../../../../core/services/app-confirm.service';
-import { ToggleSwitchModule } from 'primeng/toggleswitch';
-import { IconFieldModule } from 'primeng/iconfield';
-import { InputIconModule } from 'primeng/inputicon';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
+import { debounceTime, distinctUntilChanged, filter, map } from 'rxjs';
+import { ButtonModule } from 'primeng/button';
+import { TagModule } from 'primeng/tag';
 import { ProgressSpinnerModule } from 'primeng/progressspinner';
+import { Dialog } from 'primeng/dialog';
+import { AppConfirmService } from '../../../../../core/services/app-confirm.service';
+import { NotificationService } from '../../../../../shared/services/notification.service';
 import { CommunionEventDetailStore } from '../../stores/communion-event-detail.store';
 import {
   AttendanceStatus,
   CommunionMemberAttendance,
 } from '../../models/communion.models';
-import { CommunionStatusChipComponent } from '../../components/communion-status-chip/communion-status-chip.component';
-import { NotificationService } from '../../../../../shared/services/notification.service';
-import { AttendanceNoteDialogComponent } from '../../dialogs/attendance-note-dialog/attendance-note-dialog.component';
 
 @Component({
-  selector: 'app-communion-event-detail-page',
+  selector: 'app-communion-event-detail-v2-page',
   standalone: true,
   imports: [
     RouterLink,
     FormsModule,
-    ToggleSwitchModule,
-    IconFieldModule,
-    InputIconModule,
+    ButtonModule,
+    TagModule,
     ProgressSpinnerModule,
-    CommunionStatusChipComponent,
-    AttendanceNoteDialogComponent,
+    Dialog,
   ],
-  templateUrl: './communion-event-detail-page.component.html',
-  styleUrl: './communion-event-detail-page.component.scss',
+  templateUrl: './communion-event-detail-v2-page.component.html',
+  styleUrl: './communion-event-detail-v2-page.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class CommunionEventDetailPageComponent implements OnInit {
+export class CommunionEventDetailV2PageComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly confirmService = inject(AppConfirmService);
@@ -50,13 +46,13 @@ export class CommunionEventDetailPageComponent implements OnInit {
 
   readonly detailStore = inject(CommunionEventDetailStore);
 
-  noteDialogVisible = false;
-  noteDialogMember: CommunionMemberAttendance | null = null;
-  registrationInput = signal('');
-  isAutoSavingSignal = signal(false);
+  readonly registrationInputSignal = signal('');
+  readonly isAutoSavingSignal = signal(false);
+  readonly noteDialogVisibleSignal = signal(false);
+  readonly noteDraftSignal = signal('');
+  readonly noteMemberSignal = signal<CommunionMemberAttendance | null>(null);
 
   constructor() {
-    // Auto-save 3s after the last change, only when event is open
     toObservable(this.detailStore.pendingChangesCountSignal)
       .pipe(
         distinctUntilChanged(),
@@ -69,38 +65,54 @@ export class CommunionEventDetailPageComponent implements OnInit {
         ),
         takeUntilDestroyed(this.destroyRef),
       )
-      .subscribe(() => this.autoSave());
+      .subscribe(() => {
+        void this.autoSave();
+      });
   }
 
   ngOnInit(): void {
     this.route.paramMap
       .pipe(
-        map(p => p.get('eventId')),
+        map((params) => params.get('eventId')),
         distinctUntilChanged(),
         takeUntilDestroyed(this.destroyRef),
       )
-      .subscribe(eventId => {
+      .subscribe((eventId) => {
         if (!eventId) {
-          this.router.navigate(['/app/santa-ceia']);
+          void this.router.navigate(['/app/santa-ceia/v2']);
           return;
         }
-        this.detailStore.loadEvent(eventId);
+
+        void this.detailStore.loadEvent(eventId);
       });
   }
 
-  formatDate(date: string): string {
-    return new Date(date + 'T00:00:00').toLocaleDateString('pt-BR');
+  goBack(): void {
+    void this.router.navigate(['/app/santa-ceia/v2']);
   }
 
-  goBack(): void {
-    this.router.navigate(['/app/santa-ceia']);
+  formatDate(date: string): string {
+    return new Date(`${date}T00:00:00`).toLocaleDateString('pt-BR');
+  }
+
+  getStatusLabel(status: string | undefined): string {
+    if (status === 'OPEN') return 'Aberto';
+    if (status === 'CLOSED') return 'Fechado';
+    return 'Rascunho';
+  }
+
+  getStatusSeverity(
+    status: string | undefined,
+  ): 'success' | 'secondary' | 'info' {
+    if (status === 'OPEN') return 'success';
+    if (status === 'CLOSED') return 'secondary';
+    return 'info';
   }
 
   updateAttendanceStatus(
     member: CommunionMemberAttendance,
     status: AttendanceStatus,
   ): void {
-    if (!this.isAttendanceStatus(status)) return;
     this.detailStore.updateAttendanceStatus(member.memberId, status);
   }
 
@@ -110,71 +122,84 @@ export class CommunionEventDetailPageComponent implements OnInit {
 
   toggleSort(active: 'registrationNumber' | 'fullName' | 'status'): void {
     const current = this.detailStore.sortStateSignal();
-    const direction =
+    const nextDirection =
       current.active === active && current.direction === 'asc' ? 'desc' : 'asc';
-    this.detailStore.setSort(active, direction);
+
+    this.detailStore.setSort(active, nextDirection);
+  }
+
+  sortIcon(active: 'registrationNumber' | 'fullName' | 'status'): string {
+    const current = this.detailStore.sortStateSignal();
+    if (current.active !== active) {
+      return '↕';
+    }
+    return current.direction === 'asc' ? '↑' : '↓';
   }
 
   onMemberSearch(term: string): void {
     this.detailStore.setMemberSearchTerm(term);
   }
 
-  clearSearch(inputEl: HTMLInputElement): void {
+  clearSearch(searchInput: HTMLInputElement): void {
     this.detailStore.setMemberSearchTerm('');
-    inputEl.value = '';
-    inputEl.focus();
+    searchInput.value = '';
+    searchInput.focus();
   }
 
-  async onRegistrationSubmit(inputEl: HTMLInputElement): Promise<void> {
-    const value = this.registrationInput().trim();
-    if (!value) return;
-
-    const record = await this.detailStore.markAttendanceByRegistration(value);
-
-    if (record) {
-      const memberName =
-        this.detailStore
-          .membersSignal()
-          .find((m) => m.memberId === record.memberId)?.fullName ?? value;
-      this.notificationService.success(`Presença registrada: ${memberName}`);
-      this.registrationInput.set('');
-      inputEl.value = '';
-      inputEl.focus();
-    } else if (this.detailStore.errorMessageSignal()) {
-      this.notificationService.error(this.detailStore.errorMessageSignal()!);
+  async onRegistrationSubmit(input: HTMLInputElement): Promise<void> {
+    const registrationNumber = this.registrationInputSignal().trim();
+    if (!registrationNumber) {
+      return;
     }
+
+    const record = await this.detailStore.markAttendanceByRegistration(
+      registrationNumber,
+    );
+
+    if (!record) {
+      if (this.detailStore.errorMessageSignal()) {
+        this.notificationService.error(this.detailStore.errorMessageSignal()!);
+      }
+      return;
+    }
+
+    const memberName =
+      this.detailStore
+        .membersSignal()
+        .find((member) => member.memberId === record.memberId)?.fullName ??
+      registrationNumber;
+
+    this.notificationService.success(`Presença registrada: ${memberName}`);
+    this.registrationInputSignal.set('');
+    input.value = '';
+    input.focus();
   }
 
   openNoteDialog(member: CommunionMemberAttendance): void {
-    if (!this.detailStore.notesEnabledSignal()) return;
-    if (this.getAttendanceStatus(member) !== 'JUSTIFIED') return;
-    this.noteDialogMember = member;
-    this.noteDialogVisible = true;
-  }
-
-  onNoteSaved(note: string | null): void {
-    const member = this.noteDialogMember;
-    if (!member) return;
-    this.detailStore.updateNote(member.memberId, note);
-    this.noteDialogMember = null;
-  }
-
-  getNotePreview(note: string | null | undefined): string {
-    if (!note) return 'Sem anotação';
-    const trimmed = note.trim();
-    return trimmed.length <= 120 ? trimmed : `${trimmed.slice(0, 120)}…`;
-  }
-
-  getNoteButtonIcon(note: string | null | undefined): string {
-    return note ? 'pi pi-file-edit' : 'pi pi-file-plus';
-  }
-
-  sortIcon(active: 'registrationNumber' | 'fullName' | 'status'): string {
-    const current = this.detailStore.sortStateSignal();
-    if (current.active !== active) {
-      return 'pi pi-sort-alt';
+    if (this.getAttendanceStatus(member) !== 'JUSTIFIED') {
+      return;
     }
-    return current.direction === 'asc' ? 'pi pi-sort-amount-up-alt' : 'pi pi-sort-amount-down';
+
+    this.noteMemberSignal.set(member);
+    this.noteDraftSignal.set(member.note ?? '');
+    this.noteDialogVisibleSignal.set(true);
+  }
+
+  closeNoteDialog(): void {
+    this.noteDialogVisibleSignal.set(false);
+    this.noteMemberSignal.set(null);
+    this.noteDraftSignal.set('');
+  }
+
+  saveNote(): void {
+    const member = this.noteMemberSignal();
+    if (!member) {
+      return;
+    }
+
+    const value = this.noteDraftSignal().trim();
+    this.detailStore.updateNote(member.memberId, value.length > 0 ? value : null);
+    this.closeNoteDialog();
   }
 
   async saveChanges(): Promise<void> {
@@ -193,7 +218,7 @@ export class CommunionEventDetailPageComponent implements OnInit {
       accept: async () => {
         const updated = await this.detailStore.openEvent();
         if (updated) {
-          this.notificationService.success('Evento aberto');
+          this.notificationService.success('Evento aberto com sucesso');
         } else if (this.detailStore.errorMessageSignal()) {
           this.notificationService.error(this.detailStore.errorMessageSignal()!);
         }
@@ -204,11 +229,12 @@ export class CommunionEventDetailPageComponent implements OnInit {
   closeEvent(): void {
     this.confirmService.confirm({
       header: 'Fechar evento',
-      message: 'Deseja fechar este evento? Após fechado, não será possível editar presenças.',
+      message:
+        'Deseja fechar este evento? Após fechado, não será possível editar presenças.',
       accept: async () => {
         const updated = await this.detailStore.closeEvent();
         if (updated) {
-          this.notificationService.success('Evento fechado');
+          this.notificationService.success('Evento fechado com sucesso');
         } else if (this.detailStore.errorMessageSignal()) {
           this.notificationService.error(this.detailStore.errorMessageSignal()!);
         }
@@ -229,18 +255,28 @@ export class CommunionEventDetailPageComponent implements OnInit {
           return;
         }
 
-        if (globalThis.window === undefined) return;
+        if (globalThis.window === undefined) {
+          return;
+        }
 
-        const fileName = this.buildPdfFileName();
         const url = URL.createObjectURL(blob);
         const anchor = document.createElement('a');
         anchor.href = url;
-        anchor.download = fileName;
+        anchor.download = this.buildPdfFileName();
         anchor.click();
         URL.revokeObjectURL(url);
         this.notificationService.success('Lista exportada com sucesso');
       },
     });
+  }
+
+  notePreview(note: string | null | undefined): string {
+    if (!note) {
+      return 'Sem justificativa';
+    }
+
+    const trimmed = note.trim();
+    return trimmed.length <= 80 ? trimmed : `${trimmed.slice(0, 80)}…`;
   }
 
   private async autoSave(): Promise<void> {
@@ -252,21 +288,13 @@ export class CommunionEventDetailPageComponent implements OnInit {
     }
   }
 
-  private isAttendanceStatus(value: string): value is AttendanceStatus {
-    return value === 'PRESENT' || value === 'ABSENT' || value === 'JUSTIFIED';
-  }
-
-  closeNoteDialog(): void {
-    this.noteDialogVisible = false;
-    this.noteDialogMember = null;
-  }
-
   private buildPdfFileName(): string {
     const event = this.detailStore.eventSignal();
     const date = event?.eventDate ?? 'lista';
     const congregation =
       this.detailStore.congregationNameSignal() ??
       this.detailStore.congregationLabelSignal();
+
     return `santa-ceia-${this.toFileSafeName(congregation)}-${date}.pdf`;
   }
 

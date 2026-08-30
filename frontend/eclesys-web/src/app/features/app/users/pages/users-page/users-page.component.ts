@@ -6,7 +6,8 @@ import {
   signal,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ConfirmationService, MenuItem } from 'primeng/api';
+import { MenuItem } from 'primeng/api';
+import { AppConfirmService } from '../../../../../core/services/app-confirm.service';
 import { TableModule } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
 import { TagModule } from 'primeng/tag';
@@ -46,8 +47,10 @@ import { NotificationService } from '../../../../../shared/services/notification
 export class UsersPageComponent {
   readonly usersStore = inject(UsersStore);
   readonly authStore = inject(AuthStore);
-  private readonly confirmationService = inject(ConfirmationService);
+  private readonly confirmService = inject(AppConfirmService);
   private readonly notificationService = inject(NotificationService);
+  readonly createDrawerStyle = { width: '520px' };
+  readonly resetPasswordDrawerStyle = { width: '480px' };
 
   @ViewChild('userMenu') userMenu!: Menu;
   userMenuItems: MenuItem[] = [];
@@ -100,7 +103,7 @@ export class UsersPageComponent {
   onToggleStatus(user: UserDto, newValue: boolean): void {
     const previousValue = !newValue;
 
-    this.confirmationService.confirm({
+    this.confirmService.confirm({
       header: newValue ? 'Ativar usuário' : 'Desativar usuário',
       message: `Deseja ${newValue ? 'ativar' : 'desativar'} ${user.name}?`,
       acceptLabel: 'Confirmar',

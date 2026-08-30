@@ -1,0 +1,277 @@
+<section class="v2-page">
+  <header class="hero-card">
+    <div>
+      <p class="hero-card__eyebrow">Santa Ceia V2</p>
+      <h1 class="hero-card__title">Eventos de Santa Ceia</h1>
+      <p class="hero-card__subtitle">
+        Fluxo isolado da implementação antiga, com UI nova e comportamento
+        estável.
+      </p>
+    </div>
+
+    <div class="hero-card__metrics">
+      <div class="metric">
+        <span class="metric__label">Eventos</span>
+        <strong class="metric__value">{{ eventsTotalSignal() }}</strong>
+      </div>
+      <div class="metric">
+        <span class="metric__label">Abertos</span>
+        <strong class="metric__value">{{ eventsOpenSignal() }}</strong>
+      </div>
+      @if (averageAttendancePercentSignal() !== null) {
+        <div class="metric">
+          <span class="metric__label">Média de presença</span>
+          <strong class="metric__value"
+            >{{ averageAttendancePercentSignal() }}%</strong
+          >
+        </div>
+      }
+    </div>
+  </header>
+
+  <section class="panel">
+    <div class="panel__header">
+      <div>
+        <h2 class="panel__title">Filtros</h2>
+        <p class="panel__subtitle">
+          Ajuste a listagem sem depender de componentes visuais pesados.
+        </p>
+      </div>
+      <div class="toolbar">
+        <p-button
+          label="Atualizar"
+          icon="pi pi-refresh"
+          severity="secondary"
+          [outlined]="true"
+          [disabled]="eventsStore.isLoadingSignal()"
+          (onClick)="refresh()"
+        />
+        <p-button
+          label="Novo evento"
+          icon="pi pi-plus"
+          (onClick)="openCreateForm()"
+        />
+      </div>
+    </div>
+
+    <div class="filters-grid">
+      <label class="field">
+        <span>{{ eventsStore.congregationLabelSignal() }}</span>
+        <select
+          class="p-inputtext p-component"
+          [ngModel]="eventsStore.selectedCongregationIdSignal() ?? ''"
+          (ngModelChange)="onCongregationChange($event)"
+        >
+          <option value="">Todas</option>
+          @for (congregation of eventsStore.congregationsSignal(); track congregation.id) {
+            <option [value]="congregation.id">{{ congregation.name }}</option>
+          }
+        </select>
+      </label>
+
+      <label class="field">
+        <span>Início</span>
+        <input
+          class="p-inputtext p-component"
+          type="date"
+          [ngModel]="dateInputValue(eventsStore.dateRangeSignal().start)"
+          (ngModelChange)="onStartDateChange($event)"
+        />
+      </label>
+
+      <label class="field">
+        <span>Fim</span>
+        <input
+          class="p-inputtext p-component"
+          type="date"
+          [ngModel]="dateInputValue(eventsStore.dateRangeSignal().end)"
+          (ngModelChange)="onEndDateChange($event)"
+        />
+      </label>
+
+      <label class="field">
+        <span>Status</span>
+        <select
+          class="p-inputtext p-component"
+          [ngModel]="eventsStore.selectedStatusSignal() ?? ''"
+          (ngModelChange)="onStatusChange($event)"
+        >
+          <option value="">Todos</option>
+          <option value="DRAFT">Rascunho</option>
+          <option value="OPEN">Aberto</option>
+          <option value="CLOSED">Fechado</option>
+        </select>
+      </label>
+    </div>
+
+    <div class="toolbar toolbar--end">
+      <p-button
+        label="Limpar filtros"
+        icon="pi pi-filter-slash"
+        severity="secondary"
+        [outlined]="true"
+        (onClick)="clearFilters()"
+      />
+    </div>
+  </section>
+
+  @if (showCreateFormSignal()) {
+    <section class="panel">
+      <div class="panel__header">
+        <div>
+          <h2 class="panel__title">Novo evento</h2>
+          <p class="panel__subtitle">
+            Estrutura nova da feature com visual alinhado ao PrimeNG.
+          </p>
+        </div>
+        <p-button
+          icon="pi pi-times"
+          [text]="true"
+          [rounded]="true"
+          (onClick)="closeCreateForm()"
+        />
+      </div>
+
+      <div class="filters-grid">
+        <label class="field">
+          <span>{{ eventsStore.congregationLabelSignal() }}</span>
+          <select
+            class="p-inputtext p-component"
+            [ngModel]="createCongregationIdSignal()"
+            (ngModelChange)="createCongregationIdSignal.set($event)"
+          >
+            <option value="">Selecione</option>
+            @for (congregation of eventsStore.congregationsSignal(); track congregation.id) {
+              <option [value]="congregation.id">{{ congregation.name }}</option>
+            }
+          </select>
+        </label>
+
+        <label class="field">
+          <span>Data do evento</span>
+          <input
+            class="p-inputtext p-component"
+            type="date"
+            [ngModel]="createEventDateSignal()"
+            (ngModelChange)="createEventDateSignal.set($event)"
+          />
+        </label>
+      </div>
+
+      @if (eventsStore.createErrorMessageSignal(); as errorMessage) {
+        <p class="inline-error">{{ errorMessage }}</p>
+      }
+
+      <div class="toolbar toolbar--end">
+        <p-button
+          label="Cancelar"
+          severity="secondary"
+          [outlined]="true"
+          (onClick)="closeCreateForm()"
+        />
+        <p-button
+          [label]="eventsStore.isCreatingSignal() ? 'Criando...' : 'Criar evento'"
+          icon="pi pi-check"
+          [disabled]="eventsStore.isCreatingSignal()"
+          (onClick)="createEvent()"
+        />
+      </div>
+    </section>
+  }
+
+  <section class="panel">
+    <div class="panel__header">
+      <div>
+        <h2 class="panel__title">Eventos</h2>
+        <p class="panel__subtitle">
+          Mostrando até {{ pageSize }} eventos da listagem filtrada.
+        </p>
+      </div>
+    </div>
+
+    @if (eventsStore.isLoadingSignal()) {
+      <div class="empty-state">
+        <p-progressspinner styleClass="v2-spinner" strokeWidth="4" />
+        <p>Carregando eventos...</p>
+      </div>
+    } @else if (eventsStore.listErrorMessageSignal(); as errorMessage) {
+      <div class="empty-state empty-state--error">
+        <p>{{ errorMessage }}</p>
+      </div>
+    } @else if (visibleEventsSignal().length === 0) {
+      <div class="empty-state">
+        <p>Nenhum evento encontrado.</p>
+      </div>
+    } @else {
+      <div class="table-wrapper">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Data</th>
+              <th>{{ eventsStore.congregationLabelSignal() }}</th>
+              <th>Status</th>
+              <th>Presença</th>
+              <th class="actions-column">Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (event of visibleEventsSignal(); track event.id) {
+              <tr>
+                <td>{{ formatDate(event.eventDate) }}</td>
+                <td>{{ event.congregationName }}</td>
+                <td>
+                  <p-tag
+                    [value]="getSituationLabel(event.status)"
+                    [severity]="getSituationSeverity(event.status)"
+                  />
+                </td>
+                <td>{{ getAttendanceText(event) }}</td>
+                <td class="actions-column">
+                  <p-button
+                    icon="pi pi-eye"
+                    [text]="true"
+                    [rounded]="true"
+                    size="small"
+                    (onClick)="viewEvent(event)"
+                  />
+                  @if (event.status === 'DRAFT') {
+                    <p-button
+                      icon="pi pi-download"
+                      [text]="true"
+                      [rounded]="true"
+                      size="small"
+                      [disabled]="eventsStore.isExportingEvent(event.id)"
+                      (onClick)="exportEventPdf(event)"
+                    />
+                  }
+                  @if (canOpen(event)) {
+                    <p-button
+                      icon="pi pi-play"
+                      severity="success"
+                      [text]="true"
+                      [rounded]="true"
+                      size="small"
+                      [disabled]="eventsStore.isUpdatingEvent(event.id)"
+                      (onClick)="openEvent(event)"
+                    />
+                  }
+                  @if (canClose(event)) {
+                    <p-button
+                      icon="pi pi-check-circle"
+                      severity="secondary"
+                      [text]="true"
+                      [rounded]="true"
+                      size="small"
+                      [disabled]="eventsStore.isUpdatingEvent(event.id)"
+                      (onClick)="closeEvent(event)"
+                    />
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </section>
+</section>

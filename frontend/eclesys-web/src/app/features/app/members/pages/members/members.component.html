@@ -70,7 +70,7 @@
       [paginator]="true"
       [rows]="pageSize()"
       [totalRecords]="totalElements()"
-      [rowsPerPageOptions]="[25, 50, 100, 200]"
+      [rowsPerPageOptions]="rowsPerPageOptions"
       [sortField]="sortBy()"
       [sortOrder]="sortDir() === 'asc' ? 1 : -1"
       [loading]="loading()"
@@ -156,7 +156,7 @@
   </div>
 
   <!-- Drawer: visualização do membro -->
-  <p-drawer [(visible)]="viewDrawerVisible" position="right" [style]="{width: '600px'}" [closable]="false" [blockScroll]="true">
+  <p-drawer [(visible)]="viewDrawerVisible" position="right" appendTo="body" [style]="viewDrawerStyle" [closable]="false" [blockScroll]="true">
     <div class="drawer-panel">
       <div class="drawer-panel__header">
         <span class="drawer-panel__title">{{ selectedMember()?.fullName ?? 'Membro' }}</span>
@@ -173,7 +173,7 @@
   </p-drawer>
 
   <!-- Drawer: transferência -->
-  <p-drawer [(visible)]="transferDrawerVisible" position="right" [style]="{width: '560px'}" [closable]="false" [blockScroll]="true">
+  <p-drawer [(visible)]="transferDrawerVisible" position="right" appendTo="body" [style]="transferDrawerStyle" [closable]="false" [blockScroll]="true">
     <div class="drawer-panel">
       <div class="drawer-panel__header">
         <span class="drawer-panel__title">Transferir Membro</span>
@@ -182,7 +182,7 @@
       @if (selectedMember()) {
         <app-transfer-dialog
           [member]="selectedMember()!"
-          (saved)="transferDrawerVisible.set(false); loadMembers(); notificationService.success('Transferência realizada com sucesso')"
+          (saved)="onTransferSaved()"
           (cancelled)="transferDrawerVisible.set(false)"
         />
       }

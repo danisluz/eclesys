@@ -1,4 +1,5 @@
 import {
+  ChangeDetectionStrategy,
   Component,
   Input,
   Output,
@@ -16,8 +17,11 @@ import { DialogModule } from 'primeng/dialog';
   imports: [ReactiveFormsModule, ButtonModule, TextareaModule, DialogModule],
   templateUrl: './attendance-note-dialog.component.html',
   styleUrl: './attendance-note-dialog.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AttendanceNoteDialogComponent implements OnChanges {
+  readonly dialogStyle = { width: '520px' };
+
   @Input() visible = false;
   @Input() memberName = '';
   @Input() note: string | null = null;

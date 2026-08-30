@@ -1,19 +1,23 @@
 import { Component, computed, HostListener, inject, signal } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
-import { Toast } from 'primeng/toast';
-import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { Dialog } from 'primeng/dialog';
+import { ButtonModule } from 'primeng/button';
 import { AuthStore } from '../../auth/auth.store';
 import { UserAvatarComponent } from '../../../shared/ui/user-avatar/user-avatar.component';
+import { AppConfirmService } from '../../services/app-confirm.service';
+import { AppNotificationCenterComponent } from '../../../shared/ui/app-notification-center/app-notification-center.component';
 
 @Component({
   standalone: true,
   selector: 'app-app-shell',
-  imports: [RouterLink, RouterLinkActive, RouterOutlet, UserAvatarComponent, Toast, ConfirmDialogModule],
+  imports: [RouterLink, RouterLinkActive, RouterOutlet, UserAvatarComponent, AppNotificationCenterComponent, Dialog, ButtonModule],
   templateUrl: './app-shell.component.html',
   styleUrl: './app-shell.component.scss',
 })
 export class AppShellComponent {
   authStore = inject(AuthStore);
+  readonly confirmService = inject(AppConfirmService);
+  readonly confirmDialogStyle = { width: '28rem' };
 
   userMenuOpen = signal(false);
 

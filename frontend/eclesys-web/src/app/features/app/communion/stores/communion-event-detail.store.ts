@@ -14,14 +14,24 @@ import {
 } from '../../../../shared/api/organization-unit.model';
 import { firstValueFrom } from 'rxjs';
 
+interface AttendanceOverride {
+  status: AttendanceStatus;
+  note: string | null;
+}
+
 @Injectable({ providedIn: 'root' })
 export class CommunionEventDetailStore {
   private communionApi = inject(CommunionApiService);
   private organizationsService = inject(OrganizationsService);
 
   eventSignal = signal<CommunionEvent | null>(null);
-  membersSignal = signal<CommunionMemberAttendance[]>([]);
-  membersOriginalSignal = signal<CommunionMemberAttendance[]>([]);
+
+  // Base list: fixed after load, reflects the last saved state
+  private membersBaseSignal = signal<CommunionMemberAttendance[]>([]);
+
+  // Only the pending changes made since last save
+  private overridesSignal = signal<Record<string, AttendanceOverride>>({});
+
   congregationNameSignal = signal<string | null>(null);
   rootChurchSignal = signal<OrganizationUnit | null>(null);
 
@@ -36,163 +46,161 @@ export class CommunionEventDetailStore {
   memberSearchTermSignal = signal('');
   showOnlyPresentSignal = signal(false);
 
-  private initialPresenceMapSignal = signal<Map<string, boolean>>(new Map());
+  private initialStatusMapSignal = signal<Map<string, AttendanceStatus>>(new Map());
   private initialNoteMapSignal = signal<Map<string, string | null>>(new Map());
-  private initialStatusMapSignal = signal<Map<string, AttendanceStatus>>(
-    new Map(),
-  );
+
   sortStateSignal = signal<{
     active: 'registrationNumber' | 'fullName' | 'status';
     direction: 'asc' | 'desc';
-  }>({
-    active: 'fullName',
-    direction: 'asc',
+  }>({ active: 'fullName', direction: 'asc' });
+
+  // Public: base + overrides merged
+  membersSignal = computed(() => {
+    const base = this.membersBaseSignal();
+    const overrides = this.overridesSignal();
+    if (Object.keys(overrides).length === 0) return base;
+    return base.map((m) => {
+      const o = overrides[m.memberId];
+      return o
+        ? { ...m, status: o.status, present: o.status === 'PRESENT', note: o.note }
+        : m;
+    });
   });
 
   isEditingLockedSignal = computed(() => this.eventSignal()?.status !== 'OPEN');
   isClosedSignal = computed(() => this.eventSignal()?.status === 'CLOSED');
-  congregationLabelSignal = computed(() => {
-    return this.rootChurchSignal()?.congregationLabel ?? 'Congregação';
-  });
-  notesEnabledSignal = computed(() => {
-    return this.membersOriginalSignal().some((member) => 'note' in member);
-  });
-  attendanceSummarySignal = computed(() => {
-    const members = this.membersSignal();
-    let present = 0;
-    let absent = 0;
-    let justified = 0;
 
-    for (const member of members) {
-      const status = this.getStatus(member);
-      if (status === 'PRESENT') {
-        present += 1;
-      } else if (status === 'JUSTIFIED') {
-        justified += 1;
-      } else {
-        absent += 1;
-      }
+  congregationLabelSignal = computed(
+    () => this.rootChurchSignal()?.congregationLabel ?? 'Congregação',
+  );
+
+  notesEnabledSignal = computed(() =>
+    this.membersBaseSignal().some((m) => 'note' in m),
+  );
+
+  attendanceSummarySignal = computed(() => {
+    const base = this.membersBaseSignal();
+    const overrides = this.overridesSignal();
+    let present = 0,
+      absent = 0,
+      justified = 0;
+
+    for (const m of base) {
+      const status =
+        overrides[m.memberId]?.status ?? m.status ?? (m.present ? 'PRESENT' : 'ABSENT');
+      if (status === 'PRESENT') present++;
+      else if (status === 'JUSTIFIED') justified++;
+      else absent++;
     }
 
-    return {
-      total: members.length,
-      present,
-      absent,
-      justified,
-    };
+    return { total: base.length, present, absent, justified };
   });
 
-  membersSortedSignal = computed(() => {
-    const members = [...this.membersSignal()];
+  // Sort by name/registration depends only on base — NOT invalidated by overrides (key optimization)
+  // Sort by status needs combined data and will re-sort on every change (acceptable: user chose that view)
+  private membersSortedSignal = computed(() => {
     const { active, direction } = this.sortStateSignal();
     const multiplier = direction === 'desc' ? -1 : 1;
-    members.sort((a, b) => {
-      switch (active) {
-        case 'registrationNumber':
-          return (
-            multiplier *
-            a.registrationNumber.localeCompare(b.registrationNumber)
-          );
-        case 'status': {
-          const order =
-            this.getStatusOrder(this.getStatus(a)) -
-            this.getStatusOrder(this.getStatus(b));
-          return multiplier * order;
-        }
-        case 'fullName':
-        default:
-          return (
-            multiplier *
-            a.fullName.localeCompare(b.fullName, 'pt-BR', {
-              sensitivity: 'base',
-            })
-          );
+
+    if (active === 'status') {
+      const combined = this.membersSignal();
+      return [...combined].sort(
+        (a, b) =>
+          multiplier *
+          (this.getStatusOrder(this.resolveStatus(a)) -
+            this.getStatusOrder(this.resolveStatus(b))),
+      );
+    }
+
+    const base = [...this.membersBaseSignal()];
+    base.sort((a, b) => {
+      if (active === 'registrationNumber') {
+        return multiplier * a.registrationNumber.localeCompare(b.registrationNumber);
       }
+      return multiplier * a.fullName.localeCompare(b.fullName, 'pt-BR', { sensitivity: 'base' });
     });
-    return members;
+    return base;
   });
 
-  filteredMembersSignal = computed(() => {
+  private filteredBaseSignal = computed(() => {
     const term = this.memberSearchTermSignal().trim().toLowerCase();
-    const baseList = this.membersSortedSignal();
-    if (!term) return baseList;
-
-    return baseList.filter((member) => {
-      const name = member.fullName.toLowerCase();
-      const registration = member.registrationNumber.toLowerCase();
-      return name.includes(term) || registration.includes(term);
-    });
+    const sorted = this.membersSortedSignal();
+    if (!term) return sorted;
+    return sorted.filter(
+      (m) =>
+        m.fullName.toLowerCase().includes(term) ||
+        m.registrationNumber.toLowerCase().includes(term),
+    );
   });
 
+  // Applies overrides to the filtered+sorted base list — only this computed is invalidated on P/A/J clicks (default sort)
   tableMembersSignal = computed(() => {
-    const filtered = this.filteredMembersSignal();
-    if (!this.showOnlyPresentSignal()) return filtered;
-    return filtered.filter((member) => member.present);
+    const filtered = this.filteredBaseSignal();
+    const overrides = this.overridesSignal();
+    const hasOverrides = Object.keys(overrides).length > 0;
+    const showOnly = this.showOnlyPresentSignal();
+
+    const members = hasOverrides
+      ? filtered.map((m) => {
+          const o = overrides[m.memberId];
+          return o
+            ? { ...m, status: o.status, present: o.status === 'PRESENT', note: o.note }
+            : m;
+        })
+      : filtered;
+
+    return showOnly ? members.filter((m) => m.present) : members;
   });
 
+  // O(overrides.size) instead of O(all members)
   pendingChangesCountSignal = computed(() => {
-    const initialPresence = this.initialPresenceMapSignal();
-    const initialNotes = this.initialNoteMapSignal();
+    const overrides = this.overridesSignal();
     const initialStatus = this.initialStatusMapSignal();
+    const initialNotes = this.initialNoteMapSignal();
     const notesEnabled = this.notesEnabledSignal();
-    return this.membersSignal().reduce((count, member) => {
-      const initialValue = initialPresence.get(member.memberId);
-      if (initialValue === undefined) return count;
-      const statusChanged =
-        initialStatus.get(member.memberId) !== this.getStatus(member);
-      const presenceChanged = initialValue !== member.present;
-      if (statusChanged || presenceChanged) return count + 1;
 
-      if (!notesEnabled) return count;
-
-      const initialNote = initialNotes.get(member.memberId) ?? null;
-      const currentNote = member.note ?? null;
-      return initialNote !== currentNote ? count + 1 : count;
-    }, 0);
+    let count = 0;
+    for (const [memberId, override] of Object.entries(overrides)) {
+      if (initialStatus.get(memberId) !== override.status) {
+        count++;
+        continue;
+      }
+      if (notesEnabled && (initialNotes.get(memberId) ?? null) !== (override.note ?? null)) {
+        count++;
+      }
+    }
+    return count;
   });
 
   async loadEvent(eventId: string): Promise<void> {
+    await Promise.resolve();
     this.isLoadingSignal.set(true);
     this.errorMessageSignal.set(null);
     this.memberSearchTermSignal.set('');
     this.showOnlyPresentSignal.set(false);
     this.eventSignal.set(null);
-    this.membersSignal.set([]);
-    this.membersOriginalSignal.set([]);
+    this.membersBaseSignal.set([]);
+    this.overridesSignal.set({});
     this.congregationNameSignal.set(null);
 
     try {
       const response = await this.communionApi.getEvent(eventId);
       this.eventSignal.set(response.event);
-      const members = response.members.map((member) =>
-        this.normalizeMember(member),
-      );
-      this.membersSignal.set(members);
-      this.membersOriginalSignal.set(this.cloneMembers(members));
-      this.congregationNameSignal.set(null);
+      const members = response.members.map((m) => this.normalizeMember(m));
+      this.membersBaseSignal.set(members);
       await Promise.all([
         this.loadCongregationName(response.event.congregationId),
         this.loadOrganizationLabels(),
       ]);
-      this.initialPresenceMapSignal.set(
-        new Map(members.map((member) => [member.memberId, member.present])),
+      this.initialStatusMapSignal.set(
+        new Map(members.map((m) => [m.memberId, this.resolveStatus(m)])),
       );
       this.initialNoteMapSignal.set(
-        new Map(
-          members.map((member) => [member.memberId, member.note ?? null]),
-        ),
-      );
-      this.initialStatusMapSignal.set(
-        new Map(
-          members.map((member) => [member.memberId, this.getStatus(member)]),
-        ),
+        new Map(members.map((m) => [m.memberId, m.note ?? null])),
       );
     } catch (error: any) {
       this.errorMessageSignal.set(
-        this.parseErrorMessage(
-          error,
-          'Não foi possível carregar o evento de Santa Ceia.',
-        ),
+        this.parseErrorMessage(error, 'Não foi possível carregar o evento de Santa Ceia.'),
       );
     } finally {
       this.isLoadingSignal.set(false);
@@ -201,9 +209,7 @@ export class CommunionEventDetailStore {
 
   private async loadCongregationName(congregationId: string): Promise<void> {
     try {
-      const response = await firstValueFrom(
-        this.organizationsService.getById(congregationId),
-      );
+      const response = await firstValueFrom(this.organizationsService.getById(congregationId));
       this.congregationNameSignal.set(response.data?.name ?? null);
     } catch {
       this.congregationNameSignal.set(null);
@@ -212,14 +218,10 @@ export class CommunionEventDetailStore {
 
   private async loadOrganizationLabels(): Promise<void> {
     if (this.rootChurchSignal()) return;
-
     try {
-      const response = await firstValueFrom(
-        this.organizationsService.listAll(),
-      );
+      const response = await firstValueFrom(this.organizationsService.listAll());
       const rootChurch =
-        response.data.find((org) => org.type === OrganizationUnitType.CHURCH) ??
-        null;
+        response.data.find((org) => org.type === OrganizationUnitType.CHURCH) ?? null;
       this.rootChurchSignal.set(rootChurch);
     } catch {
       this.rootChurchSignal.set(null);
@@ -234,54 +236,35 @@ export class CommunionEventDetailStore {
     active: 'registrationNumber' | 'fullName' | 'status',
     direction: 'asc' | 'desc' | '',
   ): void {
-    this.sortStateSignal.set({
-      active,
-      direction: direction === '' ? 'asc' : direction,
-    });
+    this.sortStateSignal.set({ active, direction: direction === '' ? 'asc' : direction });
   }
 
   setShowOnlyPresent(onlyPresent: boolean): void {
     this.showOnlyPresentSignal.set(onlyPresent);
   }
 
-  updatePresence(memberId: string, present: boolean): void {
-    const status: AttendanceStatus = present ? 'PRESENT' : 'ABSENT';
-    this.membersSignal.update((members) =>
-      members.map((member) =>
-        member.memberId === memberId
-          ? {
-              ...member,
-              present,
-              status,
-              note: null,
-            }
-          : member,
-      ),
-    );
-  }
-
+  // O(overrides.size) update — no full array scan
   updateAttendanceStatus(memberId: string, status: AttendanceStatus): void {
-    const present = status === 'PRESENT';
-    this.membersSignal.update((members) =>
-      members.map((member) =>
-        member.memberId === memberId
-          ? {
-              ...member,
-              status,
-              present,
-              note: status === 'JUSTIFIED' ? (member.note ?? null) : null,
-            }
-          : member,
-      ),
-    );
+    const baseNote =
+      this.membersBaseSignal().find((m) => m.memberId === memberId)?.note ?? null;
+    const prevOverride = this.overridesSignal()[memberId];
+
+    this.overridesSignal.update((prev) => ({
+      ...prev,
+      [memberId]: {
+        status,
+        note: status === 'JUSTIFIED' ? (prevOverride?.note ?? baseNote) : null,
+      },
+    }));
   }
 
   updateNote(memberId: string, note: string | null): void {
-    this.membersSignal.update((members) =>
-      members.map((member) =>
-        member.memberId === memberId ? { ...member, note } : member,
-      ),
-    );
+    const current = this.overridesSignal()[memberId];
+    if (!current) return;
+    this.overridesSignal.update((prev) => ({
+      ...prev,
+      [memberId]: { ...current, note },
+    }));
   }
 
   async savePendingChanges(): Promise<number> {
@@ -322,7 +305,6 @@ export class CommunionEventDetailStore {
         event.id,
         registrationNumber,
       );
-
       const updated = this.applyAttendanceRecord(record);
       if (!updated) {
         await this.loadEvent(event.id);
@@ -357,10 +339,7 @@ export class CommunionEventDetailStore {
       return await this.communionApi.getBlankListPdf(event.id);
     } catch (error: any) {
       this.errorMessageSignal.set(
-        this.parseErrorMessage(
-          error,
-          'Não foi possível exportar a lista em branco.',
-        ),
+        this.parseErrorMessage(error, 'Não foi possível exportar a lista em branco.'),
       );
       return null;
     } finally {
@@ -369,34 +348,27 @@ export class CommunionEventDetailStore {
   }
 
   private collectPendingChanges(): AttendanceUpdateItem[] {
-    const initialPresence = this.initialPresenceMapSignal();
-    const initialNotes = this.initialNoteMapSignal();
+    const overrides = this.overridesSignal();
     const initialStatus = this.initialStatusMapSignal();
+    const initialNotes = this.initialNoteMapSignal();
     const notesEnabled = this.notesEnabledSignal();
-    return this.membersSignal()
-      .filter((member) => {
-        const statusChanged =
-          initialStatus.get(member.memberId) !== this.getStatus(member);
-        const presenceChanged =
-          initialPresence.get(member.memberId) !== member.present;
-        if (statusChanged || presenceChanged) return true;
+
+    return Object.entries(overrides)
+      .filter(([memberId, override]) => {
+        if (initialStatus.get(memberId) !== override.status) return true;
         if (!notesEnabled) return false;
-        const initialNote = initialNotes.get(member.memberId) ?? null;
-        const currentNote = member.note ?? null;
-        return initialNote !== currentNote;
+        return (initialNotes.get(memberId) ?? null) !== (override.note ?? null);
       })
-      .map((member) => {
-        const status = this.getStatus(member);
+      .map(([memberId, override]) => {
         const item: AttendanceUpdateItem = {
-          memberId: member.memberId,
-          present: status === 'PRESENT',
-          status,
+          memberId,
+          present: override.status === 'PRESENT',
+          status: override.status,
         };
         if (notesEnabled) {
-          const initialNote = initialNotes.get(member.memberId) ?? null;
-          const currentNote = member.note ?? null;
-          if (initialNote !== currentNote) {
-            item.note = currentNote;
+          const initNote = initialNotes.get(memberId) ?? null;
+          if (initNote !== (override.note ?? null)) {
+            item.note = override.note;
           }
         }
         return item;
@@ -404,59 +376,60 @@ export class CommunionEventDetailStore {
   }
 
   private applyPresenceSnapshot(): void {
-    const map = new Map<string, boolean>();
-    const noteMap = new Map<string, string | null>();
-    const statusMap = new Map<string, AttendanceStatus>();
-    for (const member of this.membersSignal()) {
-      map.set(member.memberId, member.present);
-      noteMap.set(member.memberId, member.note ?? null);
-      statusMap.set(member.memberId, this.getStatus(member));
+    const overrides = this.overridesSignal();
+    if (Object.keys(overrides).length > 0) {
+      this.membersBaseSignal.update((members) =>
+        members.map((m) => {
+          const o = overrides[m.memberId];
+          return o
+            ? { ...m, status: o.status, present: o.status === 'PRESENT', note: o.note }
+            : m;
+        }),
+      );
     }
-    this.initialPresenceMapSignal.set(map);
-    this.initialNoteMapSignal.set(noteMap);
-    this.initialStatusMapSignal.set(statusMap);
-    this.membersOriginalSignal.set(this.cloneMembers(this.membersSignal()));
+    this.overridesSignal.set({});
+
+    const updated = this.membersBaseSignal();
+    this.initialStatusMapSignal.set(
+      new Map(updated.map((m) => [m.memberId, this.resolveStatus(m)])),
+    );
+    this.initialNoteMapSignal.set(
+      new Map(updated.map((m) => [m.memberId, m.note ?? null])),
+    );
   }
 
   private applyAttendanceRecord(record: AttendanceRecordResponse): boolean {
-    let updated = false;
+    const exists = this.membersBaseSignal().some((m) => m.memberId === record.memberId);
+    if (!exists) return false;
 
-    this.membersSignal.update((members) =>
-      members.map((member) => {
-        if (member.memberId !== record.memberId) {
-          return member;
-        }
-        updated = true;
-        const status = record.status ?? (record.present ? 'PRESENT' : 'ABSENT');
-        return {
-          ...member,
-          present: record.present,
-          status,
-          note: record.note ?? member.note ?? null,
-        };
-      }),
+    const status = record.status ?? (record.present ? 'PRESENT' : 'ABSENT');
+
+    this.membersBaseSignal.update((members) =>
+      members.map((m) =>
+        m.memberId === record.memberId
+          ? { ...m, present: record.present, status, note: record.note ?? m.note ?? null }
+          : m,
+      ),
     );
 
-    if (updated) {
-      const initial = new Map(this.initialPresenceMapSignal());
-      initial.set(record.memberId, record.present);
-      this.initialPresenceMapSignal.set(initial);
+    // Remove from overrides — this record is now persisted
+    this.overridesSignal.update((prev) => {
+      const next = { ...prev };
+      delete next[record.memberId];
+      return next;
+    });
 
-      const statusMap = new Map(this.initialStatusMapSignal());
-      const status = record.status ?? (record.present ? 'PRESENT' : 'ABSENT');
-      statusMap.set(record.memberId, status);
-      this.initialStatusMapSignal.set(statusMap);
+    const statusMap = new Map(this.initialStatusMapSignal());
+    statusMap.set(record.memberId, status);
+    this.initialStatusMapSignal.set(statusMap);
 
-      if (this.notesEnabledSignal()) {
-        const initialNotes = new Map(this.initialNoteMapSignal());
-        if (record.note !== undefined) {
-          initialNotes.set(record.memberId, record.note ?? null);
-          this.initialNoteMapSignal.set(initialNotes);
-        }
-      }
+    if (this.notesEnabledSignal() && record.note !== undefined) {
+      const noteMap = new Map(this.initialNoteMapSignal());
+      noteMap.set(record.memberId, record.note ?? null);
+      this.initialNoteMapSignal.set(noteMap);
     }
 
-    return updated;
+    return true;
   }
 
   private async updateEventStatus(
@@ -473,15 +446,11 @@ export class CommunionEventDetailStore {
         nextStatus === 'OPEN'
           ? await this.communionApi.openEvent(event.id)
           : await this.communionApi.closeEvent(event.id);
-
       this.eventSignal.set(updated);
       return updated;
     } catch (error: any) {
       this.errorMessageSignal.set(
-        this.parseErrorMessage(
-          error,
-          'Não foi possível atualizar o status do evento.',
-        ),
+        this.parseErrorMessage(error, 'Não foi possível atualizar o status do evento.'),
       );
       return null;
     } finally {
@@ -497,13 +466,7 @@ export class CommunionEventDetailStore {
     return fallbackMessage;
   }
 
-  private cloneMembers(
-    members: CommunionMemberAttendance[],
-  ): CommunionMemberAttendance[] {
-    return members.map((member) => ({ ...member }));
-  }
-
-  private getStatus(member: CommunionMemberAttendance): AttendanceStatus {
+  private resolveStatus(member: CommunionMemberAttendance): AttendanceStatus {
     return member.status ?? (member.present ? 'PRESENT' : 'ABSENT');
   }
 
@@ -519,10 +482,7 @@ export class CommunionEventDetailStore {
     }
   }
 
-  private normalizeMember(
-    member: CommunionMemberAttendance,
-  ): CommunionMemberAttendance {
-    const status = member.status ?? (member.present ? 'PRESENT' : 'ABSENT');
-    return { ...member, status };
+  private normalizeMember(member: CommunionMemberAttendance): CommunionMemberAttendance {
+    return { ...member, status: member.status ?? (member.present ? 'PRESENT' : 'ABSENT') };
   }
 }

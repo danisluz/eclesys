@@ -30,6 +30,7 @@ import { NotificationService } from '../../../../../shared/services/notification
 export class FunctionRolesComponent implements OnInit {
   private readonly service = inject(FunctionRolesService);
   private readonly notificationService = inject(NotificationService);
+  readonly drawerStyle = { width: '480px' };
 
   roles = signal<FunctionRole[]>([]);
   loading = signal(true);

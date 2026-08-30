@@ -1,4 +1,14 @@
-import { Component, DestroyRef, computed, inject, Input, Output, EventEmitter, OnInit } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  DestroyRef,
+  computed,
+  inject,
+  Input,
+  Output,
+  EventEmitter,
+  OnInit,
+} from '@angular/core';
 import { FormBuilder, FormControl, ReactiveFormsModule, Validators } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AutoCompleteModule, AutoCompleteSelectEvent } from 'primeng/autocomplete';
@@ -19,6 +29,7 @@ import { CommunionEvent } from '../../models/communion.models';
   ],
   templateUrl: './create-communion-event-dialog.component.html',
   styleUrl: './create-communion-event-dialog.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CreateCommunionEventDialogComponent implements OnInit {
   private readonly formBuilder = inject(FormBuilder);

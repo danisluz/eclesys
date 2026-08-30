@@ -54,6 +54,9 @@ export class MembersComponent implements OnInit {
   readonly router = inject(Router);
 
   @ViewChild('membersTable') membersTable?: Table;
+  readonly rowsPerPageOptions = [25, 50, 100, 200];
+  readonly viewDrawerStyle = { width: '600px' };
+  readonly transferDrawerStyle = { width: '560px' };
 
   members = signal<Member[]>([]);
   congregations = signal<OrganizationUnit[]>([]);
@@ -232,6 +235,12 @@ export class MembersComponent implements OnInit {
   openTransferDialog(member: Member) {
     this.selectedMember.set(member);
     this.transferDrawerVisible.set(true);
+  }
+
+  onTransferSaved() {
+    this.transferDrawerVisible.set(false);
+    this.loadMembers();
+    this.notificationService.success('Transferência realizada com sucesso');
   }
 
   openEditDialog(member: Member) {

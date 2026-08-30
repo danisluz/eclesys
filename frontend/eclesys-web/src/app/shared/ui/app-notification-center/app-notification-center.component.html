@@ -1,0 +1,37 @@
+@if (notificationService.notifications().length > 0) {
+  <div class="notification-center" aria-live="polite" aria-atomic="true">
+    @for (
+      notification of notificationService.notifications();
+      track trackById($index, notification)
+    ) {
+      <section
+        class="notification-card"
+        [class.notification-card--success]="notification.severity === 'success'"
+        [class.notification-card--error]="notification.severity === 'error'"
+        [class.notification-card--warn]="notification.severity === 'warn'"
+        [class.notification-card--info]="notification.severity === 'info'"
+        role="status"
+      >
+        <div class="notification-card__icon">
+          <i [class]="iconClass(notification.severity)"></i>
+        </div>
+
+        <div class="notification-card__content">
+          <strong class="notification-card__title">{{ notification.title }}</strong>
+          <p class="notification-card__message">{{ notification.message }}</p>
+        </div>
+
+        @if (notification.closable) {
+          <button
+            type="button"
+            class="notification-card__close"
+            aria-label="Fechar notificação"
+            (click)="dismiss(notification.id)"
+          >
+            <i class="pi pi-times"></i>
+          </button>
+        }
+      </section>
+    }
+  </div>
+}

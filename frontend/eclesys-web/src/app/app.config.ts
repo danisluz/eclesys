@@ -1,10 +1,10 @@
 import { ApplicationConfig } from '@angular/core';
 import { provideRouter } from '@angular/router';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
+import { provideAnimations } from '@angular/platform-browser/animations';
 import { provideEnvironmentNgxMask } from 'ngx-mask';
-import { ConfirmationService, MessageService } from 'primeng/api';
-import { DialogService } from 'primeng/dynamicdialog';
 import { providePrimeNG } from 'primeng/config';
+import { DialogService } from 'primeng/dynamicdialog';
 import { definePreset } from '@primeuix/themes';
 import Aura from '@primeuix/themes/aura';
 
@@ -32,8 +32,7 @@ const EclesysPreset = definePreset(Aura, {
 export const appConfig: ApplicationConfig = {
   providers: [
     provideRouter(routes),
-    MessageService,
-    ConfirmationService,
+    provideAnimations(),
     DialogService,
     provideHttpClient(withInterceptors([authInterceptor])),
     providePrimeNG({
@@ -47,7 +46,6 @@ export const appConfig: ApplicationConfig = {
         overlay: 1000,
         menu: 1000,
         tooltip: 1100,
-        toast: 1200,
       },
     }),
     provideEnvironmentNgxMask(),

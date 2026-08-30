@@ -1,4 +1,9 @@
-import { Component, computed, input } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  input,
+} from '@angular/core';
 import { TagModule } from 'primeng/tag';
 import { CommunionEventStatus } from '../../models/communion.models';
 
@@ -8,6 +13,7 @@ import { CommunionEventStatus } from '../../models/communion.models';
   imports: [TagModule],
   templateUrl: './communion-status-chip.component.html',
   styleUrl: './communion-status-chip.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CommunionStatusChipComponent {
   statusSignal = input.required<CommunionEventStatus>();

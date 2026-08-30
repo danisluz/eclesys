@@ -20,6 +20,7 @@ import { OrganizationUnit } from '../../../../../shared/api/organization-unit.mo
 export class MemberViewDialogComponent implements OnInit {
   private readonly service = inject(MembersService);
   private readonly organizationsService = inject(OrganizationsService);
+  readonly transfersTableStyle = { 'min-width': '50rem' };
 
   @Input() member!: Member;
   @Output() editRequested = new EventEmitter<Member>();

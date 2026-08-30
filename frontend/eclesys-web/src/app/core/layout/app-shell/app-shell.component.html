@@ -1,55 +1,74 @@
-<p-toast position="top-center" [breakpoints]="{'640px': {width: '95vw'}}" />
-<p-confirmdialog />
-
 <div class="app-layout">
-
   <!-- ─── SIDEBAR ─── -->
   <aside class="sidebar">
-
     <div class="sidebar-header">
       @if (tenantLogoUrl(); as logo) {
         <img [src]="logo" alt="Logo da igreja" class="sidebar-tenant-logo" />
         <span class="sidebar-brand-sep">|</span>
       }
-      <img src="assets/brand/eclesys-logo-white.svg" alt="ECLESYS" class="sidebar-logo" />
+      <img
+        src="assets/brand/eclesys-logo-white.svg"
+        alt="ECLESYS"
+        class="sidebar-logo"
+      />
     </div>
 
     <nav class="sidebar-nav">
-
       <div class="nav-section">
         <span class="nav-section-label">Principal</span>
 
-        <a routerLink="/app/dashboard"
-           routerLinkActive="nav-item--active"
-           class="nav-item">
+        <a
+          routerLink="/app/dashboard"
+          routerLinkActive="nav-item--active"
+          class="nav-item"
+        >
           <i class="pi pi-home nav-item__icon"></i>
           <span class="nav-item__label">Dashboard</span>
         </a>
 
-        <a routerLink="/app/members"
-           routerLinkActive="nav-item--active"
-           class="nav-item">
+        <a
+          routerLink="/app/members"
+          routerLinkActive="nav-item--active"
+          class="nav-item"
+        >
           <i class="pi pi-users nav-item__icon"></i>
           <span class="nav-item__label">Membros</span>
         </a>
 
-        <a routerLink="/app/organizations"
-           routerLinkActive="nav-item--active"
-           class="nav-item">
+        <a
+          routerLink="/app/organizations"
+          routerLinkActive="nav-item--active"
+          class="nav-item"
+        >
           <i class="pi pi-sitemap nav-item__icon"></i>
           <span class="nav-item__label">Organizações</span>
         </a>
 
-        <a routerLink="/app/santa-ceia"
-           routerLinkActive="nav-item--active"
-           class="nav-item">
+        <a
+          routerLink="/app/santa-ceia"
+          routerLinkActive="nav-item--active"
+          [routerLinkActiveOptions]="{ exact: true }"
+          class="nav-item"
+        >
           <i class="pi pi-star nav-item__icon"></i>
           <span class="nav-item__label">Santa Ceia</span>
         </a>
 
-        <a routerLink="/app/pending-approvals"
-           routerLinkActive="nav-item--active"
-           class="nav-item">
+        <a
+          routerLink="/app/santa-ceia/v2"
+          routerLinkActive="nav-item--active"
+          [routerLinkActiveOptions]="{ exact: true }"
+          class="nav-item"
+        >
+          <i class="pi pi-sparkles nav-item__icon"></i>
+          <span class="nav-item__label">Santa Ceia V2</span>
+        </a>
+
+        <a
+          routerLink="/app/pending-approvals"
+          routerLinkActive="nav-item--active"
+          class="nav-item"
+        >
           <i class="pi pi-check-square nav-item__icon"></i>
           <span class="nav-item__label">Aprovações</span>
         </a>
@@ -58,40 +77,43 @@
       <div class="nav-section">
         <span class="nav-section-label">Configurações</span>
 
-        <a routerLink="/app/church-roles"
-           routerLinkActive="nav-item--active"
-           class="nav-item">
+        <a
+          routerLink="/app/church-roles"
+          routerLinkActive="nav-item--active"
+          class="nav-item"
+        >
           <i class="pi pi-id-card nav-item__icon"></i>
           <span class="nav-item__label">Cargos Eclesiásticos</span>
         </a>
 
-        <a routerLink="/app/function-roles"
-           routerLinkActive="nav-item--active"
-           class="nav-item">
+        <a
+          routerLink="/app/function-roles"
+          routerLinkActive="nav-item--active"
+          class="nav-item"
+        >
           <i class="pi pi-briefcase nav-item__icon"></i>
           <span class="nav-item__label">Funções</span>
         </a>
 
-        <a routerLink="/app/users"
-           routerLinkActive="nav-item--active"
-           class="nav-item">
+        <a
+          routerLink="/app/users"
+          routerLinkActive="nav-item--active"
+          class="nav-item"
+        >
           <i class="pi pi-user-edit nav-item__icon"></i>
           <span class="nav-item__label">Usuários</span>
         </a>
       </div>
-
     </nav>
 
     <div class="sidebar-footer">
       <div class="sidebar-tenant-name">{{ tenantName() }}</div>
       <div class="sidebar-brand-label">ECLESYS</div>
     </div>
-
   </aside>
 
   <!-- ─── MAIN ─── -->
   <div class="main-area">
-
     <!-- TOPBAR -->
     <header class="topbar">
       <div class="topbar-search">
@@ -101,7 +123,11 @@
 
       <div class="topbar-spacer"></div>
 
-      <button type="button" class="topbar-user" (click)="toggleUserMenu($event)">
+      <button
+        type="button"
+        class="topbar-user"
+        (click)="toggleUserMenu($event)"
+      >
         <app-user-avatar
           [userNameSignal]="meNameSignal()"
           [userEmailSignal]="meEmailSignal()"
@@ -112,20 +138,30 @@
           <span class="topbar-user__name">{{ meNameSignal() }}</span>
           <span class="topbar-user__org">{{ tenantName() }}</span>
         </div>
-        <i class="pi pi-chevron-down topbar-user__chevron"
-           [class.topbar-user__chevron--open]="userMenuOpen()"></i>
+        <i
+          class="pi pi-chevron-down topbar-user__chevron"
+          [class.topbar-user__chevron--open]="userMenuOpen()"
+        ></i>
 
         @if (userMenuOpen()) {
-          <div class="user-menu"
-               (click)="$event.stopPropagation()"
-               (keydown)="$event.stopPropagation()">
-            <a routerLink="/app/profile" class="user-menu__item" (click)="closeUserMenu()">
+          <div
+            class="user-menu"
+            (click)="$event.stopPropagation()"
+            (keydown)="$event.stopPropagation()"
+          >
+            <a
+              routerLink="/app/profile"
+              class="user-menu__item"
+              (click)="closeUserMenu()"
+            >
               <i class="pi pi-user"></i>
               Meu Perfil
             </a>
             <div class="user-menu__divider"></div>
-            <button class="user-menu__item user-menu__item--danger"
-                    (click)="authStore.logout(); closeUserMenu()">
+            <button
+              class="user-menu__item user-menu__item--danger"
+              (click)="authStore.logout(); closeUserMenu()"
+            >
               <i class="pi pi-sign-out"></i>
               Sair
             </button>
@@ -138,6 +174,35 @@
     <main class="content">
       <router-outlet />
     </main>
-
   </div>
 </div>
+
+<app-notification-center />
+
+@let confirm = confirmService.state();
+@if (confirm) {
+  <p-dialog
+    [visible]="true"
+    [header]="confirm.header"
+    [modal]="true"
+    [draggable]="false"
+    [resizable]="false"
+    [closable]="false"
+    [style]="confirmDialogStyle"
+    [appendTo]="'body'"
+  >
+    <p class="confirm-dialog__message">{{ confirm.message }}</p>
+    <ng-template pTemplate="footer">
+      <p-button
+        [label]="confirm.rejectLabel"
+        severity="secondary"
+        [outlined]="true"
+        (onClick)="confirmService.onReject()"
+      />
+      <p-button
+        [label]="confirm.acceptLabel"
+        (onClick)="confirmService.onAccept()"
+      />
+    </ng-template>
+  </p-dialog>
+}

@@ -1,0 +1,97 @@
+:host {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9999;
+  pointer-events: none;
+}
+
+.notification-center {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: min(92vw, 520px);
+}
+
+.notification-card {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 14px;
+  align-items: start;
+  padding: 16px 18px;
+  border-radius: 14px;
+  border: 1px solid transparent;
+  box-shadow: 0 20px 45px rgba(15, 23, 42, 0.12);
+  background: #fff;
+  pointer-events: auto;
+}
+
+.notification-card--success {
+  background: #f0fdf4;
+  border-color: #bbf7d0;
+  color: #166534;
+}
+
+.notification-card--error {
+  background: #fef2f2;
+  border-color: #fecaca;
+  color: #991b1b;
+}
+
+.notification-card--warn {
+  background: #fffbeb;
+  border-color: #fde68a;
+  color: #92400e;
+}
+
+.notification-card--info {
+  background: #eff6ff;
+  border-color: #bfdbfe;
+  color: #1d4ed8;
+}
+
+.notification-card__icon {
+  font-size: 1.15rem;
+  line-height: 1;
+  padding-top: 2px;
+}
+
+.notification-card__content {
+  min-width: 0;
+}
+
+.notification-card__title {
+  display: block;
+  font-size: 1rem;
+  margin-bottom: 6px;
+}
+
+.notification-card__message {
+  margin: 0;
+  color: inherit;
+  font-size: 0.98rem;
+  line-height: 1.45;
+}
+
+.notification-card__close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+.notification-card__close:hover {
+  background: rgba(15, 23, 42, 0.08);
+}
+
+.notification-card__close:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 2px;
+}

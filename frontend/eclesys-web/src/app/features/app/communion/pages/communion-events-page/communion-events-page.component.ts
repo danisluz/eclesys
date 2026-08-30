@@ -1,4 +1,5 @@
 import {
+  ChangeDetectionStrategy,
   Component,
   inject,
   computed,
@@ -8,8 +9,7 @@ import {
 } from '@angular/core';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { ConfirmationService } from 'primeng/api';
-import { DialogService } from 'primeng/dynamicdialog';
+import { AppConfirmService } from '../../../../../core/services/app-confirm.service';
 import { DrawerModule } from 'primeng/drawer';
 import { TableModule, TablePageEvent } from 'primeng/table';
 import { ButtonModule } from 'primeng/button';
@@ -43,19 +43,20 @@ import { NotificationService } from '../../../../../shared/services/notification
   ],
   templateUrl: './communion-events-page.component.html',
   styleUrl: './communion-events-page.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CommunionEventsPageComponent {
-  private readonly dialogService = inject(DialogService);
-  private readonly confirmationService = inject(ConfirmationService);
+  private readonly confirmService = inject(AppConfirmService);
   private readonly router = inject(Router);
   private readonly notificationService = inject(NotificationService);
+  readonly createDrawerStyle = { width: '480px' };
 
   readonly eventsStore = inject(CommunionEventsStore);
 
   pageIndexSignal = signal(0);
   pageSizeSignal = signal(25);
   pageSizeOptions = [25, 50, 100, 200];
-  createDrawerVisible = signal(false);
+  createDrawerVisible = false;
 
   eventsTotalSignal = computed(
     () => this.eventsStore.eventsViewSignal().length,
@@ -100,11 +101,11 @@ export class CommunionEventsPageComponent {
 
   openCreateDrawer(): void {
     this.eventsStore.clearCreateError();
-    this.createDrawerVisible.set(true);
+    this.createDrawerVisible = true;
   }
 
   onEventCreated(createdEvent: CommunionEvent): void {
-    this.createDrawerVisible.set(false);
+    this.createDrawerVisible = false;
     if (createdEvent?.id) {
       this.notificationService.success('Evento criado com sucesso');
       this.router.navigate(['/app/santa-ceia', createdEvent.id]);
@@ -152,59 +153,61 @@ export class CommunionEventsPageComponent {
     this.router.navigate(['/app/santa-ceia', event.id]);
   }
 
-  async openEvent(event: CommunionEventListItem): Promise<void> {
-    const confirmed = await this.openConfirmDialog(
-      'Abrir evento',
-      'Deseja abrir este evento de Santa Ceia? Após aberto, será possível lançar presenças.',
-    );
-    if (!confirmed) return;
-    const updated = await this.eventsStore.openEvent(event.id);
-    if (updated) {
-      this.notificationService.success('Evento aberto com sucesso');
-    } else {
-      this.notificationService.error('Não foi possível abrir o evento');
-    }
+  openEvent(event: CommunionEventListItem): void {
+    this.confirmService.confirm({
+      header: 'Abrir evento',
+      message: 'Deseja abrir este evento de Santa Ceia? Após aberto, será possível lançar presenças.',
+      accept: async () => {
+        const updated = await this.eventsStore.openEvent(event.id);
+        if (updated) {
+          this.notificationService.success('Evento aberto com sucesso');
+        } else {
+          this.notificationService.error('Não foi possível abrir o evento');
+        }
+      },
+    });
   }
 
-  async closeEvent(event: CommunionEventListItem): Promise<void> {
-    const confirmed = await this.openConfirmDialog(
-      'Fechar evento',
-      'Deseja fechar este evento? Após fechado não será possível editar presenças.',
-    );
-    if (!confirmed) return;
-    const updated = await this.eventsStore.closeEvent(event.id);
-    if (updated) {
-      this.notificationService.success('Evento fechado com sucesso');
-    } else {
-      this.notificationService.error('Não foi possível fechar o evento');
-    }
+  closeEvent(event: CommunionEventListItem): void {
+    this.confirmService.confirm({
+      header: 'Fechar evento',
+      message: 'Deseja fechar este evento? Após fechado não será possível editar presenças.',
+      accept: async () => {
+        const updated = await this.eventsStore.closeEvent(event.id);
+        if (updated) {
+          this.notificationService.success('Evento fechado com sucesso');
+        } else {
+          this.notificationService.error('Não foi possível fechar o evento');
+        }
+      },
+    });
   }
 
-  async exportEventPdf(event: CommunionEventListItem): Promise<void> {
-    const confirmed = await this.openConfirmDialog(
-      'Exportar lista',
-      'Deseja gerar o PDF para uso no modo manual?',
-    );
-    if (!confirmed) return;
+  exportEventPdf(event: CommunionEventListItem): void {
+    this.confirmService.confirm({
+      header: 'Exportar lista',
+      message: 'Deseja gerar o PDF para uso no modo manual?',
+      accept: async () => {
+        const result = await this.eventsStore.exportBlankListPdf(event.id);
+        if (!result.blob) {
+          this.notificationService.error(
+            result.errorMessage ?? 'Não foi possível exportar a lista em branco.',
+          );
+          return;
+        }
 
-    const result = await this.eventsStore.exportBlankListPdf(event.id);
-    if (!result.blob) {
-      this.notificationService.error(
-        result.errorMessage ?? 'Não foi possível exportar a lista em branco.',
-      );
-      return;
-    }
+        if (globalThis.window === undefined) return;
 
-    if (globalThis.window === undefined) return;
-
-    const fileName = this.buildPdfFileName(event);
-    const url = URL.createObjectURL(result.blob);
-    const anchor = document.createElement('a');
-    anchor.href = url;
-    anchor.download = fileName;
-    anchor.click();
-    URL.revokeObjectURL(url);
-    this.notificationService.success('Lista exportada com sucesso');
+        const fileName = this.buildPdfFileName(event);
+        const url = URL.createObjectURL(result.blob);
+        const anchor = document.createElement('a');
+        anchor.href = url;
+        anchor.download = fileName;
+        anchor.click();
+        URL.revokeObjectURL(url);
+        this.notificationService.success('Lista exportada com sucesso');
+      },
+    });
   }
 
   canOpen(event: CommunionEventListItem): boolean {
@@ -254,19 +257,6 @@ export class CommunionEventsPageComponent {
     return new Date(date + 'T00:00:00').toLocaleDateString('pt-BR');
   }
 
-  private openConfirmDialog(header: string, message: string): Promise<boolean> {
-    return new Promise((resolve) => {
-      this.confirmationService.confirm({
-        header,
-        message,
-        acceptLabel: 'Confirmar',
-        rejectLabel: 'Cancelar',
-        accept: () => resolve(true),
-        reject: () => resolve(false),
-      });
-    });
-  }
-
   private buildPdfFileName(event: CommunionEventListItem): string {
     const safe = (s: string) =>
       s
@@ -276,5 +266,9 @@ export class CommunionEventsPageComponent {
         .replace(/^-+|-+$/g, '')
         .toLowerCase();
     return `santa-ceia-${safe(event.congregationName ?? '')}-${event.eventDate}.pdf`;
+  }
+
+  closeCreateDrawer(): void {
+    this.createDrawerVisible = false;
   }
 }

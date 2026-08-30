@@ -64,6 +64,8 @@ export class OrganizationsComponent implements OnInit {
   private readonly dialogService = inject(DialogService);
 
   @ViewChild('rowMenu') rowMenu!: Menu;
+  readonly formDrawerStyle = { width: '680px' };
+  readonly hierarchyDrawerStyle = { width: '540px' };
 
   organizations = signal<OrganizationUnit[]>([]);
   isLoading = signal(true);

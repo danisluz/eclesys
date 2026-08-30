@@ -157,7 +157,8 @@
 <p-drawer
   [(visible)]="hierarchyDrawerVisible"
   position="right"
-  [style]="{ width: '680px' }"
+  appendTo="body"
+  [style]="formDrawerStyle"
   [closable]="false"
   [blockScroll]="true"
 >
@@ -184,7 +185,8 @@
 <p-drawer
   [(visible)]="drawerVisible"
   position="right"
-  [style]="{ width: '540px' }"
+  appendTo="body"
+  [style]="hierarchyDrawerStyle"
   [closable]="false"
   [blockScroll]="true"
 >

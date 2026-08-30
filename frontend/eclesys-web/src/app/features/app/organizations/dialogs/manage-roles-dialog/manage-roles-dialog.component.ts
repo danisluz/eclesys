@@ -43,6 +43,7 @@ export class ManageRolesDialogComponent implements OnInit {
   private readonly membersService = inject(MembersService);
   private readonly functionRolesService = inject(FunctionRolesService);
   private readonly notificationService = inject(NotificationService);
+  readonly assignmentsTableStyle = { 'min-width': '30rem' };
 
   isLoading = signal(true);
   isAssigning = signal(false);

@@ -8,4 +8,7 @@ import { RouterLink } from '@angular/router';
   templateUrl: './landing.component.html',
   styleUrls: ['./landing.component.scss'],
 })
-export class LandingComponent {}
+export class LandingComponent {
+  readonly basicPlanQueryParams = { plan: 'BASICO' };
+  readonly proPlanQueryParams = { plan: 'PRO' };
+}

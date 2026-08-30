@@ -2,8 +2,9 @@
   [header]="'Justificativa — ' + memberName"
   [(visible)]="visible"
   (visibleChange)="visibleChange.emit($event)"
+  appendTo="body"
   [modal]="true"
-  [style]="{ width: '520px' }"
+  [style]="dialogStyle"
   [closable]="true"
   (onHide)="closed.emit()"
 >

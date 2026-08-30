@@ -36,6 +36,7 @@ export class ProfileComponent {
   private readonly usersService = inject(UsersService);
   private readonly tenantLogosService = inject(TenantLogosService);
   private readonly notificationService = inject(NotificationService);
+  readonly standaloneNgModelOptions = { standalone: true };
 
   isEditingProfileSignal = signal(false);
   isSavingProfileSignal = signal(false);

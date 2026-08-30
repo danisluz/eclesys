@@ -109,7 +109,8 @@
 <p-drawer
   [(visible)]="createDrawerVisible"
   position="right"
-  [style]="{ width: '520px' }"
+  appendTo="body"
+  [style]="createDrawerStyle"
   [closable]="false"
   [blockScroll]="true"
 >
@@ -129,7 +130,8 @@
   <p-drawer
     [(visible)]="resetPasswordDrawerVisible"
     position="right"
-    [style]="{ width: '480px' }"
+    appendTo="body"
+    [style]="resetPasswordDrawerStyle"
     [closable]="false"
     [blockScroll]="true"
   >
@@ -146,4 +148,3 @@
     </div>
   </p-drawer>
 }
-

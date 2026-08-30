@@ -28,6 +28,7 @@ import { NotificationService } from '../../../../../shared/services/notification
 export class ChurchRolesComponent implements OnInit {
   private readonly service = inject(ChurchRolesService);
   private readonly notificationService = inject(NotificationService);
+  readonly drawerStyle = { width: '480px' };
 
   roles = signal<ChurchRole[]>([]);
   loading = signal(true);

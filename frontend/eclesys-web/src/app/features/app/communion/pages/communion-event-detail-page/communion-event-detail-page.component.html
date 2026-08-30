@@ -2,15 +2,14 @@
   <header class="page__header">
     <div class="page__heading">
       <div class="page-breadcrumb">
-        <p-button
-          icon="pi pi-arrow-left"
-          [text]="true"
-          [rounded]="true"
-          size="small"
-          severity="secondary"
+        <button
+          type="button"
+          class="icon-button icon-button--ghost"
           aria-label="Voltar"
-          (onClick)="goBack()"
-        />
+          (click)="goBack()"
+        >
+          <i class="pi pi-arrow-left"></i>
+        </button>
         <nav class="breadcrumb">
           <a class="breadcrumb-link" routerLink="/app/santa-ceia">Santa Ceia</a>
           <i class="pi pi-chevron-right breadcrumb-separator"></i>
@@ -39,33 +38,38 @@
 
     <div class="page__actions">
       @if (detailStore.eventSignal(); as event) {
-        <p-button
-          label="Abrir"
-          icon="pi pi-play"
-          [outlined]="true"
-          severity="secondary"
+        <button
+          type="button"
+          class="action-button action-button--secondary"
           [disabled]="
             event.status !== 'DRAFT' || detailStore.isStatusUpdatingSignal()
           "
-          (onClick)="openEvent()"
-        />
-        <p-button
-          label="Fechar"
-          icon="pi pi-check-circle"
-          [outlined]="true"
-          severity="secondary"
+          (click)="openEvent()"
+        >
+          <i class="pi pi-play"></i>
+          <span>Abrir</span>
+        </button>
+        <button
+          type="button"
+          class="action-button action-button--secondary"
           [disabled]="
             event.status !== 'OPEN' || detailStore.isStatusUpdatingSignal()
           "
-          (onClick)="closeEvent()"
-        />
+          (click)="closeEvent()"
+        >
+          <i class="pi pi-check-circle"></i>
+          <span>Fechar</span>
+        </button>
         @if (event.status === "DRAFT") {
-          <p-button
-            label="Exportar lista (PDF)"
-            icon="pi pi-download"
+          <button
+            type="button"
+            class="action-button action-button--primary"
             [disabled]="detailStore.isExportingSignal()"
-            (onClick)="exportBlankList()"
-          />
+            (click)="exportBlankList()"
+          >
+            <i class="pi pi-download"></i>
+            <span>Exportar lista (PDF)</span>
+          </button>
         }
       }
     </div>
@@ -143,15 +147,50 @@
 
   <!-- Attendance table card -->
   <div class="card">
+
+    <!-- Quick registration input — only when event is open -->
+    @if (detailStore.eventSignal()?.status === 'OPEN') {
+      <div class="quick-register-bar">
+        <p-iconfield class="quick-register-field">
+          <p-inputicon
+            [class]="detailStore.isMarkingByRegistrationSignal() ? 'pi pi-spin pi-spinner' : 'pi pi-id-card'"
+          />
+          <input
+            #registrationInputEl
+            class="p-inputtext p-component quick-register-input"
+            placeholder="Matrícula — pressione Enter para registrar presença"
+            [value]="registrationInput()"
+            (input)="registrationInput.set($any($event.target).value)"
+            (keydown.enter)="onRegistrationSubmit(registrationInputEl)"
+            [disabled]="detailStore.isMarkingByRegistrationSignal()"
+            autocomplete="off"
+            inputmode="numeric"
+          />
+        </p-iconfield>
+      </div>
+    }
+
     <div class="table-tools">
       <p-iconfield>
         <p-inputicon class="pi pi-search" />
         <input
-          pInputText
+          #searchInputEl
+          class="p-inputtext p-component"
           [value]="detailStore.memberSearchTermSignal()"
           (input)="onMemberSearch($any($event.target).value)"
           placeholder="Buscar por nome ou matrícula"
         />
+        @if (detailStore.memberSearchTermSignal()) {
+          <p-inputicon
+            class="pi pi-times search-clear"
+            (click)="clearSearch(searchInputEl)"
+            (keydown.enter)="clearSearch(searchInputEl)"
+            (keydown.space)="clearSearch(searchInputEl)"
+            tabindex="0"
+            role="button"
+            aria-label="Limpar busca"
+          />
+        }
       </p-iconfield>
 
       <div class="toggle-row">
@@ -160,28 +199,29 @@
           [ngModel]="detailStore.showOnlyPresentSignal()"
           (ngModelChange)="detailStore.setShowOnlyPresent($event)"
         />
-        <label for="showOnlyPresent">Mostrar apenas presentes</label>
+        <label for="showOnlyPresent">Somente presentes</label>
       </div>
 
-      @if (detailStore.pendingChangesCountSignal() > 0) {
-        <div class="pending-chip">
-          {{ detailStore.pendingChangesCountSignal() }} alteração(ões) não
-          salvas
-        </div>
-      }
-
-      <p-button
-        label="Salvar alterações"
-        icon="pi pi-save"
-        [outlined]="true"
-        severity="secondary"
-        [disabled]="
-          detailStore.pendingChangesCountSignal() === 0 ||
-          detailStore.isSavingSignal() ||
-          detailStore.isEditingLockedSignal()
-        "
-        (onClick)="saveChanges()"
-      />
+      <div class="save-area">
+        @if (isAutoSavingSignal() || detailStore.isSavingSignal()) {
+          <span class="save-status save-status--saving">
+            <i class="pi pi-spin pi-spinner"></i> Salvando…
+          </span>
+        } @else if (detailStore.pendingChangesCountSignal() > 0) {
+          <span class="save-status save-status--pending">
+            {{ detailStore.pendingChangesCountSignal() }} alteração(ões) não salvas
+          </span>
+          <button
+            type="button"
+            class="action-button action-button--secondary action-button--small"
+            [disabled]="detailStore.isEditingLockedSignal()"
+            (click)="saveChanges()"
+          >
+            <i class="pi pi-save"></i>
+            <span>Salvar</span>
+          </button>
+        }
+      </div>
     </div>
 
     @if (detailStore.tableMembersSignal().length === 0) {
@@ -197,102 +237,117 @@
         </p>
       </div>
     } @else {
-      <p-table
-        [value]="detailStore.tableMembersSignal()"
-        [sortField]="detailStore.sortStateSignal().active"
-        [sortOrder]="detailStore.sortStateSignal().direction === 'asc' ? 1 : -1"
-        (onSort)="onSortChange($event)"
-        [rowTrackBy]="trackMember"
-        class="p-datatable-sm"
-      >
-        <ng-template pTemplate="header">
-          <tr>
-            <th
-              scope="col"
-              pSortableColumn="registrationNumber"
-              style="width: 130px"
-            >
-              Matrícula <p-sortIcon field="registrationNumber" />
-            </th>
-            <th scope="col" pSortableColumn="fullName">
-              Nome <p-sortIcon field="fullName" />
-            </th>
-            <th scope="col" pSortableColumn="status" style="width: 180px">
-              Presença <p-sortIcon field="status" />
-            </th>
-            @if (detailStore.notesEnabledSignal()) {
-              <th scope="col" style="width: 120px">Justificativa</th>
+      <div class="attendance-table-wrapper">
+        <table class="attendance-table">
+          <thead>
+            <tr>
+              <th scope="col" style="width: 130px">
+                <button
+                  type="button"
+                  class="table-sort-button"
+                  (click)="toggleSort('registrationNumber')"
+                >
+                  <span>Matrícula</span>
+                  <i [class]="sortIcon('registrationNumber')"></i>
+                </button>
+              </th>
+              <th scope="col">
+                <button
+                  type="button"
+                  class="table-sort-button"
+                  (click)="toggleSort('fullName')"
+                >
+                  <span>Nome</span>
+                  <i [class]="sortIcon('fullName')"></i>
+                </button>
+              </th>
+              <th scope="col" style="width: 180px">
+                <button
+                  type="button"
+                  class="table-sort-button"
+                  (click)="toggleSort('status')"
+                >
+                  <span>Presença</span>
+                  <i [class]="sortIcon('status')"></i>
+                </button>
+              </th>
+              @if (detailStore.notesEnabledSignal()) {
+                <th scope="col" style="width: 120px">Justificativa</th>
+              }
+            </tr>
+          </thead>
+          <tbody>
+            @for (member of detailStore.tableMembersSignal(); track member.memberId) {
+              @let status = getAttendanceStatus(member);
+              <tr>
+                <td>
+                  <span class="text-secondary">{{
+                    member.registrationNumber
+                  }}</span>
+                </td>
+                <td>
+                  <span class="member-name">{{ member.fullName }}</span>
+                </td>
+                <td>
+                  <div class="status-toggle">
+                    <button
+                      type="button"
+                      class="status-button"
+                      [class.status-button--active-present]="status === 'PRESENT'"
+                      [disabled]="detailStore.isEditingLockedSignal()"
+                      (click)="updateAttendanceStatus(member, 'PRESENT')"
+                    >
+                      P
+                    </button>
+                    <button
+                      type="button"
+                      class="status-button"
+                      [class.status-button--active-absent]="status === 'ABSENT'"
+                      [disabled]="detailStore.isEditingLockedSignal()"
+                      (click)="updateAttendanceStatus(member, 'ABSENT')"
+                    >
+                      A
+                    </button>
+                    <button
+                      type="button"
+                      class="status-button"
+                      [class.status-button--active-justified]="status === 'JUSTIFIED'"
+                      [disabled]="detailStore.isEditingLockedSignal()"
+                      (click)="updateAttendanceStatus(member, 'JUSTIFIED')"
+                    >
+                      J
+                    </button>
+                  </div>
+                </td>
+                @if (detailStore.notesEnabledSignal()) {
+                  <td>
+                    <button
+                      type="button"
+                      class="icon-button icon-button--ghost"
+                      [attr.title]="getNotePreview(member.note)"
+                      [disabled]="status !== 'JUSTIFIED'"
+                      (click)="openNoteDialog(member)"
+                    >
+                      <i [class]="getNoteButtonIcon(member.note)"></i>
+                    </button>
+                  </td>
+                }
+              </tr>
             }
-          </tr>
-        </ng-template>
-
-        <ng-template pTemplate="body" let-member>
-          @let status = getAttendanceStatus(member);
-          <tr>
-            <td>
-              <span class="text-secondary">{{
-                member.registrationNumber
-              }}</span>
-            </td>
-            <td>
-              <span class="member-name">{{ member.fullName }}</span>
-            </td>
-            <td>
-              <div class="status-toggle">
-                <p-button
-                  label="P"
-                  size="small"
-                  [severity]="status === 'PRESENT' ? 'success' : 'secondary'"
-                  [outlined]="status !== 'PRESENT'"
-                  [disabled]="detailStore.isEditingLockedSignal()"
-                  (onClick)="updateAttendanceStatus(member, 'PRESENT')"
-                />
-                <p-button
-                  label="A"
-                  size="small"
-                  [severity]="status === 'ABSENT' ? 'danger' : 'secondary'"
-                  [outlined]="status !== 'ABSENT'"
-                  [disabled]="detailStore.isEditingLockedSignal()"
-                  (onClick)="updateAttendanceStatus(member, 'ABSENT')"
-                />
-                <p-button
-                  label="J"
-                  size="small"
-                  [severity]="status === 'JUSTIFIED' ? 'warn' : 'secondary'"
-                  [outlined]="status !== 'JUSTIFIED'"
-                  [disabled]="detailStore.isEditingLockedSignal()"
-                  (onClick)="updateAttendanceStatus(member, 'JUSTIFIED')"
-                />
-              </div>
-            </td>
-            @if (detailStore.notesEnabledSignal()) {
-              <td>
-                <p-button
-                  [icon]="member.note ? 'pi pi-file-edit' : 'pi pi-file-plus'"
-                  [text]="true"
-                  [rounded]="true"
-                  size="small"
-                  [pTooltip]="getNotePreview(member.note)"
-                  tooltipPosition="top"
-                  [disabled]="status !== 'JUSTIFIED'"
-                  (onClick)="openNoteDialog(member)"
-                />
-              </td>
-            }
-          </tr>
-        </ng-template>
-      </p-table>
+          </tbody>
+        </table>
+      </div>
     }
   </div>
 </section>
 
-@if (noteDialogMember()) {
+@if (noteDialogMember) {
   <app-attendance-note-dialog
     [(visible)]="noteDialogVisible"
-    [memberName]="noteDialogMember()!.fullName"
-    [note]="noteDialogMember()!.note ?? null"
+    [memberName]="noteDialogMember!.fullName"
+    [note]="noteDialogMember!.note ?? null"
     [canEdit]="!detailStore.isEditingLockedSignal()"
     (saved)="onNoteSaved($event)"
-    (closed)="noteDialogMember.set(null)"
+    (closed)="closeNoteDialog()"
   />
 }

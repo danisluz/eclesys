@@ -63,7 +63,7 @@
                 class="form-field form-field--full"
                 [ngModel]="profileName()"
                 (ngModelChange)="profileName.set($event)"
-                [ngModelOptions]="{ standalone: true }"
+                [ngModelOptions]="standaloneNgModelOptions"
                 autocomplete="off"
                 placeholder="Nome"
               />
@@ -195,7 +195,7 @@
             [type]="isCurrentPasswordVisible() ? 'text' : 'password'"
             [ngModel]="currentPassword()"
             (ngModelChange)="currentPassword.set($event)"
-            [ngModelOptions]="{ standalone: true }"
+            [ngModelOptions]="standaloneNgModelOptions"
             autocomplete="off"
           />
         </div>
@@ -208,7 +208,7 @@
             [type]="isNewPasswordVisible() ? 'text' : 'password'"
             [ngModel]="newPassword()"
             (ngModelChange)="newPassword.set($event)"
-            [ngModelOptions]="{ standalone: true }"
+            [ngModelOptions]="standaloneNgModelOptions"
             autocomplete="off"
           />
         </div>
@@ -221,7 +221,7 @@
             [type]="isConfirmPasswordVisible() ? 'text' : 'password'"
             [ngModel]="confirmNewPassword()"
             (ngModelChange)="confirmNewPassword.set($event)"
-            [ngModelOptions]="{ standalone: true }"
+            [ngModelOptions]="standaloneNgModelOptions"
             autocomplete="off"
           />
           @if (isNewPasswordMismatch()) {

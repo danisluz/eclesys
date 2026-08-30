@@ -17,7 +17,7 @@
   background: #0f172a;
   display: flex;
   flex-direction: column;
-  z-index: 40;
+  z-index: 2;
   overflow: hidden;
 }
 
@@ -131,7 +131,7 @@
 .topbar {
   position: sticky;
   top: 0;
-  z-index: 30;
+  z-index: 2;
   height: 64px;
   background: #ffffff;
   border-bottom: 1px solid #e2e8f0;
@@ -237,7 +237,7 @@
   box-shadow: 0 8px 32px rgba(0 0 0 / 0.1), 0 2px 8px rgba(0 0 0 / 0.06);
   min-width: 190px;
   padding: 6px;
-  z-index: 100;
+  z-index: 20;
 }
 
 .user-menu__item {

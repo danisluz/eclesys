@@ -130,7 +130,7 @@
             <p>Nenhuma transferência registrada</p>
           </div>
         } @else {
-          <p-table [value]="transfers()" [tableStyle]="{'min-width': '50rem'}">
+          <p-table [value]="transfers()" [tableStyle]="transfersTableStyle">
             <ng-template pTemplate="header">
               <tr>
                 <th>Data</th>

@@ -66,7 +66,7 @@
 
         <a
           routerLink="/signup"
-          [queryParams]="{ plan: 'BASICO' }"
+          [queryParams]="basicPlanQueryParams"
           class="mt-8 flex items-center justify-center w-full py-3 rounded-xl border border-slate-300 text-sm font-semibold text-slate-900 hover:bg-slate-50 transition-colors"
         >
           Assinar Básico
@@ -126,7 +126,7 @@
 
         <a
           routerLink="/signup"
-          [queryParams]="{ plan: 'PRO' }"
+          [queryParams]="proPlanQueryParams"
           class="mt-8 flex items-center justify-center gap-2 w-full py-3 rounded-xl bg-indigo-600 text-sm font-semibold text-white hover:bg-indigo-700 transition-colors shadow-sm shadow-indigo-200"
         >
           <i class="pi pi-arrow-right text-xs"></i>
